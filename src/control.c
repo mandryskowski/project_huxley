@@ -1,12 +1,14 @@
 #include "control.h"
+#include "state.h"
 #include <stdio.h>
 
-
-int getBits(int start, int end, int instruction){
-    return (instruction &  ((1 << (start + 1)) - (1 << end))) >> end;
+// Returns bits at the interval <start, end> (interval is closed).
+int getBits(int end, int start, int instruction){
+    return (instruction &  ((1 << (end + 1)) - (1 << start))) >> end;
 }
 
-instructionType getInstruction(int instruction){
+// Returns type of the instruction
+instructionType getInstructionType(int instruction){
     int bitmasks[] = {0b1000, 0b0101, 0b0100, 0b1010};
     int dontCares[] = {0b1110, 0b0111, 0b0101, 0b1110};
     int opcode = getBits(28, 25, instruction);
@@ -20,19 +22,19 @@ instructionType getInstruction(int instruction){
     return type;
 }
 
-void ExecuteInstruction(int instruction, instructionType type){
-    switch (type) {
+void ExecuteInstruction(int instruction, ComputerState *computerState){
+    switch (getInstructionType(instruction)) {
         case IMMEDIATE:
-            //ExecuteImmediate(instruction);
+            //ExecuteImmediate(instruction, computerState);
             break;
         case REGISTER:
-            //ExecuteRegister(instruction);
+            //ExecuteRegister(instruction, computerState);
             break;
         case LOADSTORE:
-            //ExecuteLoadStore(instruction);
+            //ExecuteLoadStore(instruction, computerState);
             break;
         case BRANCH:
-            //ExecuteBranch(instruction);
+            //ExecuteBranch(instruction, computerState);
             break;
         default:
             perror("Incorrect opcode");

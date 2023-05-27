@@ -9,6 +9,6 @@ typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST =
 
 int getBits(int start, int end, int instruction);
 
-instructionType getInstruction(int instruction);
+instructionType getInstructionType(int instruction);
 
 #endif //ARMV8_25_CONTROL_H
