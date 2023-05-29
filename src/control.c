@@ -1,10 +1,11 @@
 #include "control.h"
 #include "state.h"
 #include <stdio.h>
+#include <stdint.h>
 
 // Returns bits at the interval <start, end> (interval is closed).
-int getBits(int end, int start, int instruction){
-    return (instruction &  ((1 << (end + 1)) - (1 << start))) >> end;
+int64_t getBits(int end, int start, int64_t instruction){
+    return (instruction &  ((1ll << (start + 1)) - (1ll << end))) >> end;
 }
 
 // Returns type of the instruction
