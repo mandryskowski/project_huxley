@@ -26,6 +26,7 @@ int32_t read_word_old(unsigned char *buf)
 
 int main(int argc, char **argv) 
 {
+    runTests();
 	FILE* fptr = fopen(argv[1], "r");
 	if(fptr == NULL)
 	{

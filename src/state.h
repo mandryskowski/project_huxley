@@ -16,9 +16,9 @@ struct Pstate
 
 struct ComputerState
 {
-	int registers[31];
+	int64_t registers[31];
 	struct Pstate pstate; // PSTATE flags
-	uint64_t* stack_ptr;
+	uint64_t stack_ptr;
 	uint64_t* PC;
 	char* memory;
 };
