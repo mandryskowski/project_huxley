@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define ZR 0 // Zero register
+
 typedef struct ComputerState ComputerState; // It's irritating to use struct every time...
 
 struct Pstate
@@ -17,7 +19,6 @@ struct ComputerState
 	struct Pstate pstate; // PSTATE flags
 	uint64_t* stack_ptr;
 	uint64_t* PC;
-	uint64_t zr; // Zero register
 };
 
 // to test a flag use e.g. state->pstate->NF given ComputerState* state.
