@@ -3,6 +3,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+int64_t EncodedRegisterValue(ComputerState* computerState, int encodedReg)
+{
+    return (encodedReg == 0b11111) ? (computerState->zr) : (computerState->registers[encodedReg]);
+}
+
+bool MultiplyOperation(const int instruction, ComputerState* computerState,
+                      int ra, int rn, int rm, int rd)
+{
+    // This if should probably be moved to ExecuteRegister.
+    // We should then consider how we'll set flags for this case.
+    if(rd == 0b11111)
+    {
+        fprintf("Load to Zero Register is ignored.\n");
+        return;
+    }
+
+    bool x = getBits(15, 15, instruction);
+    int ra = getBits(10, 14, instruction);
+    const int bitCount = sf ? 64 : 32;
+    
+    const int64_t registerValueA = getBits(0, bitCount, EncodedRegisterValue(computerState, ra));
+    const int64_t registerValueN = EncodedRegisterValue(computerState, rn);
+    const int64_t registerValueM = EncodedRegisterValue(computerState, rm);
+    const int64_t intermediateResult = registerValueN * registerValueM;
+
+    int64_t result = (x) ? (registerValueA - intermediateResult) : (registerValueA + intermediateResult);
+
+    computerState->registers[rd] = getBits(0, bitCount, result);
+}
+
 void ExecuteRegister(int instruction, ComputerState* computerState) {
     
     bool sf = getBits(31, 31, instruction);
@@ -12,37 +43,9 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
     int rn = getBits(5, 9, instruction);
     int rd = getBits(0, 4, instruction);
     
-    if(opr == 0b1000 && opc == 0b00) {
-        //Multiply operation
-        bool x = getBits(15, 15, instruction);
-        int ra = getBits(10, 14, instruction);
-        
-        int64_t registerValueA = (ra == 0b11111) ? computerState -> zr : computerState->registers[ra];
-        int64_t registerValueN = getBits(0, 31, ((rn == 0b11111) ? computerState -> zr : computerState->registers[rn]));
-        int64_t registerValueM = getBits(0, 31, ((rm == 0b11111) ? computerState -> zr : computerState->registers[rm]));
-        int64_t intermediateResult = registerValueN * registerValueM;
-        
-        if(!sf)
-        {
-            registerValueA = getBits(0, 31, registerValueA);
-        }
-
-        int64_t result = (x) ? (registerValueA - intermediateResult) : (registerValueA + intermediateResult);
-
-        //Result assignation
-        if(!sf)
-        {
-            result = getBits(0, 31, result);
-        }
-
-        if(rd == 0b11111)
-        {
-            computerState->zr = result;
-        }
-        else
-        {
-            computerState->registers[rd] = result;
-        }
+    if(opr == 0b1000 && opc == 0b00)
+    {
+        MultiplyOperation(instruction, computerState, ra, rn, rm, rd);
     }
 
     else 
