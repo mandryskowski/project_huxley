@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define ZR 0 // Zero register
+#define MEMORY_SIZE (1<<21) //Size of memory
 
 typedef struct ComputerState ComputerState; // It's irritating to use struct every time...
 

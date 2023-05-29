@@ -1,6 +1,5 @@
 #include "control.h"
 #include "state.h"
-#include <stdio.h>
 
 // Returns bits at the interval <start, end> (interval is closed).
 int getBits(int end, int start, int instruction)
