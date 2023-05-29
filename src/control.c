@@ -1,8 +1,4 @@
 #include "control.h"
-#include "state.h"
-#include "immediateInstruction.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 bool getBit(int pos, int64_t instruction)
 {
@@ -39,12 +35,33 @@ instructionType getInstructionType(int instruction)
     return type;
 }
 
+bool ExecuteSpecialInstruction(int32_t instructionType, ComputerState* computerState) 
+{
+    switch(instructionType) {
+        case 0xd503201f: // NOP
+            computerState->PC += 4;
+            break;
+        case 0x8a000000: // Halt
+            //Send to output file generator
+            generateOutputFile(computerState, OUTPUT_FILE_PATH);
+            exit(0);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+
 void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
 {
 
     //Special instructions
-    if(ExecuteSpecialInstruction(instruction, computerState))
+    if(ExecuteSpecialInstruction(instruction, computerState)) {
+        printf("0");
         return;
+    }
+
+    printf("%x\n", instruction);
 
     //Normal instuctions
     switch (getInstructionType(instruction)) {
@@ -61,24 +78,7 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
             //ExecuteBranch(instruction, computerState);
             break;
         default:
-            fprintf(stderr, "Instruction type: %d is not handled by any function\n", type);
+            fprintf(stderr, "Instruction type: %d is not handled by any function\n", instruction);
             exit(EXIT_FAILURE);
     }
-}
-
-bool ExecuteSpecialInstruction(int32_t instructionType, ComputerState* computerState) 
-{
-    switch(instructionType) {
-        case 0xd503201f: // NOP
-            computerState->PC += 4;
-            break;
-        case 0x8a000000: // Halt
-            //Send to output file generator
-            //generateOutputFile(computerState);
-            exit(0);
-            break;
-        default:
-            return false;
-    }
-    return true;
 }
