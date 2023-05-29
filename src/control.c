@@ -48,7 +48,7 @@ bool ExecuteSpecialInstruction(int32_t instructionType, ComputerState* computerS
             break;
         case 0x8a000000: // Halt
             //Send to output file generator
-            //generateOutputFile(computerState);
+            generateOutputFile(computerState, OUTPUT_FILE_PATH);
             exit(0);
             break;
         default:
@@ -61,8 +61,12 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
 {
 
     //Special instructions
-    if(ExecuteSpecialInstruction(instruction, computerState))
+    if(ExecuteSpecialInstruction(instruction, computerState)) {
+        printf("0");
         return;
+    }
+
+    printf("%x\n", instruction);
 
     //Normal instuctions
     switch (getInstructionType(instruction)) {
@@ -79,7 +83,6 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
             ExecuteBranch(instruction, computerState);
             break;
         default:
-            fprintf(stderr, "Instruction type: UNDEFINED is not handled by any function\n");
             exit(EXIT_FAILURE);
     }
 }

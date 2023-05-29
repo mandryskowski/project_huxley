@@ -6,7 +6,7 @@
 
 #define ZR 0 // Zero register
 #define MEMORY_SIZE (1<<21) //Size of memory
-
+#define OUTPUT_FILE_PATH "../out/output.out"
 typedef struct ComputerState ComputerState; // It's irritating to use struct every time...
 
 struct Pstate
