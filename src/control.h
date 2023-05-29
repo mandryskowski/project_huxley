@@ -1,5 +1,6 @@
 #ifndef ARMV8_25_CONTROL_H
 #define ARMV8_25_CONTROL_H
+#include <stdint.h>
 
 #include <stdint.h>
 #include <stdbool.h>
