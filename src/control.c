@@ -1,4 +1,8 @@
 #include "control.h"
+#include "state.h"
+#include "immediateInstruction.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 bool getBit(int pos, int64_t instruction)
 {
@@ -56,12 +60,8 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
 {
 
     //Special instructions
-    if(ExecuteSpecialInstruction(instruction, computerState)) {
-        printf("0");
+    if(ExecuteSpecialInstruction(instruction, computerState))
         return;
-    }
-
-    printf("%x\n", instruction);
 
     //Normal instuctions
     switch (getInstructionType(instruction)) {

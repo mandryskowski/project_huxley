@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "control.h"
-#include "state.h"
-#include "immediateInstruction.h"
-#include "outputFileGenerator.h"
-
 typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST = BRANCH, UNDEFINED} instructionType;
 
 bool getBit(int pos, int64_t instruction);
