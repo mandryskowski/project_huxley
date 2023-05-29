@@ -61,7 +61,7 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
             //ExecuteBranch(instruction, computerState);
             break;
         default:
-            fprintf(stderr, "Instruction type: %d is not handled by any function\n", type);
+            //fprintf(stderr, "Instruction type: %d is not handled by any function\n", type);
             exit(EXIT_FAILURE);
     }
 }

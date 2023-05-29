@@ -1,8 +1,9 @@
 #include "sdtInstruction.h"
+#include "state.h"
 
 int64_t loadFromMemory(const char* absoluteAddress, bool is64bit)
 {
-	return *(((is64bit) ? (int32_t*) : (int64_t*))absoluteAddress);
+	return is64bit ? (*(int32_t*)absoluteAddress) : (*(int64_t*)absoluteAddress);
 }
 
 
@@ -11,7 +12,7 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 		      bool is64bit, const int rt)
 {
 	const bool L = readBit(22, instruction);
-        const bool U = readBit(24, instruction);
+    const bool U = readBit(24, instruction);
 
 	const int offset = readBits(10, 21, instruction);
 	const int xn = readBits(5, 9, instruction);
@@ -34,7 +35,7 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 	       && readBit(10, instruction)) // Pre/Post-Index
 	{
 		const bool I = readBit(11, instruction);
-		const int simm9 = readBitsSX(12, 20, instruction);		
+		const int simm9 = readBitsSignExt(12, 20, instruction);		
 		assert(simm9 >= -256 && simm9 <= 255);
 		if (I)
 			address += simm9;
@@ -51,7 +52,7 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 
 	if (L)
 	{
-		state->registers[rt] = loadFromMemory(absoluteAddress, bitCount == 64);
+		state->registers[rt] = loadFromMemory(absoluteAddress, is64bit);
 	}
 	else
 	{
@@ -66,11 +67,9 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 
 void loadLiteralInstruction(ComputerState *state, const int64_t instruction, bool is64bit, const int rt)
 {
-	const int32_t simm19 = readBits(5, 23, instruction);
-	state->registers[rt] = loadFromMemory(state->memory + state->PC + signExt(simm19 << 2, 21), is64bit); // 19 bits of simm19 multiplied by 4 (so 21 bits)
+	const int32_t simm19 = readBitsSignExt(5, 23, instruction);
+	state->registers[rt] = loadFromMemory(state->memory + state->PC + simm19 * 4, is64bit);
 }
-
-
 
 void executeSdtInstruction(ComputerState* state, const int64_t instruction)
 {
@@ -89,3 +88,21 @@ void executeSdtInstruction(ComputerState* state, const int64_t instruction)
 	}
 }
 
+void test()
+{
+	char* mem = malloc(256);
+	int64_t* memll = mem + 4;
+	memll = 0x0000000100000001;
+
+
+	printf("0x%x", loadFromMemory(mem + 4, 1));
+	printf("0x%x", loadFromMemory(mem + 4, 0));
+
+
+}
+
+int main()
+{
+	test();
+	return 0;
+}
