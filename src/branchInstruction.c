@@ -52,6 +52,7 @@ void ExecuteBranch(int instruction, ComputerState *computerState){
             break;
         case 0b01:
             offset = condHolds(instruction, computerState) ? getBitsSignExt(5, 23, instruction) << 2 : 0;
+            break;
         default:
             fprintf(stderr, "Unhandled opcode for branch instruction");
             exit(EXIT_FAILURE);
