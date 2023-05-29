@@ -5,14 +5,14 @@
 #include <stdlib.h>
 
 // Returns bits at the interval <start, end> (interval is closed).
-int64_t getBits(int end, int start, int64_t instruction)
+int64_t getBits(int start, int end, int64_t instruction)
 {
-    return (instruction &  ((1 << (end + 1)) - (1 << start))) >> end;
+    return (instruction &  ((1ll << (end + 1)) - (1ll << start))) >> start;
 }
 
-uint64_t getBitsUnsigned(int end, int start, uint64_t instruction)
+uint64_t getBitsUnsigned(int start, int end, uint64_t instruction)
 {
-    return (instruction &  ((1 << (end + 1)) - (1 << start))) >> end;
+    return (instruction &  ((1ull << (end + 1)) - (1ull << start))) >> start;
 }
 
 // Returns type of the instruction
