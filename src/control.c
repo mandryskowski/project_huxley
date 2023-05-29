@@ -2,6 +2,7 @@
 #include "state.h"
 #include "immediateInstruction.h"
 #include "branchInstruction.h"
+#include "outputFileGenerator.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -61,12 +62,8 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
 {
 
     //Special instructions
-    if(ExecuteSpecialInstruction(instruction, computerState)) {
-        printf("0");
+    if(ExecuteSpecialInstruction(instruction, computerState))
         return;
-    }
-
-    printf("%x\n", instruction);
 
     //Normal instuctions
     switch (getInstructionType(instruction)) {
@@ -83,6 +80,7 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
             ExecuteBranch(instruction, computerState);
             break;
         default:
+            perror("Unsolved type of instruction");
             exit(EXIT_FAILURE);
     }
 }
