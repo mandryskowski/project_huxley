@@ -19,6 +19,7 @@ struct ComputerState
 	struct Pstate pstate; // PSTATE flags
 	uint64_t* stack_ptr;
 	uint64_t* PC;
+	char* memory;
 };
 
 // to test a flag use e.g. state->pstate->NF given ComputerState* state.
