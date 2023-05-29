@@ -104,7 +104,8 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
         }
 
         // Assume 11111 is not possible
-        computerState->registers[rd] = result;
+        if (rd != 31)
+            computerState->registers[rd] = result;
     }
     else
     {

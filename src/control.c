@@ -1,6 +1,8 @@
 #include "control.h"
 #include "state.h"
 #include "immediateInstruction.h"
+#include "branchInstruction.h"
+#include "outputFileGenerator.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -39,7 +41,7 @@ instructionType getInstructionType(int instruction)
     return type;
 }
 
-bool ExecuteSpecialInstruction(int32_t instructionType, ComputerState* computerState) 
+bool ExecuteSpecialInstruction(int32_t instructionType, ComputerState* computerState)
 {
     switch(instructionType) {
         case 0xd503201f: // NOP
@@ -75,10 +77,10 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
             //ExecuteLoadStore(instruction, computerState);
             break;
         case BRANCH:
-            //ExecuteBranch(instruction, computerState);
+            ExecuteBranch(instruction, computerState);
             break;
         default:
-            fprintf(stderr, "Instruction type: %d is not handled by any function\n", instruction);
+            perror("Unsolved type of instruction");
             exit(EXIT_FAILURE);
     }
 }
