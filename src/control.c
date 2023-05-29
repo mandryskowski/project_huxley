@@ -4,15 +4,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Returns bits at the interval <start, end> (interval is closed).
-int64_t getBits(int start, int end, int64_t instruction)
+bool getBit(int pos, int64_t instruction)
+{
+    return instruction & (1 << pos);
+}
+
+// Returns bits at the interval <start, end> (interval is closed) and does unsigned extend.
+uint64_t getBits(int start, int end, int64_t instruction)
 {
     return (instruction &  ((1ll << (end + 1)) - (1ll << start))) >> start;
 }
 
-uint64_t getBitsUnsigned(int start, int end, uint64_t instruction)
+int64_t getBitsSignExt(int start, int end, int64_t instruction)
 {
-    return (instruction &  ((1ull << (end + 1)) - (1ull << start))) >> start;
+    const int64_t mask = getBit(end, instruction) ? INT64_MAX : 0ll;
+    return (mask << (end - start)) | getBits(start, end, instruction);
 }
 
 // Returns type of the instruction
