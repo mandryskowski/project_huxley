@@ -6,17 +6,17 @@
 
 int64_t EncodedRegisterValue(ComputerState* computerState, int encodedReg)
 {
-    return (encodedReg == 0b11111) ? (computerState->zr) : (computerState->registers[encodedReg]);
+    return (encodedReg == 0b11111) ? (ZR) : (computerState->registers[encodedReg]);
 }
 
 bool MultiplyOperation(const int instruction, ComputerState* computerState,
-                      int ra, int rn, int rm, int rd)
+                      int rn, int rm, int rd, int sf)
 {
     // This if should probably be moved to ExecuteRegister.
     // We should then consider how we'll set flags for this case.
     if(rd == 0b11111)
     {
-        fprintf("Load to Zero Register is ignored.\n");
+        fprintf(stdout, "Load to Zero Register is ignored.\n");
         return;
     }
 
@@ -45,7 +45,7 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
     
     if(opr == 0b1000 && opc == 0b00)
     {
-        MultiplyOperation(instruction, computerState, ra, rn, rm, rd);
+        MultiplyOperation(instruction, computerState, rn, rm, rd, sf);
     }
 
     else 
@@ -56,8 +56,8 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
 
         //For now hardcoded lsl, will be changed after 1.6 Bitwise Op is implemented
         int64_t op = N ? ~(imm6 << shift) : (imm6 << shift);
-        int64_t registerValue = (rn == 0b11111) ? computerState -> zr : computerState->registers[rn];
-        int64_t registerValueUnsigned = (rn == 0b11111) ? computerState -> zr : computerState->registers[rn];
+        int64_t registerValue = (rn == 0b11111) ? ZR : computerState->registers[rn];
+        int64_t registerValueUnsigned = (rn == 0b11111) ? ZR : computerState->registers[rn];
         int64_t result;
         int64_t resultUnsigned;
 
@@ -122,7 +122,8 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
 
         if(rd == 0b11111)
         {
-            computerState->zr = result;
+            fprintf(stdout, "Load to Zero Register is ignored.\n");
+            return;
         }
         else
         {
