@@ -7,8 +7,10 @@ typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST =
 
 bool getBit(int pos, int64_t instruction);
 uint64_t getBits(int start, int end, int64_t instruction);
-uint64_t getBitsSignExt(int start, int end, int64_t instruction);
+int64_t getBitsSignExt(int start, int end, int64_t instruction);
 
 instructionType getInstructionType(int instruction);
+
+void ExecuteInstruction(int32_t instruction, ComputerState *computerState);
 
 #endif //ARMV8_25_CONTROL_H
