@@ -23,20 +23,25 @@ instructionType getInstructionType(int instruction)
     int opcode = getBits(25, 28, instruction);
     instructionType type = UNDEFINED;
 
-    for (instructionType i = FIRST; i <= LAST; i++){
-        if ((dontCares[i] & opcode) == bitmasks[i]){
+    for (instructionType i = FIRST; i <= LAST; i++)
+    {
+        if ((dontCares[i] & opcode) == bitmasks[i])
+        {
             type = i;
         }
     }
     return type;
 }
 
-void ExecuteInstruction(int instruction, ComputerState *computerState)
+void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
 {
-    instructionType type = getInstructionType(instruction);
 
-    switch (type)
-    {
+    //Special instructions
+    if(ExecuteSpecialInstruction(instruction, computerState))
+        return;
+
+    //Normal instuctions
+    switch (getInstructionType(instruction)) {
         case IMMEDIATE:
             ExecuteImmediate(instruction, computerState);
             break;
@@ -55,3 +60,19 @@ void ExecuteInstruction(int instruction, ComputerState *computerState)
     }
 }
 
+bool ExecuteSpecialInstruction(int32_t instructionType, ComputerState* computerState) 
+{
+    switch(instructionType) {
+        case 0xd503201f: // NOP
+            computerState->PC += 4;
+            break;
+        case 0x8a000000: // Halt
+            //Send to output file generator
+            //generateOutputFile(computerState);
+            exit(0);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}

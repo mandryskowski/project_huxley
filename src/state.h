@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define ZR 0 // Zero register
+#define MEMORY_SIZE (1<<21) //Size of memory
+
 typedef struct ComputerState ComputerState; // It's irritating to use struct every time...
 
 struct Pstate
@@ -17,7 +20,7 @@ struct ComputerState
 	struct Pstate pstate; // PSTATE flags
 	uint64_t stack_ptr;
 	uint64_t* PC;
-	const int64_t zr; // Zero register
+	char* memory;
 };
 
 // to test a flag use e.g. state->pstate->NF given ComputerState* state.
