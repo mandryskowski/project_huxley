@@ -2,6 +2,7 @@
 #define ARMV8_25_CONTROL_H
 #include <stdint.h>
 
+#include "state.h"
 #include <stdint.h>
 #include <stdbool.h>
 typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST = BRANCH, UNDEFINED} instructionType;
