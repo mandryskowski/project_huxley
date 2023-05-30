@@ -1,14 +1,19 @@
-#ifdef ARMV8_25_BITWISEINSTRUCTION_H
+#ifndef ARMV8_25_BITWISEINSTRUCTION_H
 #define ARMV8_25_BITWISEINSTRUCTION_H
 
-#include "state.h"
+typedef struct CarryPair {
+	int64_t shift;
+	int64_t trunc;
+}CarryPair;
 
-int64_t LogicalSL(int* operand, int amount, int mode)
+CarryPair LogicalSL(int* operand, int amount, int truncate);
 
-int64_t LogicalSR(int* operand, int amount, int mode)
+CarryPair LogicalSR(int* operand, int amount, int truncate);
 
-int64_t ArithmeticSR(int* operand, int amount, int mode)
+CarryPair ArithmeticSR(int* operand, int amount, int truncate);
 
-void RotateRight(int* operand, int amount, int mode)
+CarryPair RotateRight(int* operand, int amount, int truncate);
+
+CarryPair ExecuteShift(int shiftType, int *operand, int amount, int truncate);
 
 #endif //ARMV8_25_BITWISEINSTRUCTION_H
