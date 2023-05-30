@@ -2,5 +2,5 @@
 #define SDT_INSTRUCTION_H
 #include "immediateInstruction.h"
 
-void executeSdtInstruction(ComputerState*, const int64_t instruction);
+void ExecuteSdtInstruction(const int64_t instruction, ComputerState *computerState);
 #endif // SDT_INSTRUCTION_H

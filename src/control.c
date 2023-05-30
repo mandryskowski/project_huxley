@@ -2,6 +2,8 @@
 #include "state.h"
 #include "immediateInstruction.h"
 #include "branchInstruction.h"
+#include "registerInstruction.h"
+#include "sdtInstruction.h"
 #include "outputFileGenerator.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,10 +73,10 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
             ExecuteImmediate(instruction, computerState);
             break;
         case REGISTER:
-            //ExecuteRegister(instruction, computerState);
+            ExecuteRegister(instruction, computerState);
             break;
         case LOADSTORE:
-            //ExecuteLoadStore(instruction, computerState);
+            ExecuteSdtInstruction(instruction, computerState);
             break;
         case BRANCH:
             ExecuteBranch(instruction, computerState);

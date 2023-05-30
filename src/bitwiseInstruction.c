@@ -6,11 +6,6 @@
 
 #define MASK (1LL << 32) - 1
 
-typedef struct CarryPair {
-	int64_t shift;
-	int64_t trunc;
-}CarryPair;
-
 CarryPair LogicalSL(int64_t* operand, int amount, int truncate)
 {
   int length = (truncate) ? 32 : 64;

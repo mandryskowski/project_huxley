@@ -80,7 +80,7 @@ void loadLiteralInstruction(ComputerState *state, const int64_t instruction, boo
 	state->registers[rt] = loadFromMemory(state->memory + state->PC + simm19 * 4, is64bit);
 }
 
-void executeSdtInstruction(ComputerState* state, const int64_t instruction)
+void ExecuteSdtInstruction(const int64_t instruction, ComputerState* state)
 {
 	const bool sf = getBit(30, instruction);
 	const bool op = getBit(29, instruction);
