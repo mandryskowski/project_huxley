@@ -69,7 +69,7 @@ CarryPair RotateRight(int64_t *operand, int amount, int truncate)
   return carry;
 }
 
-CarryPair executeShift(int shiftType, int *operand, int amount, int truncate)
+CarryPair ExecuteShift(int shiftType, int64_t *operand, int amount, int truncate)
 {
     switch(shiftType) {
       case 0b00:
@@ -86,6 +86,7 @@ CarryPair executeShift(int shiftType, int *operand, int amount, int truncate)
         break;
       default:
         perror("Invalid shift type");
+	exit(EXIT_FAILURE);
     }
 }
 

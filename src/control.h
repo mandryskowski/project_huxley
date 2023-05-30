@@ -5,6 +5,7 @@
 #include "state.h"
 #include <stdint.h>
 #include <stdbool.h>
+
 typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST = BRANCH, UNDEFINED} instructionType;
 
 bool getBit(int pos, int64_t instruction);

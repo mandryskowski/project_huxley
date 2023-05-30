@@ -16,6 +16,6 @@ CarryPair ArithmeticSR(int64_t* operand, int amount, int truncate);
 
 CarryPair RotateRight(int64_t* operand, int amount, int truncate);
 
-CarryPair ExecuteShift(int64_t shiftType, int *operand, int amount, int truncate);
+CarryPair ExecuteShift(int shiftType, int64_t *operand, int amount, int truncate);
 
 #endif //ARMV8_25_BITWISEINSTRUCTION_H

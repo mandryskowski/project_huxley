@@ -7,10 +7,10 @@ void generateOutputFile(ComputerState *computerState, char *outputFilePath)
     fprintf(fptr, "Registers:\n");
     for(int regIndex = 0; regIndex < 31; regIndex++) 
     {
-        fprintf(fptr, "X%02d = %016x\n", regIndex, computerState -> registers[regIndex]);
+        fprintf(fptr, "X%02d = %016lx\n", regIndex, computerState -> registers[regIndex]);
     }
 
-    fprintf(fptr, "PC = %016x\n", computerState->PC);
+    fprintf(fptr, "PC = %016lx\n", computerState->PC);
 
     fprintf(fptr, "PSTATE : %c%c%c%c\n", 
         ((computerState->pstate.nf) ? 'N' : '-'),
@@ -24,7 +24,7 @@ void generateOutputFile(ComputerState *computerState, char *outputFilePath)
     for(int memAddr = 0; memAddr < MEMORY_SIZE; memAddr++) 
     {
         if(computerState->memory[memAddr])
-            fprintf(fptr, "%08x: %08x\n", computerState->memory[memAddr]);
+            fprintf(fptr, "%08x: %08x\n", memAddr, computerState->memory[memAddr]);
 
     }
     fclose(fptr);

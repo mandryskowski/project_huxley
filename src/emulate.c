@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	FILE* fptr = fopen(argv[1], "r");
 	if(fptr == NULL)
 	{
-		printf("File could not be opened");
+		printf("File could not be opened\n");
 		exit(1);
 	}
 

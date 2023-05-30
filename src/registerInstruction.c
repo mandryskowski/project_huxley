@@ -10,7 +10,7 @@ int64_t EncodedRegisterValue(ComputerState* computerState, int encodedReg)
     return (encodedReg == 0b11111) ? (ZR) : (computerState->registers[encodedReg]);
 }
 
-bool MultiplyOperation(const int instruction, ComputerState* computerState,
+void MultiplyOperation(const int instruction, ComputerState* computerState,
                       int rn, int rm, int rd, int sf)
 {
     // This if should probably be moved to ExecuteRegister.
@@ -52,14 +52,15 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
 
     else // M == 0
     {
-        int shift = getBits(22, 23, instruction);
-        int imm6 = getBits(10, 15, instruction);
-        bool N = getBits(21, 21, instruction);
+        int shiftType = getBits(22, 23, instruction);
+        int shiftAmount = getBits(10, 15, instruction);
+        bool N = getBit(21, instruction);
 
         //For now hardcoded lsl, will be changed after 1.6 Bitwise Op is implemented
-        int64_t op = imm6;
-        ExecuteShift(shift, op, 1, sf);
-        
+        int64_t op = EncodedRegisterValue(computerState, rm);
+        ExecuteShift(shiftType, &op, shiftAmount, sf);
+ 	op = (N) ? (~op) : op;
+
         int64_t registerValue = (rn == 0b11111) ? ZR : computerState->registers[rn];
         int64_t registerValueUnsigned = (rn == 0b11111) ? ZR : computerState->registers[rn];
         int64_t result;

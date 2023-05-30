@@ -23,14 +23,14 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 	const bool L = getBit(22, instruction);
     const bool U = getBit(24, instruction);
 
-	const int offset = getBits(10, 21, instruction);
+	//const int offset = getBits(10, 21, instruction); -unnecessary
 	const int xn = getBits(5, 9, instruction);
 
 	int64_t address = *getRegisterOrSP(state, xn); // transfer address
 
-	if (U) // Unsigned offset	
+	if (U) // Unsigned offset
 	{
-		const int imm12 = getBits(10, 21, instruction);                                         
+		const int imm12 = getBits(10, 21, instruction);
 		address += imm12 * ((is64bit) ? (8) : (4));
 	}
 
@@ -38,12 +38,12 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 	       && getBit(10, instruction)) // Pre/Post-Index
 	{
 		const bool I = getBit(11, instruction);
-		const int simm9 = getBitsSignExt(12, 20, instruction);		
+		const int simm9 = getBitsSignExt(12, 20, instruction);
 		assert(simm9 >= -256 && simm9 <= 255);
 		if (I)
 			address += simm9;
 
-		*getRegisterOrSP(state, xn) += simm9;		
+		*getRegisterOrSP(state, xn) += simm9;
 	}
 
 	else // Register offset
@@ -52,7 +52,7 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 		address += xm;
 	}
 
-	printf("address is %p \n", address);
+	printf("address is %ld \n", address);
 	const char* absoluteAddress = state->memory + address;
 
 	if (L)
@@ -67,7 +67,7 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 		}
 		else
 		{
-			*(int32_t*)(absoluteAddress) = state->registers[rt];	
+			*(int32_t*)(absoluteAddress) = state->registers[rt];
 		}
 	}
 
@@ -121,6 +121,7 @@ int truncBits(int target, int maxBits)
 	return getBits(0, maxBits - 1, target);
 }
 
+/*
 int32_t sdtiTest_genSDTInstruction(bool sf, bool U, bool L, int offset, int xn, int rt)
 {
 	rt = truncBits(rt, 5);
@@ -183,7 +184,7 @@ void sdtiTest_executeSdtInstruction()
 		state->memory = memory;
 		state->registers[23] = 0x1234;
 		state->registers[25] = 0x942424242;
-		executeSdtInstruction(state, sdtiTest_genSDTInstruction(false, true, false, (1 << 12) - 1, 23, 25));
+		ExecuteSdtInstruction(state, sdtiTest_genSDTInstruction(false, true, false, (1 << 12) - 1, 23, 25));
 		assert(*(int32_t*)(state->memory + 0x1234 + (1 << 14) - 4) == 0x42424242);
 		free(state);
 	}
@@ -194,7 +195,7 @@ void sdtiTest_executeSdtInstruction()
 		state->memory = memory;
 		state->registers[21] = 0x4321;
 		*(int64_t*)(state->memory + (1 << 6) + 0x4321) = 0xabcdef76543210;
-		executeSdtInstruction(state, sdtiTest_genSDTInstruction(false, true, true, (1 << 4), 21, 22));
+		ExecuteSdtInstruction(state, sdtiTest_genSDTInstruction(false, true, true, (1 << 4), 21, 22));
 		assert(state->registers[22] == 0x76543210);
 		free(state);
 	}
@@ -205,7 +206,7 @@ void sdtiTest_executeSdtInstruction()
 		state->memory = memory;
 		state->registers[15] = 0x2857;
 		state->registers[16] = 0x2929292956565656;
-		executeSdtInstruction(state, sdtiTest_genSDTInstruction(true, true, false, (1 << 5), 15, 16));
+		ExecuteSdtInstruction(state, sdtiTest_genSDTInstruction(true, true, false, (1 << 5), 15, 16));
 		assert(*(int64_t*)(state->memory + 0x2857 + (1 << 8)) == 0x2929292956565656);
 		free(state);
 	}
@@ -216,7 +217,7 @@ void sdtiTest_executeSdtInstruction()
 		state->memory = memory;
 		state->registers[11] = 0x0cde;
 		*(int64_t*)(state->memory + (1 << 15) - 8 + 0x0cde) = 0xfdecba98765432;
-		executeSdtInstruction(state, sdtiTest_genSDTInstruction(true, true, true, (1 << 12) - 1, 11, 12));
+		ExecuteSdtInstruction(state, sdtiTest_genSDTInstruction(true, true, true, (1 << 12) - 1, 11, 12));
 		assert(state->registers[12] == 0xfdecba98765432);
 		free(state);
 	}
@@ -238,7 +239,7 @@ void sdtiTestSuite()
 	printf("Single Data Transfer OK\n");
 }
 
-/*int main()
+int main()
 {
 	sdtiTestSuite();
 	return 0;

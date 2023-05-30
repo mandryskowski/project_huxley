@@ -43,9 +43,9 @@ instructionType getInstructionType(int instruction)
     return type;
 }
 
-bool ExecuteSpecialInstruction(int32_t instructionType, ComputerState* computerState)
+bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState)
 {
-    switch(instructionType) {
+    switch(instruction) {
         case 0xd503201f: // NOP
             computerState->PC += 4;
             break;
