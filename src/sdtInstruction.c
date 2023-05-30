@@ -203,11 +203,28 @@ void sdtiTest_executeSdtInstruction()
 	{
 		ComputerState *state = calloc(1, sizeof(ComputerState));
 		state->memory = memory;
-		state->registers[15] = 0x9567;
-		state->registers[16] = 0x56565656;
-		//executeSdtInstruction(state, sdtiTest_genSDTInstruction(true, true, false, (1 << 12) - 1, 23, 25));
-		//assert(*(int32_t*)(state->memory + 0x1234 + (1 << 14) - 4) == 0x42424242);
+		state->registers[15] = 0x2857;
+		state->registers[16] = 0x2929292956565656;
+		executeSdtInstruction(state, sdtiTest_genSDTInstruction(true, true, false, (1 << 5), 15, 16));
+		assert(*(int64_t*)(state->memory + 0x2857 + (1 << 8)) == 0x2929292956565656);
 		free(state);
+	}
+
+	// 64-bit unsigned offset load
+	{
+		ComputerState *state = calloc(1, sizeof(ComputerState));
+		state->memory = memory;
+		state->registers[11] = 0x0cde;
+		*(int64_t*)(state->memory + (1 << 15) - 8 + 0x0cde) = 0xfdecba98765432;
+		executeSdtInstruction(state, sdtiTest_genSDTInstruction(true, true, true, (1 << 12) - 1, 11, 12));
+		assert(state->registers[12] == 0xfdecba98765432);
+		free(state);
+	}
+
+	//////////////////
+
+	// Pre-Indexed load
+	{
 	}
 }
 
@@ -221,8 +238,8 @@ void sdtiTestSuite()
 	printf("Single Data Transfer OK\n");
 }
 
-int main()
+/*int main()
 {
 	sdtiTestSuite();
 	return 0;
-}
+}*/
