@@ -43,7 +43,7 @@ instructionType getInstructionType(int instruction)
     return type;
 }
 
-bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState)
+bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState, char* outputFilePath)
 {
     switch(instruction) {
         case 0xd503201f: // NOP
@@ -51,7 +51,7 @@ bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState
             break;
         case 0x8a000000: // Halt
             //Send to output file generator
-            generateOutputFile(computerState, OUTPUT_FILE_PATH);
+            generateOutputFile(computerState, outputFilePath);
             exit(0);
             break;
         default:
@@ -60,11 +60,11 @@ bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState
     return true;
 }
 
-void ExecuteInstruction(int32_t instruction, ComputerState *computerState)
+void ExecuteInstruction(int32_t instruction, ComputerState *computerState, char* outputFilePath)
 {
 
     //Special instructions
-    if(ExecuteSpecialInstruction(instruction, computerState))
+    if(ExecuteSpecialInstruction(instruction, computerState, outputFilePath))
         return;
 
     //Normal instuctions

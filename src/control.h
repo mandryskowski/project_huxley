@@ -14,6 +14,6 @@ int64_t getBitsSignExt(int start, int end, int64_t instruction);
 
 instructionType getInstructionType(int instruction);
 
-void ExecuteInstruction(int32_t instruction, ComputerState *computerState);
+void ExecuteInstruction(int32_t instruction, ComputerState *computerState, char*);
 
 #endif //ARMV8_25_CONTROL_H

@@ -38,13 +38,13 @@ int main(int argc, char **argv)
 	while(read_word(fptr, &word))
 	{
 		printf("now executing: 0x%x\n", word);
-		ExecuteInstruction(word, computerState);
+		ExecuteInstruction(word, computerState, argv[2]);
 		printf("executed instr\n");
 	}
 	printf("emulation finished");
 	//Exception catching: if instruction set does not terminate with halt command,
 	// 					  print final state of the machine
-	generateOutputFile(computerState, OUTPUT_FILE_PATH);
+	generateOutputFile(computerState, argv[2]);
 
 	fclose(fptr);
 	return 0;
