@@ -84,10 +84,10 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
         switch (opc)
         {
             case 0b00:
-                result = op;
+                result = ~op;
                 break;
             case 0b10:
-                result = ~op;
+                result = op;
                 break;
             case  0b11:
                 result = computerState->registers[rd]
@@ -104,7 +104,8 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
         }
 
         // Assume 11111 is not possible
-        computerState->registers[rd] = result;
+        if (rd != 31)
+            computerState->registers[rd] = result;
     }
     else
     {
