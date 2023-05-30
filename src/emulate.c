@@ -6,6 +6,7 @@
 #include "control.h"
 #include "state.h"
 #include "outputFileGenerator.h"
+#include "immediateInstruction.h"
 
 #define BUFSZ 4
 #define BYTESZ 8
@@ -19,6 +20,7 @@ ComputerState* GenerateNewCS()
 {
 	ComputerState* state = calloc(1, sizeof(ComputerState));
 	state->memory = calloc(MEMORY_SIZE, sizeof(char));
+	state->pstate.zf = true;
 	return state;
 }
 
@@ -38,7 +40,7 @@ int main(int argc, char **argv)
 	printf("fsize %d \n", file_size);
 	fread(computerState->memory, sizeof(char), file_size, fptr);
 
-	while(computerState->PC < file_size || 1)
+	while(computerState->PC < file_size)
 	{
 		ExecuteInstruction(*(int32_t*)(computerState->memory + computerState->PC), computerState, argv[2]);
 		printf("executed instr\n");
