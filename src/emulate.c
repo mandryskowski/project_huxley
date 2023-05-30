@@ -19,10 +19,9 @@ ComputerState* GenerateNewCS()
 {
 	return calloc(1, sizeof(ComputerState));
 }
-
+/*
 int main(int argc, char **argv) 
 {
-    runTests();
 	FILE* fptr = fopen(argv[1], "r");
 	if(fptr == NULL)
 	{
@@ -44,4 +43,4 @@ int main(int argc, char **argv)
 
 	fclose(fptr);
 	return 0;
-}
+} */

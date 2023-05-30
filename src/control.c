@@ -1,6 +1,7 @@
 #include "control.h"
 #include "state.h"
 #include "immediateInstruction.h"
+#include "outputFileGenerator.h"
 #include <stdio.h>
 #include <stdlib.h>
 
