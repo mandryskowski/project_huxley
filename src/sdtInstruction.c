@@ -49,7 +49,7 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 	else // Register offset
 	{
 		const int xm = getBits(16, 20, instruction);
-		address += xm;
+		address += *getRegisterOrSP(state, xm);
 	}
 
 	printf("address is %ld \n", address);
