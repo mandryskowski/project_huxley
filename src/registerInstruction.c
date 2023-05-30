@@ -3,6 +3,7 @@
 #include "control.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "immediateInstruction.h"
 
 
 int64_t EncodedRegisterValue(ComputerState* computerState, int encodedReg)
@@ -58,36 +59,19 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
 
         //For now hardcoded lsl, will be changed after 1.6 Bitwise Op is implemented
         int64_t op = EncodedRegisterValue(computerState, rm);
-        ExecuteShift(shiftType, &op, shiftAmount, sf);
- 	op = (N) ? (~op) : op;
+        ExecuteShift(shiftType, &op, shiftAmount, !sf);
+ 	    op = (N) ? (~op) : op;
 
         int64_t registerValue = (rn == 0b11111) ? ZR : computerState->registers[rn];
-        int64_t registerValueUnsigned = (rn == 0b11111) ? ZR : computerState->registers[rn];
         int64_t result;
-        int64_t resultUnsigned;
 
         if((opr & 0b1000) && !(opr & 0b0001)) 
         {
             //if opr matches 1xx0 then it is an arithmetic operation
-        
-            result = getBits(1, 1, opc) ? registerValue - op : registerValue + op;
-            resultUnsigned = getBits(1, 1, opc) ? registerValueUnsigned - op : registerValueUnsigned + op;
-            if(getBits(0, 0, opc))
-            {
-                computerState->pstate.nf = (result < 0);
-                computerState->pstate.zf = (result == 0);
 
-                if(!sf)
-                {
-                    computerState->pstate.cf = ((registerValueUnsigned ^ resultUnsigned) & (op ^ resultUnsigned)) >> 31;
-                    computerState->pstate.vf = (registerValue ^ result) & (op ^ result) & INT32_MIN;
-                }
-                else
-                {
-                    computerState->pstate.cf = ((registerValueUnsigned ^ resultUnsigned) & (op ^ resultUnsigned)) >> 63;
-                    computerState->pstate.vf = (registerValue ^ result) & (op ^ result) & INT64_MIN;
-                }
-            }
+
+            runAddition(sf, opc, rd, op, registerValue, computerState);
+            return;
         }
         else
         {
