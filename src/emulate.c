@@ -18,8 +18,7 @@ bool read_word(FILE *fptr, int32_t *word)
 ComputerState* GenerateNewCS() 
 {
 	ComputerState* state = calloc(1, sizeof(ComputerState));
-	state->memory = malloc(MEMORY_SIZE);
-	memset(state->memory, 0, MEMORY_SIZE);
+	state->memory = calloc(MEMORY_SIZE, sizeof(char));
 	return state;
 }
 
@@ -32,14 +31,18 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	int32_t word;
 	ComputerState *computerState = GenerateNewCS();
-//	fread(&word, 1, 1, fptr);
-	while(read_word(fptr, &word))
+	fseek(fptr, 0, SEEK_END);
+	long file_size = ftell(fptr);
+	fseek(fptr, 0, SEEK_SET);
+	printf("fsize %d \n", file_size);
+	fread(computerState->memory, sizeof(char), file_size, fptr);
+
+	while(computerState->PC < file_size || 1)
 	{
-		printf("now executing: 0x%x\n", word);
-		ExecuteInstruction(word, computerState, argv[2]);
+		ExecuteInstruction(*(int32_t*)(computerState->memory + computerState->PC), computerState, argv[2]);
 		printf("executed instr\n");
+		computerState->PC += 4;
 	}
 	printf("emulation finished");
 	//Exception catching: if instruction set does not terminate with halt command,
@@ -47,5 +50,7 @@ int main(int argc, char **argv)
 	generateOutputFile(computerState, argv[2]);
 
 	fclose(fptr);
+	free(computerState->memory);
+	free(computerState);
 	return 0;
 }

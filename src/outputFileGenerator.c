@@ -22,10 +22,11 @@ void generateOutputFile(ComputerState *computerState, char *outputFilePath)
 
     //Add print memory
     fprintf(fptr, "Non-zero memory:\n");
-    for(int memAddr = 0; memAddr < MEMORY_SIZE; memAddr++) 
+    for(int memAddr = 0; memAddr < MEMORY_SIZE; memAddr+=4) 
     {
-        if(computerState->memory[memAddr])
-            fprintf(fptr, "%08x: %08x\n", memAddr, computerState->memory[memAddr]);
+	uint32_t word = *(uint32_t*)(computerState->memory + memAddr);
+        if(word != 0)
+            fprintf(fptr, "%08x: %08x\n", memAddr, word);//fprintf(fptr, "%08x: %08x\n", memAddr, computerState->memory[memAddr]);
 
     }
     fclose(fptr);

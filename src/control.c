@@ -47,7 +47,6 @@ bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState
 {
     switch(instruction) {
         case 0xd503201f: // NOP
-            computerState->PC += 4;
             break;
         case 0x8a000000: // Halt
             //Send to output file generator
