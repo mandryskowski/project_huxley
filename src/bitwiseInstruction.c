@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
+  
 #define MASK (1LL << 32) - 1
 
 CarryPair LogicalSL(int64_t* operand, int amount, int truncate)
