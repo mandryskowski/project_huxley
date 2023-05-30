@@ -17,12 +17,15 @@ bool read_word(FILE *fptr, int32_t *word)
 
 ComputerState* GenerateNewCS() 
 {
-	return calloc(1, sizeof(ComputerState));
+	ComputerState* state = calloc(1, sizeof(ComputerState));
+	state->memory = malloc(MEMORY_SIZE);
+	memset(state->memory, 0, MEMORY_SIZE);
+	return state;
 }
 
 int main(int argc, char **argv) 
 {
-	FILE* fptr = fopen(argv[1], "r");
+	FILE* fptr = fopen(argv[1], "rb");
 	if(fptr == NULL)
 	{
 		printf("File could not be opened\n");
@@ -31,12 +34,14 @@ int main(int argc, char **argv)
 
 	int32_t word;
 	ComputerState *computerState = GenerateNewCS();
-
+//	fread(&word, 1, 1, fptr);
 	while(read_word(fptr, &word))
 	{
+		printf("now executing: 0x%x\n", word);
 		ExecuteInstruction(word, computerState);
+		printf("executed instr\n");
 	}
-
+	printf("emulation finished");
 	//Exception catching: if instruction set does not terminate with halt command,
 	// 					  print final state of the machine
 	generateOutputFile(computerState, OUTPUT_FILE_PATH);
