@@ -44,7 +44,7 @@ void runAddition(bool sf, int opc, int rd, int64_t op, int64_t registerValue, Co
         computerState->pstate.zf = result == 0;
         if (!sf)
         {
-            computerState->pstate.vf = (registerValue ^ result) & (op ^ result) & INT32_MIN;
+            computerState->pstate.vf = (registerValue ^ result) & ((int32_t)op ^ result) & INT32_MIN;
             computerState->pstate.cf = (registerValueUnsigned > resultUnsigned) || ((uint32_t)op > resultUnsigned);
         }
         else
