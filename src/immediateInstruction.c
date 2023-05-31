@@ -52,6 +52,10 @@ void runAddition(bool sf, int opc, int rd, int64_t op, int64_t registerValue, Co
             computerState->pstate.vf = (registerValue ^ result) & (op ^ result) & INT64_MIN;
             computerState->pstate.cf = (registerValueUnsigned > resultUnsigned) || (op > resultUnsigned);
         }
+	if(op == 0 && result >= 0 && getBit(1, opc))
+	{
+		computerState->pstate.cf = 1;
+	}
     }
 }
 

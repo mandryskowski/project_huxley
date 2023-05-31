@@ -65,8 +65,9 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
         //For now hardcoded lsl, will be changed after 1.6 Bitwise Op is implemented
         int64_t op = getBits(0, bitCount, EncodedRegisterValue(computerState, rm));
         ExecuteShift(shiftType, &op, shiftAmount, sf);
+	//op = getBits(0, bitCount, op);
  	op = (N) ? (~op) : op;
-
+	//op = getBits(0, bitCount, op);
         int64_t registerValue = getBits(0, bitCount, EncodedRegisterValue(computerState, rn));
         int64_t result;
 
