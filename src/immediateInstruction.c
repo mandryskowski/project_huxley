@@ -83,12 +83,10 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
         int64_t imm16 = getBits(5, 20, instruction);
         uint64_t op = imm16 << shift;
         uint64_t result;
-        printf("%d %lld lld\n", opc, op);
 
         switch (opc)
         {
             case 0b00:
-                printf("lule\n");
                 result = ~op;
                 break;
             case 0b10:
