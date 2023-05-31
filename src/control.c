@@ -16,7 +16,9 @@ bool getBit(int pos, int64_t instruction)
 // Returns bits at the interval <start, end> (interval is closed) and does unsigned extend.
 uint64_t getBits(int start, int end, int64_t instruction)
 {
-    return (instruction &  ((1ll << (end + 1)) - (1ll << start))) >> start;
+    if(end != 63)
+        return (instruction &  ((1ll << (end + 1)) - (1ll << start))) >> start;
+    return instruction >> start;
 }
 
 int64_t getBitsSignExt(int start, int end, int64_t instruction)

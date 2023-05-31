@@ -11,28 +11,31 @@ int64_t EncodedRegisterValue(ComputerState* computerState, int encodedReg)
 }
 
 void MultiplyOperation(const int instruction, ComputerState* computerState,
-                      int rn, int rm, int rd, int sf)
+                      int rn, int rm, int rd, bool sf)
 {
     // This if should probably be moved to ExecuteRegister.
     // We should then consider how we'll set flags for this case.
+
+    bool x = getBit(15, instruction);
+    int ra = getBits(10, 14, instruction);
+    const int bitCount = (sf) ? 63 : 31;
+
+    const int64_t registerValueA = getBits(0, bitCount, EncodedRegisterValue(computerState, ra));
+    const int64_t registerValueN = getBits(0, bitCount, EncodedRegisterValue(computerState, rn));
+    const int64_t registerValueM = getBits(0, bitCount, EncodedRegisterValue(computerState, rm));
+    const int64_t intermediateResult = registerValueN * registerValueM;
+
+    int64_t result = (x) ? (registerValueA - intermediateResult) : (registerValueA + intermediateResult);
+
+    result = getBits(0, bitCount, result);
+
     if(rd == 0b11111)
     {
         fprintf(stdout, "Load to Zero Register is ignored.\n");
         return;
     }
 
-    bool x = getBits(15, 15, instruction);
-    int ra = getBits(10, 14, instruction);
-    const int bitCount = sf ? 64 : 32;
-    
-    const int64_t registerValueA = getBits(0, bitCount, EncodedRegisterValue(computerState, ra));
-    const int64_t registerValueN = EncodedRegisterValue(computerState, rn);
-    const int64_t registerValueM = EncodedRegisterValue(computerState, rm);
-    const int64_t intermediateResult = registerValueN * registerValueM;
-
-    int64_t result = (x) ? (registerValueA - intermediateResult) : (registerValueA + intermediateResult);
-
-    computerState->registers[rd] = getBits(0, bitCount, result);
+    computerState->registers[rd] = result;
 }
 
 void ExecuteRegister(int instruction, ComputerState* computerState) {
@@ -48,6 +51,7 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
     if(M == 1)
     {
         MultiplyOperation(instruction, computerState, rn, rm, rd, sf);
+	return;
     }
 
     else // M == 0
@@ -105,13 +109,6 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
                     break;
                 case 0b11: //ands / bics
                     result = registerValue & op;
-                    //Update flags
-                    {
-                        computerState->pstate.nf = (result < 0);
-                        computerState->pstate.zf = (result == 0);
-                        computerState->pstate.cf = 0;
-                        computerState->pstate.vf = 0;
-                    }
                     break;
                 default:
                     fprintf(stderr, "Unsupported opcode: %d\n", opc);
@@ -124,6 +121,16 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
         {
             result = getBits(0, 31, result);
         }
+	
+	//Update flags
+	if(opc == 0b11)
+	{
+	        computerState->pstate.nf = (result < 0);
+	        computerState->pstate.zf = (result == 0);
+	        computerState->pstate.cf = 0;
+	        computerState->pstate.vf = 0;
+	}
+
 
         if(rd == 0b11111)
         {
@@ -135,6 +142,5 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
             computerState->registers[rd] = result;
         }
     }
-
 
 }
