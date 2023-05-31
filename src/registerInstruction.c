@@ -49,10 +49,10 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
     int rd = getBits(0, 4, instruction);
     bool M = getBit(28, instruction);
     
-    if(M == 1)
+    if (M == 1)
     {
         MultiplyOperation(instruction, computerState, rn, rm, rd, sf);
-	return;
+	    return;
     }
 
     else // M == 0
@@ -72,8 +72,6 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
         if((opr & 0b1000) && !(opr & 0b0001)) 
         {
             //if opr matches 1xx0 then it is an arithmetic operation
-
-
             runAddition(sf, opc, rd, op, registerValue, computerState);
             return;
         }

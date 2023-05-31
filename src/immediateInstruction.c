@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void runAddition(bool sf, int opc, int rd, int64_t op, int64_t registerValue, ComputerState *computerState){
+void runAddition(bool sf, int opc, int rd, int64_t op, int64_t registerValue, ComputerState *computerState)
+{
     uint64_t registerValueUnsigned = registerValue;
     if (!sf)
     {

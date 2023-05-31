@@ -3,57 +3,68 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-  
+
 #define MASK (1LL << 32) - 1
 
-CarryPair LogicalSL(int64_t* operand, int amount, int truncate)
+void LogicalSL(int64_t* operand, int amount, int truncate)
 {
     *operand <<= amount;
-	if (!truncate)
-		*operand = (int32_t)*operand;
+	if (!truncate) {
+        *operand = (int32_t) *operand;
+    }
 }
 
 
-CarryPair LogicalSR(int64_t* operand, int amount, int truncate)
-  {
+void LogicalSR(int64_t* operand, int amount, int truncate)
+{
  	*operand = (uint64_t)*operand >> amount;
 	if (!truncate)
-		*operand = (int32_t)*operand;
-  }
-
-CarryPair ArithmeticSR(int64_t *operand, int amount, int truncate)
- {
-    if(!truncate)
-	*operand = (int32_t)*operand;
-    *operand >>= amount;
-    if (!truncate)
-        *operand = (uint32_t)*operand;
+    {
+        *operand = (int32_t)*operand;
+    }
 }
 
-CarryPair RotateRight(int64_t *operand, int amount, int truncate)
+void ArithmeticSR(int64_t *operand, int amount, int truncate)
+ {
+    if(!truncate)
+    {
+        *operand = (int32_t)*operand;
+    }
+    *operand >>= amount;
+    if (!truncate)
+    {
+        *operand = (uint32_t)*operand;
+    }
+}
+
+void RotateRight(int64_t *operand, int amount, int truncate)
 {
 	if (!truncate)
-	*operand = (uint32_t)*operand;
+    {
+        *operand = (uint32_t)*operand;
+    }
 	*operand = ((uint64_t)*operand >> amount) | (*operand << ((truncate ? 64 : 32) - amount));
 	if(!truncate)
-	*operand = (uint32_t)*operand;
+    {
+        *operand = (uint32_t) *operand;
+    }
 	
 }
 
-CarryPair ExecuteShift(int shiftType, int64_t *operand, int amount, int truncate)
+void ExecuteShift(int shiftType, int64_t *operand, int amount, int truncate)
 {
     switch(shiftType) {
       case 0b00:
-        return LogicalSL(operand, amount, truncate);
+        LogicalSL(operand, amount, truncate);
         break;
       case 0b01:
-        return LogicalSR(operand, amount, truncate);
+        LogicalSR(operand, amount, truncate);
         break;
       case 0b10:
-        return ArithmeticSR(operand, amount, truncate);
+        ArithmeticSR(operand, amount, truncate);
         break;
       case 0b11:
-        return RotateRight(operand, amount, truncate);
+        RotateRight(operand, amount, truncate);
         break;
       default:
         perror("Invalid shift type");
