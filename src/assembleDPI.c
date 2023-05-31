@@ -111,7 +111,7 @@ int32_t assembleDPI(char *c)
 		int rm = getRegister(substr(tokenized[3], 1, strlen(tokenized[3]));
 		setBits(&instruction, rm, 16); //rm
 
-		//TO:DO - find where to get N from
+		setBits(&instruction, ((logicIndex & 1) == 1), 21); //N
 
 		if(strlen(tokenized) > 4) //shift
 		{
