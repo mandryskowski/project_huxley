@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
+#include "assembleDPI.h"
 
 void makeStrLowercase(char* str)
 {
@@ -35,7 +36,7 @@ int main(int argc, char **argv)
 	char* fileStr = malloc(input_file_size);
 	fread(fileStr, sizeof(char), input_file_size, fptr);
 	fclose(fptr); // close input file
-	
+
 	struct Label
 	{
 		char* name;
@@ -84,7 +85,7 @@ int main(int argc, char **argv)
 				memset(str, '\0', len + 1);
 				strncpy(str, curLine, len);
 				makeStrLowercase(str);
-				uint32_t word = 0xD503201F;// assembleInstruction(str);
+				uint32_t word = assembleDPI(str);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));

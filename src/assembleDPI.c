@@ -31,13 +31,16 @@ int32_t assembleDPI(char *c)
 			break;
 		}
 	}
+	printf("ass1\n");
+	printf("%s\n", tokenized[1]);
 
 	if(artmIndex != -1)
 	{
 		//Set destination register and source register
+		printf("ass2\n");
 		int rd = getRegister(substr(tokenized[1], 1, strlen(tokenized[1])));
                 int rn = getRegister(substr(tokenized[2], 1, strlen(tokenized[2])));
-
+		printf("ass3\n");
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
 
@@ -85,6 +88,7 @@ int32_t assembleDPI(char *c)
 
 	char* logic[] = {"and", "bic", "orr", "orn", "eor", "eon", "ands", "bics"};
 	int logicIndex = -1;
+	printf("ass1\n");
 
 	for(int i = 0; i < sizeof(logic) / sizeof(char *); i++)
 	{
@@ -171,3 +175,14 @@ int32_t assembleDPI(char *c)
 
 	return instruction;
 }
+
+//////////////
+//Test cases//
+//////////////
+/*
+int main() {
+	char *c = "add x1, x2, x3";
+	char *d = calloc(100, 1);
+	strcpy(d, c);
+	printf("%x\n", assembleDPI(d));
+}*/
