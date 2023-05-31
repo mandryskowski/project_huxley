@@ -9,7 +9,7 @@
 // Interval is [start, end)
 char *substr(char *string, int start, int end)
 {
-    assert(end < strlen(string) && start >= 0 && start < end);
+    assert(end <= strlen(string) && start >= 0 && start < end);
     char *result = malloc((end - start + 1) * sizeof(char));
     strncpy(result, string + start, end - start);
     result[end - start] = '\0';
