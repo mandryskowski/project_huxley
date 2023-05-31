@@ -5,26 +5,27 @@
 
 int getRegister(char *c)
 {
-	return (strcmp(c, "zr")) ? atoi(c), 0b11111;
+	return (strcmp(c, "zr")) ? atoi(c) : 0b11111;
 }
 
 int32_t assembleDPI(char *c)
 {
 	//PRE: c is all lowercase, Michal please dont forger
 
-	char** tokenized = split(c, DELIMITERS);
+	char** tokenized = split(c);
+
 	int32_t instruction = 0;
 
-	char* shifts[4] = ["lsl", "lsr", "asr", "ror"];
-	char* artm[4] = ["add", "adds", "sub", "subs"];
-	char
+	char* shifts[] = {"lsl", "lsr", "asr", "ror"};
+	char* artm[] = {"add", "adds", "sub", "subs"};
+
 	//Set SF
-	setBits(instruction, (tokenized[1][0] == 'x'), 31);
+	setBits(&instruction, (tokenized[1][0] == 'x') ? 1 : 0, 31);
 
 	int artmIndex = -1;
-	for(int i = 0; i < 4; i++) // Check if is arithmetic instruction
+	for(int i = 0; i < sizeof(shifts) / sizeof(char *); i++) // Check if is arithmetic instruction
 	{
-		if(!strcmp(artm[i], tokenized[0])
+		if(!strcmp(artm[i], tokenized[0]))
 		{
 			artmIndex = i;
 			break;
@@ -48,10 +49,10 @@ int32_t assembleDPI(char *c)
 		{
 			setBits(&instruction, 0b100, 26);
 			setBits(&instruction, 0b010, 23); //opi
-			int imm12 = atoi(substr(tokenized[3], 1, strlen(tokenized[3]));
+			int imm12 = atoi(substr(tokenized[3], 1, strlen(tokenized[3])));
 			setBits(&instruction, imm12, 10); //imm12
 
-			if(strlen(tokenized) > 3 && !strcmp(tokenized[4], "#12")) //shift
+			if(tokenized[4] != NULL && !strcmp(tokenized[5], "#12")) //shift
 			{
 				setBits(&instruction, 0b1, 22); //sh
 			}
@@ -61,10 +62,10 @@ int32_t assembleDPI(char *c)
 		{
 			setBits(&instruction, 0b0101, 25);
 			setBits(&instruction, 0b1000, 21); //opr
-			int rm = getRegister(substr(tokenized[3], 1, strlen(tokenized[3]));
+			int rm = getRegister(substr(tokenized[3], 1, strlen(tokenized[3])));
 			setBits(&instruction, rm, 16); //rm
 
-			if(strlen(tokenized) > 4) //shift
+			if(tokenized[4] != NULL) //shift
 			{
 				char *shiftType = tokenized[4];
 				for(int shiftCode = 0; shiftCode < 4; shiftCode++)
@@ -82,10 +83,10 @@ int32_t assembleDPI(char *c)
 		}
 	}
 
-	char* logic[8] = ["and", "bic", "orr", "orn", "eor", "eon", "ands", "bics"];
+	char* logic[] = {"and", "bic", "orr", "orn", "eor", "eon", "ands", "bics"};
 	int logicIndex = -1;
 
-	for(int i = 0; i < 8; i++)
+	for(int i = 0; i < sizeof(logic) / sizeof(char *); i++)
 	{
 		if(!strcmp(logic[i], tokenized[0]))
 		{
@@ -108,12 +109,12 @@ int32_t assembleDPI(char *c)
 
 		setBits(&instruction, 0b0101, 25);
 		setBits(&instruction, 0b0000, 21); //opr - 0xxx
-		int rm = getRegister(substr(tokenized[3], 1, strlen(tokenized[3]));
+		int rm = getRegister(substr(tokenized[3], 1, strlen(tokenized[3])));
 		setBits(&instruction, rm, 16); //rm
 
 		setBits(&instruction, ((logicIndex & 1) == 1), 21); //N
 
-		if(strlen(tokenized) > 4) //shift
+		if(tokenized[4] != NULL) //shift
 		{
 			char *shiftType = tokenized[4];
 			for(int shiftCode = 0; shiftCode < 4; shiftCode++)
@@ -134,8 +135,8 @@ int32_t assembleDPI(char *c)
 	{
 		int rd = getRegister(substr(tokenized[1], 1, strlen(tokenized[1])));
                 int rn = getRegister(substr(tokenized[2], 1, strlen(tokenized[2])));
-		int rd = getRegister(substr(tokenized[3], 1, strlen(tokenized[3])));
-                int rn = getRegister(substr(tokenized[4], 1, strlen(tokenized[4])));
+		int ra = getRegister(substr(tokenized[3], 1, strlen(tokenized[3])));
+                int rm = getRegister(substr(tokenized[4], 1, strlen(tokenized[4])));
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
 		setBits(&instruction, ra, 10); //ra
@@ -144,10 +145,10 @@ int32_t assembleDPI(char *c)
 		setBits(&instruction, 0b0011011000, 21);
 	}
 
-	char* wMoves[3] = ["movn", "movk", "movn"];
+	char* wMoves[] = {"movn", "movk", "movn"};
 	int movIndex = -1;
 
-	for(int i = 0; i < 3; i++)
+	for(int i = 0; i < sizeof(wMoves) / sizeof(char *); i++)
 	{
 		if(!strcmp(tokenized[0], wMoves[i]))
 		{
