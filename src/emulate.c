@@ -6,6 +6,7 @@
 #include "control.h"
 #include "state.h"
 #include "outputFileGenerator.h"
+#include "immediateInstruction.h"
 
 #define BUFSZ 4
 #define BYTESZ 8

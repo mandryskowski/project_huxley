@@ -16,9 +16,9 @@ bool condHolds(int instruction, ComputerState *computerState)
         case 0b0001:
             return pstate.zf == 0;
         case 0b1010:
-            return pstate.nf == 1;
+            return pstate.nf == pstate.vf;
         case 0b1011:
-            return pstate.nf != 1;
+            return pstate.nf != pstate.vf;
         case 0b1100:
             return pstate.zf == 0 && pstate.nf == pstate.vf;
         case 0b1101:
