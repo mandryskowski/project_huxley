@@ -63,8 +63,8 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
 
         //For now hardcoded lsl, will be changed after 1.6 Bitwise Op is implemented
         int64_t op = EncodedRegisterValue(computerState, rm);
-        ExecuteShift(shiftType, &op, shiftAmount, !sf);
- 	    op = (N) ? (~op) : op;
+        ExecuteShift(shiftType, &op, shiftAmount, sf);
+ 	op = (N) ? (~op) : op;
 
         int64_t registerValue = (rn == 0b11111) ? ZR : computerState->registers[rn];
         int64_t result;

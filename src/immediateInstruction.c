@@ -5,6 +5,11 @@
 
 void runAddition(bool sf, int opc, int rd, int64_t op, int64_t registerValue, ComputerState *computerState)
 {
+	// If subtraction make op negative
+	if (getBits(1, 1, opc))
+	{
+	    op = -op;
+	}
     uint64_t registerValueUnsigned = registerValue;
     if (!sf)
     {
@@ -69,10 +74,10 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
         int64_t registerValue = (rn == 0b11111) ? computerState->stack_ptr : computerState->registers[rn];
 
         // If subtraction make op negative
-        if (getBits(1, 1, opc))
+        /*if (getBits(1, 1, opc))
         {
             op = -op;
-        }
+        }*/
 
         runAddition(sf, opc, rd, op, registerValue, computerState);
     }
