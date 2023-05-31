@@ -35,16 +35,13 @@ int main(int argc, char **argv)
 
 	char* fileStr = malloc(input_file_size);
 	fread(fileStr, sizeof(char), input_file_size, fptr);
-	fclose(fptr); // close input file
+//	fclose(fptr); // close input file
 
 	struct Label
 	{
 		char* name;
 		int64_t address;
-	};
-
-	struct Label labels[128];
-
+	} labels[128];
 	// 1st pass: getting labels' addresses
 	{
 		struct Label* curLabel = labels;
