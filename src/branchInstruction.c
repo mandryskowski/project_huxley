@@ -48,15 +48,15 @@ void ExecuteBranch(int instruction, ComputerState *computerState){
                     fprintf(stderr, "register 31 does not exist");
                     exit(EXIT_FAILURE);
             }
-            offset = computerState->registers[rd] - computerState->stack_ptr;}
+            offset = computerState->registers[rd] - computerState->PC;}
             break;
         case 0b01:
-            offset = condHolds(instruction, computerState) ? getBitsSignExt(5, 23, instruction) << 2 : 0;
+            offset = condHolds(instruction, computerState) ? getBitsSignExt(5, 23, instruction) << 2 : 4;
             break;
         default:
             fprintf(stderr, "Unhandled opcode for branch instruction");
             exit(EXIT_FAILURE);
     }
 
-    computerState->stack_ptr += offset;
+    computerState->PC += offset - 4;
 }

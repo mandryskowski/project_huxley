@@ -8,65 +8,36 @@
 
 CarryPair LogicalSL(int64_t* operand, int amount, int truncate)
 {
-  int length = (truncate) ? 32 : 64;
-  CarryPair carry;
-  carry.shift = getBits(length - amount, length - 1, *operand);
-  carry.trunc = (truncate) ? getBits(32, 63, *operand) : 0;
-  *operand <<= amount;
-  if(truncate)
-  {
-    *operand &= MASK; 
-  }
-  return carry;
+    *operand <<= amount;
+	if (!truncate)
+		*operand = (int32_t)*operand;
 }
 
 
 CarryPair LogicalSR(int64_t* operand, int amount, int truncate)
   {
-    CarryPair carry;
-    carry.shift = getBits(0, amount - 1, *operand);
-    carry.trunc = (truncate) ? getBits(32, 63, *operand) : 0;
-    *operand >>= amount;
-    if(truncate)
-    {
-      *operand &= MASK;
-    }
-    return carry;
+ 	*operand = (uint64_t)*operand >> amount;
+	if (!truncate)
+		*operand = (int32_t)*operand;
   }
 
 CarryPair ArithmeticSR(int64_t *operand, int amount, int truncate)
  {
-   int length = (truncate) ? 32 : 64;
-   int64_t firstbit = getBits(length -1, length -1 , *operand);
-   CarryPair carry;
-   carry.shift = getBits(0, amount - 1, *operand);
-   carry.trunc = (truncate) ? getBits(32, 63, *operand) : 0;
-   *operand >>= amount;
-   if(truncate)
-  {
-     *operand &= MASK;
-  }
-  if(firstbit)
-  {
-  int64_t arithmask = ((1ll << (length)) - (1ll << (length - amount)));
-  *operand |= arithmask;
-  }
-  return carry;
+    if(!truncate)
+	*operand = (int32_t)*operand;
+    *operand >>= amount;
+    if (!truncate)
+        *operand = (uint32_t)*operand;
 }
 
 CarryPair RotateRight(int64_t *operand, int amount, int truncate)
 {
-  int length = (truncate) ? 32 : 64;
-  CarryPair carry;
-  carry.shift = getBits(0, amount - 1, *operand);
-  carry.trunc = (truncate) ? getBits(32, 63, *operand) : 0;
-  *operand >>= amount;
-  if(truncate)
-  {
-    *operand &= MASK;
-  }
-  *operand |= carry.shift << (length - amount);
-  return carry;
+	if (!truncate)
+	*operand = (uint32_t)*operand;
+	*operand = ((uint64_t)*operand >> amount) | (*operand << ((truncate ? 64 : 32) - amount));
+	if(!truncate)
+	*operand = (uint32_t)*operand;
+	
 }
 
 CarryPair ExecuteShift(int shiftType, int64_t *operand, int amount, int truncate)
