@@ -39,7 +39,7 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
 
         if (!sf)
         {
-            result = (int32_t)result;
+            result = (uint32_t)result;
             resultUnsigned = (uint32_t)resultUnsigned;
         }
 
@@ -100,7 +100,7 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
 
         if (!sf)
         {
-            result = (int32_t)result;
+            result = (uint32_t)result;
         }
 
         // Assume 11111 is not possible
