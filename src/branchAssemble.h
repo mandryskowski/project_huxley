@@ -5,7 +5,15 @@
 #include <stdint.h>
 #include "label.h"
 
-int32_t getSimm(char *c, Label* labels);
-int32_t branchOpcode (char *c, Label* labels);
+typedef enum 
+{
+    B_UNCOND,
+    B_REG,
+    B_COND
+} BOperation;
+
+
+int32_t getSimm(char* c, Label* labels);
+int32_t branchOpcode (char** tokenized, Label* labels, BOperation op);
 
 #endif //ARMV8_25_BRANCHASSEMBLE_H

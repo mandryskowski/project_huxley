@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "assembleDPI.h"
+#include "branchAssemble.h"
+#include "label.h"
 #define DELIMETERS " ,"
 
 typedef struct TypePair {
@@ -154,11 +156,14 @@ TypePair *getAssembleType(char *operation)
     if (find(DPops, operation) != -1){
         return newTypePair(DP_ASS, find(DPops, operation));
     }
-    if (find(BRANCHops, operation) != -1 ||
-    (strlen(operation) > 1 && operation[0] == 'b' && operation[1] == '.'))
+    if (find(BRANCHops, operation) != -1)
     {
         return newTypePair(BRANCH_ASS, find(BRANCHops, operation));
-    }
+    } 
+    else if((strlen(operation) > 1 && operation[0] == 'b' && operation[1] == '.'))
+    {
+            return newTypePair(BRANCH_ASS, 2);
+    }   
     if (find(SDTops, operation) != -1)
     {
         return newTypePair(SDT_ASS, find(SDTops, operation));
@@ -170,7 +175,7 @@ TypePair *getAssembleType(char *operation)
     return newTypePair(UNDEFINED_ASS, 0);
 }
 
-int32_t assembleInstruction(char *instruction)
+int32_t assembleInstruction(char *instruction, Label* labels)
 {
 //    printf("%s\n", instruction);
     char **tokenized = split(instruction);
@@ -194,7 +199,7 @@ int32_t assembleInstruction(char *instruction)
             result = assembleDPI(tokenized, (DPOperation)(tp->opcode));
             break;
         case BRANCH_ASS:
-            //result = ...
+            result = branchOpcode(tokenized, labels, (BOperation)(tp->opcode));
             break;
         case SDT_ASS:
             //result = ...

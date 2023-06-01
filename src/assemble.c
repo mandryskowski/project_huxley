@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 				
 				printf("%s\n", str);
 
-				uint32_t word = assembleInstruction(str);
+				uint32_t word = assembleInstruction(str, labels);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));
