@@ -23,6 +23,8 @@ bool isLogical(DPOperation op)
 {
 	switch (op)
 	{
+		case DP_AND:
+		case DP_ANDS:
 		case DP_BIC:
 		case DP_BICS:
 		case DP_EOR:
@@ -84,8 +86,6 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 	//Set SF
 	setBits(&instruction, (tokenized[1][0] == 'x') ? 1 : 0, 31);
 
-	printf("%d - opcode\n", op);
-
 	if(isArithmetic(op))
 	{
 		//Set destination register and source register
@@ -104,6 +104,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			setBits(&instruction, 0b010, 23); //opi
 			int imm12 = stoi(tail(tokenized[3]));
 			setBits(&instruction, imm12, 10); //imm12
+			printf("%s -sh\n", tokenized[5]);
 
 			if(tokenized[4] != NULL && !strcmp(tokenized[5], "#12")) //shift
 			{
@@ -144,7 +145,6 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
-
 		//Set opcode
 		setBits(&instruction, (op - FIRST_LOGICAL) >> 1, 29);
 
@@ -194,19 +194,16 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 		setBits(&instruction, 0b100, 26); //imm
 		setBits(&instruction, 0b101, 23); //opi
 		setBits(&instruction, (int)(op - FIRST_WIDE_MOVE), 29); //opc
-		printf("norm. op code %d\n", op - FIRST_WIDE_MOVE);
-		printf("ass\n");
 
 		int imm16 = stoi(tail(tokenized[2]));
 		setBits(&instruction, imm16, 5);
 		if(tokenized[3] != NULL)
 		{
-			printf("ass2 -%s-\n", tokenized[3]);
 			int sh = stoi(tail(tokenized[4])) >> 4;
 			setBits(&instruction, sh, 21);
 		}
 	}
-	printf("%s: %x\n", tokenized[0], instruction);
+	//printf("%s: %x\n", tokenized[0], instruction);
 	return instruction;
 }
 

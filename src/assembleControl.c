@@ -29,10 +29,10 @@ void freeStrArray(char **strArray)
         size++;
         ptr++;
     }
-    printf("%d\n", size);
+    //printf("%d\n", size);
     for (int i = 0; i < size; i++)
     {
-        printf("%s xddd\n", strArray[i]);
+        //printf("%s xddd\n", strArray[i]);
         char* currentIntPtr = strArray[i];
         free(currentIntPtr);
     }
@@ -77,7 +77,7 @@ char **getAlias(char **instruction)
         result = calloc(5 * sizeof(char *), 1);
         if (!strcmp(*instruction, "cmp") || !strcmp(*instruction, "cmn") || !strcmp(*instruction, "tst"))
         {
-            printf("ass\n");
+            //printf("ass\n");
             result[0] = !strcmp(*instruction, "cmp") ? "subs" : (!strcmp(*instruction, "cmn") ? "adds" : "ands");
             result[1] = rzr;
             result[2] = instruction[1];
@@ -98,10 +98,10 @@ char **getAlias(char **instruction)
             return instruction;
         }
     }
-    printf("ass\n");
-    freeStrArray(instruction);
-    printf("assxd\n");
-    free(rzr);
+//    printf("ass\n");
+//    freeStrArray(instruction);
+//    printf("assxd\n");
+//    free(rzr);
     return result;
 }
 
@@ -112,7 +112,7 @@ char *substr(char *string, int start, int end)
     char *result = malloc((end - start + 1) * sizeof(char));
     strncpy(result, string + start, end - start);
     result[end - start] = '\0';
-    printf("%s\n", result);
+    //printf("%s\n", result);
     return result;
 }
 
@@ -126,9 +126,10 @@ char **split(char *instruction)
 {
     char **result = malloc(sizeof(char *) * 7);
     char **ptr = result;
+    int index = 0;
     for (char *string = strtok(instruction, DELIMETERS); string != NULL; string = strtok(NULL, DELIMETERS))
     {
-        printf("%s lul\n", string);
+        printf("%s: %d\n", string, index++);
         *ptr++ = string;
     }
     result[ptr - result] = NULL;
@@ -144,8 +145,8 @@ void setBits(int *instruction, int mask, int start)
 TypePair *getAssembleType(char *operation)
 {
 
-    char *DPops[] = {"add", "adds", "sub", "subs", "and", "ands", "bic", "bics",
-                    "eor", "eon", "orr", "orn", "movn","movmov", "movk", "movz", "madd", "msub", NULL};
+    char *DPops[] = {"add", "adds", "sub", "subs", "and", "bic",
+                    "orr", "orn", "eor", "eon", "ands", "bics", "movn","movmov", "movz", "movk", "madd", "msub", NULL};
     char *BRANCHops[] = {"b", "br", NULL};
     char *SDTops[] = {"ldr", "str", NULL};
     char *SPECIALops[] = {"nop", "and", ".int", NULL};
@@ -171,17 +172,17 @@ TypePair *getAssembleType(char *operation)
 
 int32_t assembleInstruction(char *instruction)
 {
-    printf("%s\n", instruction);
+//    printf("%s\n", instruction);
     char **tokenized = split(instruction);
-    printf("%s\n", instruction);
+//    printf("%s\n", instruction);
     tokenized = getAlias(tokenized);
-    printf("%s\n", instruction);
-    char **ptr = tokenized;
+//    printf("%s\n", instruction);
+/*    char **ptr = tokenized;
     while (*ptr != NULL){
         printf("%s\n", *ptr);
         ptr++;
     }
-
+*/
     TypePair *tp = getAssembleType(*tokenized);
 //    printf("%d\n", getAssembleType(*tokenized));
     //exit(0);
@@ -202,6 +203,7 @@ int32_t assembleInstruction(char *instruction)
             //result = ...
             break;
         default:
+	    printf("-%s-", tokenized[0]);
             perror("Unhandled assemble type");
             exit(EXIT_FAILURE);
     }
