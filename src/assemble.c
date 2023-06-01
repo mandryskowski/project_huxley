@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
+#include "assembleControl.h"
 
 void makeStrLowercase(char* str)
 {
