@@ -96,6 +96,9 @@ int main(int argc, char **argv)
 					break;
 				}
 				*/
+				
+				printf("%s\n", str);
+
 				uint32_t word = assembleDPI(str);
 				for (int i = 0; i < 32; i += 8)
 				{

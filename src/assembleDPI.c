@@ -166,17 +166,21 @@ int32_t assembleDPI(char *c)
 
 	if(movIndex != -1)
 	{
+		printf("%d !\n", movIndex);
 		int rd = getRegister(tail(tokenized[1]));
 		setBits(&instruction, rd, 0);//rd
 
 		setBits(&instruction, 0b100, 26); //imm
 		setBits(&instruction, 0b101, 23); //opi
 		setBits(&instruction, movIndex, 29); //opc
+		
+		printf("ass\n");
 
 		int imm16 = stoi(tail(tokenized[2]));
 		setBits(&instruction, imm16, 5);
-		if(tokenized[4] != NULL)
+		if(tokenized[3] != NULL)
 		{
+			printf("ass2 -%s-\n", tokenized[3]);
 			int sh = stoi(tail(tokenized[4])) >> 4;
 			setBits(&instruction, sh, 21);
 		}
