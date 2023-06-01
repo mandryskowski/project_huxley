@@ -5,21 +5,57 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
-
+#include "assembleDPI.h"
+#include "branchAssemble.h"
+#include "label.h"
 #define DELIMETERS " ,"
 
-// Checks if a string is contained in the array.
-bool contains(char **list, char *element)
+typedef struct TypePair {
+	assembleType aType;
+	int opcode;
+} TypePair;
+
+TypePair *newTypePair(assembleType aType, int opcode)
 {
-    char **ptr = list;
-    while (*ptr)
+	TypePair *p = malloc(sizeof(TypePair));
+	p->aType = aType;
+	p->opcode = opcode;
+	return p;
+}
+
+void freeStrArray(char **strArray)
+{
+    int size = 0;
+    char **ptr = strArray;
+    while (*ptr != NULL)
     {
-        if (!strcmp(*ptr++, element))
-        {
-            return true;
-        }
+        size++;
+        ptr++;
     }
-    return false;
+    //printf("%d\n", size);
+    for (int i = 0; i < size; i++)
+    {
+        //printf("%s xddd\n", strArray[i]);
+        char* currentIntPtr = strArray[i];
+        free(currentIntPtr);
+    }
+    free(strArray);
+    exit(0);
+}
+
+// Checks if a string is contained in the array.
+int find(char **list, char *element)
+{
+    int index = 0;
+    while (list[index] != NULL)
+    {
+        if (!strcmp(list[index], element))
+        {
+            return index;
+        }
+        index++;
+    }
+    return -1; //Was not found
 }
 
 char **getAlias(char **instruction)
@@ -64,6 +100,7 @@ char **getAlias(char **instruction)
             return instruction;
         }
     }
+
     free(instruction);
     return result;
 }
@@ -71,11 +108,17 @@ char **getAlias(char **instruction)
 // Interval is [start, end)
 char *substr(char *string, int start, int end)
 {
-    assert(end < strlen(string) && start >= 0 && start < end);
+    assert(end <= strlen(string) && start >= 0 && start < end);
     char *result = malloc((end - start + 1) * sizeof(char));
     strncpy(result, string + start, end - start);
     result[end - start] = '\0';
+
     return result;
+}
+
+char *tail(char *string)
+{
+	return substr(string, 1, strlen(string));
 }
 
 // splits instruction into words
@@ -96,61 +139,65 @@ void setBits(int *instruction, int mask, int start)
 }
 
 
-assembleType getAssembleType(char **operation)
+TypePair *getAssembleType(char **operation)
 {
 
-    char *DPops[] = {"add", "adds", "sub", "subs", "and", "ands", "bic", "bics",
-                    "eor", "eon", "orr", "orn", "movn", "movk", "movz",
-                    "madd", "msub", NULL};
+    char *DPops[] = {"add", "adds", "sub", "subs", "and", "bic",
+                    "orr", "orn", "eor", "eon", "ands", "bics",
+                    "movn","movmov", "movz", "movk", "madd", "msub", NULL};
     char *BRANCHops[] = {"b", "br", NULL};
     char *SDTops[] = {"ldr", "str", NULL};
     char *SPECIALops[] = {"nop", ".int", NULL};
 
-    if ((operation[3] && !strcmp(*operation, "and") && !strcmp(operation[3], "x0")) ||
-    contains(SPECIALops, *operation))
+    if (find(SPECIALops, *operation) != -1)
     {
-        return SPECIAL_ASS;
+        return newTypePair(SPECIAL_ASS, find(SPECIALops, *operation));
     }
-    if (contains(DPops, *operation)){
-        return DP_ASS;
-    }
-    if (contains(BRANCHops, *operation) ||
-    (strlen(*operation) > 1 && (*operation)[0] == 'b' && (*operation)[1] == '.'))
+    else if (operation[3] && !strcmp(*operation, "and") && !strcmp(operation[3], "x0"))
     {
-        return BRANCH_ASS;
+        return newTypePair(SPECIAL_ASS, 1);
     }
-    if (contains(SDTops, *operation))
+    if (find(DPops, *operation) != -1){
+        return newTypePair(DP_ASS, find(DPops, *operation));
+    }
+    if (find(BRANCHops, *operation) != -1)
     {
-        return SDT_ASS;
+        return newTypePair(BRANCH_ASS, find(BRANCHops, *operation));
+    } 
+    else if((strlen(operation) > 1 && operation[0] == 'b' && operation[1] == '.'))
+    {
+            return newTypePair(BRANCH_ASS, 2);
+    }   
+    if (find(SDTops, *operation) != -1)
+    {
+        return newTypePair(SDT_ASS, find(SDTops, *operation));
     }
-    return UNDEFINED_ASS;
+    return newTypePair(UNDEFINED_ASS, 0);
 }
 
-int32_t assembleInstruction(char *instruction)
+int32_t assembleInstruction(char *instruction, Label* labels)
 {
     char **tokenized = split(instruction);
     tokenized = getAlias(tokenized);
-    int type = getAssembleType(tokenized);
-    printf("%d\n", type);
-    exit(0);
-    int32_t result;
+    TypePair *tp = getAssembleType(tokenized);
+    int32_t result = 0;
 
-    exit(0);
-    switch (type)
+    switch (tp->aType)
     {
         case DP_ASS:
-            //result = ...
+            result = assembleDPI(tokenized, (DPOperation)(tp->opcode));
             break;
         case BRANCH_ASS:
-            //result = ...
+            result = branchOpcode(tokenized, labels, (BOperation)(tp->opcode));
             break;
         case SDT_ASS:
             //result = ...
             break;
         case SPECIAL_ASS:
-            //result = ...
+            result = assembleSpecial(instruction, tp->opcode);
             break;
         default:
+	    printf("-%s-", tokenized[0]);
             perror("Unhandled assemble type");
             exit(EXIT_FAILURE);
     }
