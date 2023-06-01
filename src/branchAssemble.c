@@ -1,9 +1,10 @@
-#include "assemble.c"
+#include "assembleControl.h"
+#include "label.h"
 #include "branchAssemble.h"
 #include <stdio.h>
 #include <stdint.h>
 
-#define DELIMITERS " ,"
+
 
 int32_t getSimm(char* c) 
 {
@@ -28,7 +29,7 @@ int32_t branchOpcode(char *c)
     int32_t reg = 0;
     int32_t cond = 0;
     int32_t simm = 0;
-    char** tokenized = split(c, DELIMITERS);
+    char** tokenized = split(c);
 
     //UNCONDITIONAL
     if (!strcmp(tokenized[0] , "b")) 
