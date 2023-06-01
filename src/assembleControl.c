@@ -17,6 +17,11 @@ char *substr(char *string, int start, int end)
     return result;
 }
 
+char *tail(char *string)
+{
+	return substr(string, 1, strlen(string));
+}
+
 // splits instruction into words
 char **split(char *instruction)
 {
