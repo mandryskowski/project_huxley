@@ -1,7 +1,39 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "assembleControl.h"
+#include "assembleDPI.h"
+
+bool isArithmetic(DPOperation op)
+{
+	switch (op)
+	{
+		case DP_ADD:
+		case DP_ADDS:
+		case DP_SUB:
+		case DP_SUBS:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool isLogical(DPOperation op)
+{
+	switch (op)
+	{
+		case DP_BIC:
+		case DP_BICS:
+		case DP_EOR:
+		case DP_EON:
+		case DP_ORR:
+		case DP_ORN:
+			return true;
+		default:
+			return false;
+	}
+}
 
 int getRegister(char *c)
 {
@@ -16,7 +48,7 @@ int stoi(char *string)
 		return strtol(string, NULL, 16);
 	return strtol(string, NULL, 10);
 }
-int32_t assembleDPI(char *c)
+int32_t assembleDPI(char *c, DPOperation op)
 {
 	//PRE: c is all lowercase, Michal please dont forger
 
