@@ -35,6 +35,31 @@ bool isLogical(DPOperation op)
 	}
 }
 
+bool isWideMove(DPOperation op)
+{
+	switch(op)
+	{
+		case DP_MOVN:
+		case DP_MOVZ:
+		case DP_MOVK:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool isMultiply(DPOperation op)
+{
+	switch(op)
+	{
+		case DP_MADD:
+		case DP_MSUB:
+			return true;
+		default:
+			return false;
+	}
+}
+
 int getRegister(char *c)
 {
 	return (strcmp(c, "zr")) ? atoi(c) : 0b11111;
@@ -48,31 +73,20 @@ int stoi(char *string)
 		return strtol(string, NULL, 16);
 	return strtol(string, NULL, 10);
 }
-int32_t assembleDPI(char *c, DPOperation op)
-{
-	//PRE: c is all lowercase, Michal please dont forger
 
-	char** tokenized = split(c);
+int32_t assembleDPI(char **tokenized, DPOperation op)
+{
 
 	int32_t instruction = 0;
 
 	char* shifts[] = {"lsl", "lsr", "asr", "ror"};
-	char* artm[] = {"add", "adds", "sub", "subs"};
 
 	//Set SF
 	setBits(&instruction, (tokenized[1][0] == 'x') ? 1 : 0, 31);
 
-	int artmIndex = -1;
-	for(int i = 0; i < sizeof(shifts) / sizeof(char *); i++) // Check if is arithmetic instruction
-	{
-		if(!strcmp(artm[i], tokenized[0]))
-		{
-			artmIndex = i;
-			break;
-		}
-	}
+	printf("%d - opcode\n", op);
 
-	if(artmIndex != -1)
+	if(isArithmetic(op))
 	{
 		//Set destination register and source register
 		int rd = getRegister(tail(tokenized[1]));
@@ -81,7 +95,7 @@ int32_t assembleDPI(char *c, DPOperation op)
 		setBits(&instruction, rn, 5); //rn
 
 		//Set opcode
-		setBits(&instruction, artmIndex, 29);
+		setBits(&instruction, op - FIRST_ARITHMETIC, 29);
 
 		//Set DPI type bitcode
 		if(tokenized[3][0] == '#') //Immediate
@@ -122,19 +136,7 @@ int32_t assembleDPI(char *c, DPOperation op)
 		}
 	}
 
-	char* logic[] = {"and", "bic", "orr", "orn", "eor", "eon", "ands", "bics"};
-	int logicIndex = -1;
-
-	for(int i = 0; i < sizeof(logic) / sizeof(char *); i++)
-	{
-		if(!strcmp(logic[i], tokenized[0]))
-		{
-			logicIndex = i;
-			break;
-		}
-	}
-
-	if(logicIndex != -1)
+	if(isLogical(op))
 	{
 		//Set destination register and source register
 		int rd = getRegister(tail(tokenized[1]));
@@ -144,14 +146,14 @@ int32_t assembleDPI(char *c, DPOperation op)
 		setBits(&instruction, rn, 5); //rn
 
 		//Set opcode
-		setBits(&instruction, logicIndex >> 1, 29);
+		setBits(&instruction, (op - FIRST_LOGICAL) >> 1, 29);
 
 		setBits(&instruction, 0b0101, 25);
 		setBits(&instruction, 0b0000, 21); //opr - 0xxx
 		int rm = getRegister(tail(tokenized[3]));
 		setBits(&instruction, rm, 16); //rm
 
-		setBits(&instruction, ((logicIndex & 1) == 1), 21); //N
+		setBits(&instruction, ((op-FIRST_LOGICAL) & 1), 21); //N
 
 		if(tokenized[4] != NULL) //shift
 		{
@@ -170,7 +172,7 @@ int32_t assembleDPI(char *c, DPOperation op)
 		}
 	}
 
-	if(!strcmp(tokenized[0], "madd") || !strcmp(tokenized[0], "msub"))
+	if(isMultiply(op))
 	{
 		int rd = getRegister(substr(tokenized[1], 1, strlen(tokenized[1])));
                 int rn = getRegister(substr(tokenized[2], 1, strlen(tokenized[2])));
@@ -179,33 +181,20 @@ int32_t assembleDPI(char *c, DPOperation op)
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
 		setBits(&instruction, ra, 10); //ra
-		setBits(&instruction, !strcmp(tokenized[0], "msub"), 15); //x
+		setBits(&instruction, op - FIRST_MULTIPLY, 15); //x
 		setBits(&instruction, rm, 16); //rm
 		setBits(&instruction, 0b0011011000, 21);
 	}
 
-	char* wMoves[] = {"movn", "movwnh", "movz", "movk"};
-	int movIndex = -1;
-
-	for(int i = 0; i < sizeof(wMoves) / sizeof(char *); i++)
+	if(isWideMove(op))
 	{
-		if(!strcmp(tokenized[0], wMoves[i]))
-		{
-			movIndex = i;
-			break;
-		}
-	}
-
-	if(movIndex != -1)
-	{
-		printf("%d !\n", movIndex);
 		int rd = getRegister(tail(tokenized[1]));
 		setBits(&instruction, rd, 0);//rd
 
 		setBits(&instruction, 0b100, 26); //imm
 		setBits(&instruction, 0b101, 23); //opi
-		setBits(&instruction, movIndex, 29); //opc
-		
+		setBits(&instruction, (int)(op - FIRST_WIDE_MOVE), 29); //opc
+		printf("norm. op code %d\n", op - FIRST_WIDE_MOVE);
 		printf("ass\n");
 
 		int imm16 = stoi(tail(tokenized[2]));

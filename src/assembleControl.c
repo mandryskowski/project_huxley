@@ -4,8 +4,21 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
-
+#include "assembleDPI.h"
 #define DELIMETERS " ,"
+
+typedef struct TypePair {
+	assembleType aType;
+	int opcode;
+} TypePair;
+
+TypePair *newTypePair(assembleType aType, int opcode)
+{
+	TypePair *p = malloc(sizeof(TypePair));
+	p->aType = aType;
+	p->opcode = opcode;
+	return p;
+}
 
 void freeStrArray(char **strArray)
 {
@@ -28,18 +41,18 @@ void freeStrArray(char **strArray)
 }
 
 // Checks if a string is contained in the array.
-bool contains(char **list, char *element)
+int find(char **list, char *element)
 {
-    char **ptr = list;
-    while (*ptr != NULL)
+    int index = 0;
+    while (list[index] != NULL)
     {
-        if (!strcmp(*ptr, element))
+        if (!strcmp(list[index], element))
         {
-            return true;
+            return index;
         }
-        ptr++;
+        index++;
     }
-    return false;
+    return -1; //Was not found
 }
 
 char **getAlias(char **instruction)
@@ -128,32 +141,32 @@ void setBits(int *instruction, int mask, int start)
 }
 
 
-assembleType getAssembleType(char *operation)
+TypePair *getAssembleType(char *operation)
 {
 
     char *DPops[] = {"add", "adds", "sub", "subs", "and", "ands", "bic", "bics",
-                    "eor", "eon", "orr", "orn", "movn", "movk", "movz", "madd", "msub", NULL};
+                    "eor", "eon", "orr", "orn", "movn","movmov", "movk", "movz", "madd", "msub", NULL};
     char *BRANCHops[] = {"b", "br", NULL};
     char *SDTops[] = {"ldr", "str", NULL};
     char *SPECIALops[] = {"nop", "and", ".int", NULL};
 
-    if (contains(DPops, operation)){
-        return DP_ASS;
+    if (find(DPops, operation) != -1){
+        return newTypePair(DP_ASS, find(DPops, operation));
     }
-    if (contains(BRANCHops, operation) ||
+    if (find(BRANCHops, operation) != -1 ||
     (strlen(operation) > 1 && operation[0] == 'b' && operation[1] == '.'))
     {
-        return BRANCH_ASS;
+        return newTypePair(BRANCH_ASS, find(BRANCHops, operation));
     }
-    if (contains(SDTops, operation))
+    if (find(SDTops, operation) != -1)
     {
-        return SDT_ASS;
+        return newTypePair(SDT_ASS, find(SDTops, operation));
     }
-    if (contains(SPECIALops, operation))
+    if (find(SPECIALops, operation) != -1)
     {
-        return SPECIAL_ASS;
+        return newTypePair(SPECIAL_ASS, find(SPECIALops, operation));
     }
-    return UNDEFINED_ASS;
+    return newTypePair(UNDEFINED_ASS, 0);
 }
 
 int32_t assembleInstruction(char *instruction)
@@ -168,14 +181,16 @@ int32_t assembleInstruction(char *instruction)
         printf("%s\n", *ptr);
         ptr++;
     }
-    printf("%d\n", getAssembleType(*tokenized));
-    exit(0);
-    int32_t result;
 
-    switch (getAssembleType(*tokenized))
+    TypePair *tp = getAssembleType(*tokenized);
+//    printf("%d\n", getAssembleType(*tokenized));
+    //exit(0);
+    int32_t result = 0;
+
+    switch (tp->aType)
     {
         case DP_ASS:
-            //result = ...
+            result = assembleDPI(tokenized, (DPOperation)(tp->opcode));
             break;
         case BRANCH_ASS:
             //result = ...
@@ -191,6 +206,6 @@ int32_t assembleInstruction(char *instruction)
             exit(EXIT_FAILURE);
     }
 
-    freeStrArray(tokenized);
+   // freeStrArray(tokenized);
     return result;
 }

@@ -20,9 +20,13 @@ typedef enum
 	DP_MOVK,
 	DP_MOVZ,
 	DP_MADD,
-	DP_MSUB
+	DP_MSUB,
+	FIRST_ARITHMETIC = DP_ADD,
+	FIRST_LOGICAL = DP_AND,
+	FIRST_WIDE_MOVE = DP_MOVN,
+	FIRST_MULTIPLY = DP_MADD
 } DPOperation;
 
-int32_t assembleDPI(char* str, DPOperation);
+int32_t assembleDPI(char **str, DPOperation);
 
 #endif //ASSEMBLEDPI_H

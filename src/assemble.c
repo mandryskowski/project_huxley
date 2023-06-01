@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include "assembleDPI.h"
 #include "label.h"
+#include "assembleControl.h"
 
 void makeStrLowercase(char* str)
 {
@@ -99,7 +100,7 @@ int main(int argc, char **argv)
 				
 				printf("%s\n", str);
 
-				uint32_t word = assembleDPI(str);
+				uint32_t word = assembleInstruction(str);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));
