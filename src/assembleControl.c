@@ -25,14 +25,15 @@ char *tail(char *string)
 // splits instruction into words
 char **split(char *instruction)
 {
-    char **result = malloc(sizeof(char *) * 5);
+    char **result = malloc(sizeof(char *) * 6);
     char **ptr = result;
     for (char *string = strtok(instruction, DELIMETERS); string != NULL; string = strtok(NULL, DELIMETERS))
     {
-        //printf("%s lul\n", string);
+        printf("%s lul\n", string);
         *ptr++ = string;
     }
-    result = realloc(result, sizeof(char *) * (ptr - result));
+	//printf("%s", *ptr);
+    //result = realloc(result, sizeof(char *) * (ptr - result));
     return result;
 }
 
