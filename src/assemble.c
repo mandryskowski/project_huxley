@@ -4,6 +4,9 @@
 #include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
+#include "assembleDPI.h"
+#include "label.h"
+#include "assembleControl.h"
 
 void makeStrLowercase(char* str)
 {
@@ -34,19 +37,12 @@ int main(int argc, char **argv)
 
 	char* fileStr = malloc(input_file_size);
 	fread(fileStr, sizeof(char), input_file_size, fptr);
-	fclose(fptr); // close input file
-	
-	struct Label
-	{
-		char* name;
-		int64_t address;
-	};
+//	fclose(fptr); // close input file
 
-	struct Label labels[128];
-
+	Label labels[128];
 	// 1st pass: getting labels' addresses
 	{
-		struct Label* curLabel = labels;
+		Label* curLabel = labels;
 		char* curLine = fileStr;
 		int64_t curAddress = 0;
 		while(curLine != NULL)
@@ -67,10 +63,19 @@ int main(int argc, char **argv)
 			curLabel++;
 			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
 		}
+
+		while (curLabel != labels + 128)
+		{
+			curLabel->name = NULL;
+			curLabel->address = 0;
+			curLabel++;
+		}
 	}
 
 	fseek(fptr, 0, SEEK_SET);
 	
+	FILE* outputFileBegin = outfptr;
+
 	// 2nd pass: translation to binary file
 	{
 		char* curLine = fileStr;
@@ -84,11 +89,22 @@ int main(int argc, char **argv)
 				memset(str, '\0', len + 1);
 				strncpy(str, curLine, len);
 				makeStrLowercase(str);
-				uint32_t word = 0xD503201F;// assembleInstruction(str);
+				
+				/* If i try to break here then emulate tests fail (the same tests
+				which pass on assemble fail on emulate and idk why T_T
+				if(!strcmp("and x0, x0, x0\0", str))
+				{
+					break;
+				}
+				*/
+				
+				printf("%s\n", str);
+
+				uint32_t word = assembleInstruction(str, labels);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));
-					printf("%x ", (unsigned char) (word >> i));
+//					printf("%x ", (unsigned char) (word >> i));
 				}
 				puts(str);
 			}
@@ -96,7 +112,7 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	fclose(outfptr);
+	fclose(outputFileBegin);
 	return 0;
 }
 

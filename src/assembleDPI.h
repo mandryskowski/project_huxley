@@ -1,0 +1,32 @@
+#ifndef ASSEMBLEDPI_H
+#define ASSEMBLEDPI_H
+
+typedef enum
+{
+	DP_ADD,
+	DP_ADDS,
+	DP_SUB,
+	DP_SUBS,
+	DP_AND,
+	DP_BIC,
+	DP_ORR,
+	DP_ORN,
+	DP_EOR,
+	DP_EON,
+	DP_ANDS,
+	DP_BICS,
+	DP_MOVN,
+	DP_MOV_UNDEFINED,
+	DP_MOVZ,
+	DP_MOVK,
+	DP_MADD,
+	DP_MSUB,
+	FIRST_ARITHMETIC = DP_ADD,
+	FIRST_LOGICAL = DP_AND,
+	FIRST_WIDE_MOVE = DP_MOVN,
+	FIRST_MULTIPLY = DP_MADD
+} DPOperation;
+
+int32_t assembleDPI(char **str, DPOperation);
+
+#endif //ASSEMBLEDPI_H
