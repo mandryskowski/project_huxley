@@ -1,12 +1,11 @@
 #include "assembleControl.h"
-#include "label.h"
 #include "branchAssemble.h"
 #include <stdio.h>
 #include <stdint.h>
 
 
 
-int32_t getSimm(char* c) 
+int32_t getSimm(char* c,Label* labels) 
 {
     int32_t simm = 0;
     if(c[0] == '0')
@@ -16,13 +15,13 @@ int32_t getSimm(char* c)
     }
     else
     {
-        simm = readLabel(c);
+        simm = getLabelAddress(c, labels);
     }
 
     return simm;
 }
 
-int32_t branchOpcode(char *c) 
+int32_t branchOpcode(char *c, Label* labels) 
 {
     int32_t instruction = 0;
     int32_t sf = 0;
@@ -34,7 +33,7 @@ int32_t branchOpcode(char *c)
     //UNCONDITIONAL
     if (!strcmp(tokenized[0] , "b")) 
     {
-        simm = getSimm(tokenized[1]);
+        simm = getSimm(tokenized[1], labels);
         setBits(&instruction, simm, 0);
         setBits(&instruction, 0b000101, 26);
     }
@@ -68,7 +67,7 @@ int32_t branchOpcode(char *c)
 
         setBits(&instruction, cond, 0);
         setBits(&instruction, 0b0, 4); 
-        simm = getSimm(tokenized[0]);
+        simm = getSimm(tokenized[0], labels);
         setBits(&instruction, simm, 5);                  
     }
 
