@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "assembleDPI.h"
+#include "label.h"
 
 void makeStrLowercase(char* str)
 {
@@ -37,14 +38,10 @@ int main(int argc, char **argv)
 	fread(fileStr, sizeof(char), input_file_size, fptr);
 //	fclose(fptr); // close input file
 
-	struct Label
-	{
-		char* name;
-		int64_t address;
-	} labels[128];
+	Label labels[128];
 	// 1st pass: getting labels' addresses
 	{
-		struct Label* curLabel = labels;
+		Label* curLabel = labels;
 		char* curLine = fileStr;
 		int64_t curAddress = 0;
 		while(curLine != NULL)
@@ -64,6 +61,13 @@ int main(int argc, char **argv)
 			curAddress += 4;
 			curLabel++;
 			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
+		}
+
+		while (curLabel != labels + 128)
+		{
+			curLabel->name = NULL;
+			curLabel->address = 0;
+			curLabel++;
 		}
 	}
 
