@@ -51,11 +51,11 @@ int find(char **list, char *element)
     {
         if (!strcmp(list[index], element))
         {
-            return index;
+            return index + 1;
         }
         index++;
     }
-    return -1; //Was not found
+    return 0; //Was not found
 }
 
 char **getAlias(char **instruction)
@@ -124,12 +124,13 @@ char *tail(char *string)
 // splits instruction into words
 char **split(char *instruction)
 {
-    char **result = malloc(sizeof(char *) * 6);
+    char **result = calloc(sizeof(char *) * 6, 1);
     char **ptr = result;
     for (char *string = strtok(instruction, DELIMETERS); string != NULL; string = strtok(NULL, DELIMETERS))
     {
         *ptr++ = string;
     }
+
     return result;
 }
 
@@ -149,28 +150,30 @@ TypePair *getAssembleType(char **operation)
     char *SDTops[] = {"ldr", "str", NULL};
     char *SPECIALops[] = {"nop", ".int", NULL};
 
-    if (find(SPECIALops, *operation) != -1)
+    int result;
+
+    if ((result = find(SPECIALops, *operation)))
     {
-        return newTypePair(SPECIAL_ASS, find(SPECIALops, *operation));
+        return newTypePair(SPECIAL_ASS, result - 1);
     }
     else if (operation[3] && !strcmp(*operation, "and") && !strcmp(operation[3], "x0"))
     {
-        return newTypePair(SPECIAL_ASS, 1);
+        return newTypePair(SPECIAL_ASS, 2);
     }
-    if (find(DPops, *operation) != -1){
-        return newTypePair(DP_ASS, find(DPops, *operation));
+    if ((result = find(DPops, *operation))){
+        return newTypePair(DP_ASS, result - 1);
     }
-    if (find(BRANCHops, *operation) != -1)
+    if ((result = find(BRANCHops, *operation)))
     {
-        return newTypePair(BRANCH_ASS, find(BRANCHops, *operation));
+        return newTypePair(BRANCH_ASS, result - 1);
     } 
-    else if((strlen(operation) > 1 && operation[0] == 'b' && operation[1] == '.'))
+    else if((strlen(*operation) > 1 && (*operation)[0] == 'b' && (*operation)[1] == '.'))
     {
             return newTypePair(BRANCH_ASS, 2);
     }   
-    if (find(SDTops, *operation) != -1)
+    if ((result = find(SDTops, *operation)))
     {
-        return newTypePair(SDT_ASS, find(SDTops, *operation));
+        return newTypePair(SDT_ASS, result - 1);
     }
     return newTypePair(UNDEFINED_ASS, 0);
 }
@@ -194,7 +197,7 @@ int32_t assembleInstruction(char *instruction, Label* labels)
             //result = ...
             break;
         case SPECIAL_ASS:
-            result = assembleSpecial(instruction, tp->opcode);
+            result = assembleSpecial(tokenized, tp->opcode);
             break;
         default:
 	    printf("-%s-", tokenized[0]);
