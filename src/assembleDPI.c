@@ -77,6 +77,16 @@ int stoi(char *string)
 	return strtol(string, NULL, 10);
 }
 
+char *getSh(char *c)
+{
+	if(strlen(c) < 2)
+	{
+		return c;
+	}
+
+	return substr(c, 0, 2);
+}
+
 int32_t assembleDPI(char **tokenized, DPOperation op)
 {
 
@@ -107,7 +117,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			setBits(&instruction, imm12, 10); //imm12
 			printf("%s -sh\n", tokenized[5]);
 
-			if(tokenized[4] != NULL && stoi(tail(tokenized[5])) == 12) //shift
+			if(tokenized[4] != NULL && !strcmp(getSh(tail(tokenized[5])), "12")) //shift
 			{
 				setBits(&instruction, 0b1, 22); //sh
 			}
@@ -175,10 +185,11 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 	if(isMultiply(op))
 	{
-		int rd = getRegister(substr(tokenized[1], 1, strlen(tokenized[1])));
-                int rn = getRegister(substr(tokenized[2], 1, strlen(tokenized[2])));
-		int rm = getRegister(substr(tokenized[3], 1, strlen(tokenized[3])));
-                int ra = getRegister(substr(tokenized[4], 1, strlen(tokenized[4])));
+		printf("%d - Multiply\n", op - FIRST_MULTIPLY);
+		int rd = getRegister(tail(tokenized[1]));
+		int rn = getRegister(tail(tokenized[2]));
+		int rm = getRegister(tail(tokenized[3]));
+		int ra = getRegister(tail(tokenized[4]));
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
 		setBits(&instruction, ra, 10); //ra
