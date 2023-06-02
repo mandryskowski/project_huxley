@@ -13,7 +13,6 @@ typedef enum
 } BOperation;
 
 
-int32_t getSimm(char* c, Label* labels);
-int32_t branchOpcode (char** tokenized, Label* labels, BOperation op);
+int32_t branchOpcode (char** tokenized, BOperation op);
 
 #endif //ARMV8_25_BRANCHASSEMBLE_H

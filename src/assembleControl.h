@@ -23,6 +23,10 @@ char **split(char *instruction);
 
 void setBits(int *instruction, int mask, int start);
 
-int32_t assembleInstruction(char** tokens, Label* labels, uint64_t PC);
+int32_t assembleInstruction(char** tokens, uint64_t PC);
+
+int getRegister(char *c);
+
+int getImmediate(char *c);
 
 #endif //ARMV8_25_ASSEMBLECONTROL_H

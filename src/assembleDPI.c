@@ -62,20 +62,6 @@ bool isMultiply(DPOperation op)
 	}
 }
 
-int getRegister(char *c)
-{
-	return (strcmp(c, "zr")) ? atoi(c) : 0b11111;
-}
-
-int stoi(char *string)
-{
-	if(strlen(string) < 2)
-		return strtol(string, NULL, 10);
-	if(!strcmp("0x", substr(string, 0, 2)))
-		return strtol(string, NULL, 16);
-	return strtol(string, NULL, 10);
-}
-
 char *getSh(char *c)
 {
 	if(strlen(c) < 2)
@@ -99,8 +85,8 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 	if(isArithmetic(op))
 	{
 		//Set destination register and source register
-		int rd = getRegister(tail(tokenized[1]));
-		int rn = getRegister(tail(tokenized[2]));
+		int rd = getRegister(tokenized[1]);
+		int rn = getRegister(tokenized[2]);
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
 
@@ -112,7 +98,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 		{
 			setBits(&instruction, 0b100, 26);
 			setBits(&instruction, 0b010, 23); //opi
-			int imm12 = stoi(tail(tokenized[3]));
+			int imm12 = getImmediate(tokenized[3]);
 			setBits(&instruction, imm12, 10); //imm12
 
 			if(tokenized[4] != NULL && !strcmp(getSh(tail(tokenized[5])), "12")) //shift
@@ -125,7 +111,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 		{
 			setBits(&instruction, 0b0101, 25);
 			setBits(&instruction, 0b1000, 21); //opr
-			int rm = getRegister(tail(tokenized[3]));
+			int rm = getRegister(tokenized[3]);
 			setBits(&instruction, rm, 16); //rm
 			if(tokenized[4] != NULL) //shift
 			{
@@ -140,7 +126,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 					}
 				}
 
-				int shiftAmount = stoi(tail(tokenized[5]));
+				int shiftAmount = getImmediate(tokenized[5]);
 				setBits(&instruction, shiftAmount, 10); //operand
 			}
 		}
@@ -149,8 +135,8 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 	if(isLogical(op))
 	{
 		//Set destination register and source register
-		int rd = getRegister(tail(tokenized[1]));
-                int rn = getRegister(tail(tokenized[2]));
+		int rd = getRegister(tokenized[1]);
+                int rn = getRegister(tokenized[2]);
 
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
@@ -159,7 +145,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 		setBits(&instruction, 0b0101, 25);
 		setBits(&instruction, 0b0000, 21); //opr - 0xxx
-		int rm = getRegister(tail(tokenized[3]));
+		int rm = getRegister(tokenized[3]);
 		setBits(&instruction, rm, 16); //rm
 
 		setBits(&instruction, ((op-FIRST_LOGICAL) & 1), 21); //N
@@ -176,17 +162,17 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 				}
 			}
 
-			int shiftAmount = stoi(tail(tokenized[5]));
+			int shiftAmount = getImmediate(tokenized[5]);
 			setBits(&instruction, shiftAmount, 10); //operand
 		}
 	}
 
 	if(isMultiply(op))
 	{
-		int rd = getRegister(tail(tokenized[1]));
-		int rn = getRegister(tail(tokenized[2]));
-		int rm = getRegister(tail(tokenized[3]));
-		int ra = getRegister(tail(tokenized[4]));
+		int rd = getRegister(tokenized[1]));
+		int rn = getRegister(tokenized[2]));
+		int rm = getRegister(tokenized[3]));
+		int ra = getRegister(tokenized[4]);
 
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
@@ -198,18 +184,18 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 	if(isWideMove(op))
 	{
-		int rd = getRegister(tail(tokenized[1]));
+		int rd = getRegister(tokenized[1]);
 		setBits(&instruction, rd, 0);//rd
 
 		setBits(&instruction, 0b100, 26); //imm
 		setBits(&instruction, 0b101, 23); //opi
 		setBits(&instruction, (int)(op - FIRST_WIDE_MOVE), 29); //opc
 
-		int imm16 = stoi(tail(tokenized[2]));
+		int imm16 = getImmediate(tokenized[2]);
 		setBits(&instruction, imm16, 5);
 		if(tokenized[3] != NULL)
 		{
-			int sh = stoi(tail(tokenized[4])) >> 4;
+			int sh = getImmediate(tokenized[4]) >> 4;
 			setBits(&instruction, sh, 21);
 		}
 	}
