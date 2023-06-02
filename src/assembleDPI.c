@@ -115,7 +115,6 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			setBits(&instruction, 0b010, 23); //opi
 			int imm12 = stoi(tail(tokenized[3]));
 			setBits(&instruction, imm12, 10); //imm12
-			printf("%s -sh\n", tokenized[5]);
 
 			if(tokenized[4] != NULL && !strcmp(getSh(tail(tokenized[5])), "12")) //shift
 			{

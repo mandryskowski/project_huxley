@@ -70,20 +70,46 @@ int main(int argc, char **argv)
 		{
 			char* nextLine = strchr(curLine, '\n');
 			size_t len = (nextLine != NULL) ? (nextLine - curLine) : (strlen(curLine));
-
-			bool emptyLine = len == 0 || *curLine == '#';
-			if (!emptyLine && curLine[len - 1] == ':')
+			char* thisLineStr = malloc(len);
+		
+			if (len == 0 || *curLine == '#') // skip if empty/commented line
 			{
-				curLabel->address = curAddress;
-				curLabel->name = malloc(len);
-				memset(curLabel->name, '\0', len);
-				strncpy(curLabel->name, curLine, len - 1); // copy from curLine to curLabel's name but ignore the colon.
-				printf("Found label %s \n", curLabel->name);
-				memset(curLine, '#', len); // we can comment out this line as we've read the label and it is not an instruction
-				curLabel++;
+				curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
+				continue;
 			}
 
-			curAddress += emptyLine ? 0 : 4;
+			memset(thisLineStr, '\0', len + 1);
+			strncpy(thisLineStr, curLine, len);
+			printf("%s\n", thisLineStr);
+			// Remove trailing whitespaces
+			{
+				char* whitespace = strchr(thisLineStr, ' ');
+				if (whitespace != NULL)
+				{
+					len = whitespace - thisLineStr;
+					thisLineStr[len] = '\0';
+				}
+			}
+			printf("len of line post whitespace: %d\n", len); 
+
+			if (len == 0) // comment out line consisting of just whitespace
+			{
+				*curLine = '#';
+			}
+			else if (thisLineStr[len - 1] == ':') // check if this line represents a label
+			{
+				thisLineStr[len - 1] = '\0'; // get rid of the colon at the end.
+				curLabel->address = curAddress;
+				curLabel->name = thisLineStr;
+				printf("Found label name:%s address:0x%x \n", thisLineStr, curAddress);
+				*curLine = '#'; // we can comment out this line as we've read the label and it is not an instruction
+				curLabel++;
+			}
+			else // otherwise it's an instruction
+			{
+				curAddress += 4;
+			}
+
 			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
 		}
 
@@ -108,6 +134,7 @@ int main(int argc, char **argv)
 			size_t len = (nextLine != NULL) ? (nextLine - curLine) : (strlen(curLine));
 			if (len > 0 && *curLine != '#') // ignore empty or commented lines
 			{
+				printf("next instruction of len %d \n", len);
 				char* str = malloc(len);
 				memset(str, '\0', len + 1);
 				strncpy(str, curLine, len);
