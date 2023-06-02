@@ -23,6 +23,13 @@ char **split(char *instruction);
 
 void setBits(int *instruction, int mask, int start);
 
-int32_t assembleInstruction(char** tokens, Label* labels, uint64_t PC);
+// Truncate a 32-bit number to a maximum of bitCount (bits higher than that are set to 0).
+uint32_t truncateBits(uint32_t inputs, int bitCount);
+
+int32_t assembleInstruction(char** tokens, uint64_t PC);
+
+int getRegister(char *c);
+
+int getImmediate(char *c);
 
 #endif //ARMV8_25_ASSEMBLECONTROL_H

@@ -126,6 +126,28 @@ char *tail(char *string)
 	return substr(string, 1, strlen(string));
 }
 
+int getRegister(char *c)
+{
+	c = tail(c);
+	return (strcmp(c, "zr")) ? atoi(c) : 0b11111;
+}
+
+int stoi(char *string)
+{
+        if(strlen(string) < 2)
+                return strtol(string, NULL, 10);
+        if(!strcmp("0x", substr(string, 0, 2)))
+                return strtol(string, NULL, 16);
+        return strtol(string, NULL, 10);
+}
+
+int getImmediate(char *c)
+{
+	if(c[0] == '#')
+		c = tail(c);
+	return stoi(c);
+}
+
 // splits instruction into words
 char **split(char *instruction)
 {
@@ -137,6 +159,12 @@ char **split(char *instruction)
     }
 
     return result;
+}
+
+uint32_t truncateBits(uint32_t inputs, int bitCount)
+{
+	assert(bitCount < 32 && bitCount > 0);
+	return inputs & ((1LL << bitCount) - 1);
 }
 
 void setBits(int *instruction, int mask, int start)
@@ -183,7 +211,7 @@ TypePair *getAssembleType(char **operation)
     return newTypePair(UNDEFINED_ASS, 0);
 }
 
-int32_t assembleInstruction(char **tokenized, Label* labels, uint64_t PC)
+int32_t assembleInstruction(char **tokenized, uint64_t PC)
 {
     tokenized = getAlias(tokenized);
     TypePair *tp = getAssembleType(tokenized);
@@ -195,7 +223,7 @@ int32_t assembleInstruction(char **tokenized, Label* labels, uint64_t PC)
             result = assembleDPI(tokenized, (DPOperation)(tp->opcode));
             break;
         case BRANCH_ASS:
-            result = branchOpcode(tokenized, labels, (BOperation)(tp->opcode));
+            result = branchOpcode(tokenized, (BOperation)(tp->opcode), PC);
             break;
         case SDT_ASS:
             result = assembleSDT(tokenized, (SDTOperation)(tp->opcode), PC);
