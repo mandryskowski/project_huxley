@@ -75,7 +75,6 @@ int main(int argc, char **argv)
 	fseek(fptr, 0, SEEK_SET);
 	
 	FILE* outputFileBegin = outfptr;
-
 	// 2nd pass: translation to binary file
 	{
 		char* curLine = fileStr;
@@ -98,8 +97,6 @@ int main(int argc, char **argv)
 				}
 				*/
 				
-				printf("%s\n", str);
-
 				uint32_t word = assembleInstruction(str, labels);
 				for (int i = 0; i < 32; i += 8)
 				{
