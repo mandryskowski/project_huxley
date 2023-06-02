@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 	// 2nd pass: translation to binary file
 	{
 		char* curLine = fileStr;
+		uint64_t currPC = 0;
 		while (curLine != NULL)
 		{
 			char* nextLine = strchr(curLine, '\n');
@@ -100,13 +101,14 @@ int main(int argc, char **argv)
 				
 				printf("%s\n", str);
 
-				uint32_t word = assembleInstruction(str, labels);
+				uint32_t word = assembleInstruction(str, labels, currPC);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));
 //					printf("%x ", (unsigned char) (word >> i));
 				}
 				puts(str);
+				currPC += 4;
 			}
 			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
 		}

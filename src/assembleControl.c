@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "assembleDPI.h"
+#include "assembleSDT.h"
 #include "branchAssemble.h"
 #include "label.h"
 #define DELIMETERS " ,"
@@ -175,7 +176,7 @@ TypePair *getAssembleType(char *operation)
     return newTypePair(UNDEFINED_ASS, 0);
 }
 
-int32_t assembleInstruction(char *instruction, Label* labels)
+int32_t assembleInstruction(char *instruction, Label* labels, uint64_t PC)
 {
 //    printf("%s\n", instruction);
     char **tokenized = split(instruction);
@@ -202,7 +203,7 @@ int32_t assembleInstruction(char *instruction, Label* labels)
             result = branchOpcode(tokenized, labels, (BOperation)(tp->opcode));
             break;
         case SDT_ASS:
-            //result = ...
+            result = assembleSDT(tokenized, (SDTOperation)(tp->opcode), PC);
             break;
         case SPECIAL_ASS:
             //result = ...

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "control.h"
+#include <stdio.h> // for debugging
 // bits 5-21 and bit 24
 void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken)
 {
@@ -15,20 +16,23 @@ void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken)
 	}
 	// bits 10-21
 
+
+	if (rhsToken == NULL || (rhsToken[0] == '#' && rhsToken[strlen(rhsToken) - 1] == ']')) // unsigned offset
+	{
+		setBits(word, (rhsToken != NULL) ? getBits(atoi(substr(rhsToken, 1, strlen(rhsToken) - 1)), 0, 11) : 0, 10); // bits 10-21: imm12
+		setBits(word, 0b1, 24);	// bit 24: set to 1 when it's unsigned offset.
+		return;
+	}
+
 	if (rhsToken[0] != '#') // register offset	
 	{
 		setBits(word, 0b011010, 10); // bits 10-15: pattern
 		setBits(word, 0b1, 21);	     // bit     21: pattern
 		setBits(word, atoi(substr(rhsToken, 1, strlen(rhsToken) - 1)), 16); // bits 16-20: xm 
+
 		return;
 	}
 
-	if (rhsToken[strlen(rhsToken) - 1] == ']') // unsigned offset
-	{
-		setBits(word, getBits(atoi(substr(rhsToken, 1, strlen(rhsToken) - 1)), 0, 11), 10); // bits 10-21: imm12
-		setBits(word, 0b1, 24);	// bit 24: set to 1 when it's unsigned offset.
-		return;
-	}
 
 	// otherwise, pre/post index
 	setBits(word, 0b1, 10); // bit 10: pattern
@@ -41,15 +45,12 @@ void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken)
 	return;
 }
 
-int32_t assembleSDT(char* str, SDTOperation op, int64_t PC)
+int32_t assembleSDT(char** tokenized, SDTOperation op, int64_t PC)
 {
-	char** tokenized = split(str);
-
 	int32_t word = 0;
 	
 	setBits(&word, 0b1100, 25);	// bits 25-28: 1100 (common pattern for all SDT instructions)
 	setBits(&word, atoi(tail(tokenized[1])), 0); // bits 0-4: rt
-
 	switch (op)
 	{
 		case SDT_LOAD:
@@ -72,6 +73,6 @@ int32_t assembleSDT(char* str, SDTOperation op, int64_t PC)
 
 			break;
 	}
-	setBits(&word, tokenized[1][0] == 'x' ? 1 : 0, 31); // overwrite 31st bit to sf (true if 64 bit false if 32).
+	setBits(&word, tokenized[1][0] == 'x' ? 1 : 0, 30); // overwrite bit 30 to sf (true if 64 bit false if 32).
 	return word;
 }
