@@ -161,6 +161,12 @@ char **split(char *instruction)
     return result;
 }
 
+uint32_t truncateBits(uint32_t inputs, int bitCount)
+{
+	assert(bitCount < 32 && bitCount > 0);
+	return inputs & ((1LL << bitCount) - 1);
+}
+
 void setBits(int *instruction, int mask, int start)
 {
     *instruction |= mask << start;

@@ -14,7 +14,7 @@ int32_t branchOpcode(char** tokenized, BOperation op, int64_t PC)
     //UNCONDITIONAL
     if (op == B_UNCOND) 
     {
-        simm = (getImmediate(tokenized[1]) - PC) >> 2;
+        simm = truncateBits((getImmediate(tokenized[1]) - PC) >> 2, 26);
         setBits(&instruction, simm, 0);
         setBits(&instruction, 0b000101, 26);
     }
@@ -47,7 +47,7 @@ int32_t branchOpcode(char** tokenized, BOperation op, int64_t PC)
 
         setBits(&instruction, cond, 0);
         setBits(&instruction, 0b0, 4);
-        simm = (getImmediate(tokenized[1]) - PC) >> 2;
+        simm = truncateBits((getImmediate(tokenized[1]) - PC) >> 2, 19);
         setBits(&instruction, simm, 5);
 	setBits(&instruction, 0b01010100, 24);
     }
