@@ -69,6 +69,7 @@ int getRegister(char *c)
 
 int stoi(char *string)
 {
+	printf("%s\n", string);
 	if(strlen(string) < 2)
 		return strtol(string, NULL, 10);
 	if(!strcmp("0x", substr(string, 0, 2)))
@@ -106,7 +107,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			setBits(&instruction, imm12, 10); //imm12
 			printf("%s -sh\n", tokenized[5]);
 
-			if(tokenized[4] != NULL && !strcmp(tokenized[5], "#12")) //shift
+			if(tokenized[4] != NULL && stoi(tail(tokenized[5])) == 12) //shift
 			{
 				setBits(&instruction, 0b1, 22); //sh
 			}
