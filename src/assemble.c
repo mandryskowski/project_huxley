@@ -83,14 +83,23 @@ int main(int argc, char **argv)
 			printf("%s\n", thisLineStr);
 			// Remove trailing whitespaces
 			{
-				char* whitespace = strchr(thisLineStr, ' ');
+				size_t leadingWhitespaceLength = strspn(thisLineStr, " ");
+				printf("leading ws len: %d\s", leadingWhitespaceLength);
+
+				if (leadingWhitespaceLength == len)
+				{
+					len = 0;
+				}
+
+				char* whitespace = strchr(thisLineStr + leadingWhitespaceLength, ' ');
 				if (whitespace != NULL)
 				{
 					len = whitespace - thisLineStr;
 					thisLineStr[len] = '\0';
 				}
+			printf("len of line post whitespace: %d |\n", leadingWhitespaceLength); 
+
 			}
-			printf("len of line post whitespace: %d\n", len); 
 
 			if (len == 0) // comment out line consisting of just whitespace
 			{
@@ -140,7 +149,7 @@ int main(int argc, char **argv)
 				strncpy(str, curLine, len);
 				char** tokenized = split(str);
 				processLabelTokens(tokenized, labels);
-				uint32_t word = assembleInstruction(tokenized, labels, currPC);
+				uint32_t word = assembleInstruction(tokenized, currPC);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));

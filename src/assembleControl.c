@@ -143,7 +143,9 @@ int stoi(char *string)
 
 int getImmediate(char *c)
 {
-	return stoi(tail(c));
+	if(c[0] == '#')
+		c = tail(c);
+	return stoi(c);
 }
 
 // splits instruction into words
