@@ -69,7 +69,6 @@ int getRegister(char *c)
 
 int stoi(char *string)
 {
-	printf("%s\n", string);
 	if(strlen(string) < 2)
 		return strtol(string, NULL, 10);
 	if(!strcmp("0x", substr(string, 0, 2)))
@@ -115,7 +114,6 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			setBits(&instruction, 0b010, 23); //opi
 			int imm12 = stoi(tail(tokenized[3]));
 			setBits(&instruction, imm12, 10); //imm12
-			printf("%s -sh\n", tokenized[5]);
 
 			if(tokenized[4] != NULL && !strcmp(getSh(tail(tokenized[5])), "12")) //shift
 			{
@@ -129,12 +127,12 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			setBits(&instruction, 0b1000, 21); //opr
 			int rm = getRegister(tail(tokenized[3]));
 			setBits(&instruction, rm, 16); //rm
-
 			if(tokenized[4] != NULL) //shift
 			{
 				char *shiftType = tokenized[4];
-				for(int shiftCode = 0; shiftCode < 4; shiftCode++)
+				for(int shiftCode = 0; shiftCode < sizeof(shifts) / sizeof(char *); shiftCode++)
 				{
+
 					if(!strcmp(shifts[shiftCode], shiftType))
 					{
 						setBits(&instruction, shiftCode, 22); //shift
@@ -185,11 +183,11 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 	if(isMultiply(op))
 	{
-		printf("%d - Multiply\n", op - FIRST_MULTIPLY);
 		int rd = getRegister(tail(tokenized[1]));
 		int rn = getRegister(tail(tokenized[2]));
 		int rm = getRegister(tail(tokenized[3]));
 		int ra = getRegister(tail(tokenized[4]));
+
 		setBits(&instruction, rd, 0); //rd
 		setBits(&instruction, rn, 5); //rn
 		setBits(&instruction, ra, 10); //ra
@@ -215,17 +213,6 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			setBits(&instruction, sh, 21);
 		}
 	}
-	//printf("%s: %x\n", tokenized[0], instruction);
+
 	return instruction;
 }
-
-//////////////
-//Test cases//
-//////////////
-
-/*int main() {
-	char *c = "add x1, x2, x3";
-	char *d = calloc(100, 1);
-	strcpy(d, c);
-	printf("%x\n", assembleDPI(d));
-}*/

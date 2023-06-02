@@ -78,13 +78,15 @@ char **getAlias(char **instruction)
     }
     else
     {
-        result = calloc(5 * sizeof(char *), 1);
+        result = calloc(6 * sizeof(char *), 1);
         if (!strcmp(*instruction, "cmp") || !strcmp(*instruction, "cmn") || !strcmp(*instruction, "tst"))
         {
             result[0] = !strcmp(*instruction, "cmp") ? "subs" : (!strcmp(*instruction, "cmn") ? "adds" : "ands");
             result[1] = rzr;
             result[2] = instruction[1];
             result[3] = instruction[2];
+            result[4] = instruction[3];
+            result[5] = instruction[4];
         }
         else if (!strcmp(*instruction, "neg") || !strcmp(*instruction, "negs") || !strcmp(*instruction, "mvn")
         || !strcmp(*instruction, "mov"))
@@ -94,6 +96,8 @@ char **getAlias(char **instruction)
             result[1] = instruction[1];
             result[2] = rzr;
             result[3] = instruction[2];
+            result[4] = instruction[3];
+            result[5] = instruction[4];
         }
         else
         {
