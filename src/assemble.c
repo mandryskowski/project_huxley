@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 				strncpy(str, curLine, len);
 				char** tokenized = split(str);
 				processLabelTokens(tokenized, labels);
-				uint32_t word = assembleInstruction(tokenized, labels, currPC);
+				uint32_t word = assembleInstruction(tokenized, currPC);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));

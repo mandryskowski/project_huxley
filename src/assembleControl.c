@@ -143,7 +143,9 @@ int stoi(char *string)
 
 int getImmediate(char *c)
 {
-	return stoi(tail(c));
+	if(c[0] == '#')
+		c = tail(c);
+	return stoi(c);
 }
 
 // splits instruction into words
@@ -215,7 +217,7 @@ int32_t assembleInstruction(char **tokenized, uint64_t PC)
             result = assembleDPI(tokenized, (DPOperation)(tp->opcode));
             break;
         case BRANCH_ASS:
-            result = branchOpcode(tokenized, (BOperation)(tp->opcode));
+            result = branchOpcode(tokenized, (BOperation)(tp->opcode), PC);
             break;
         case SDT_ASS:
             result = assembleSDT(tokenized, (SDTOperation)(tp->opcode), PC);

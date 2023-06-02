@@ -169,9 +169,9 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 	if(isMultiply(op))
 	{
-		int rd = getRegister(tokenized[1]));
-		int rn = getRegister(tokenized[2]));
-		int rm = getRegister(tokenized[3]));
+		int rd = getRegister(tokenized[1]);
+		int rn = getRegister(tokenized[2]);
+		int rm = getRegister(tokenized[3]);
 		int ra = getRegister(tokenized[4]);
 
 		setBits(&instruction, rd, 0); //rd
