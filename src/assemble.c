@@ -16,6 +16,21 @@ void makeStrLowercase(char* str)
 	}
 }
 
+// Replace all tokens matching a label with their corresponding addresses. Convert the rest to lowercase.
+void processLabelTokens(char** tokens, Label* labels)
+{
+        while (*tokens != NULL)
+        {
+                uint64_t address = getLabelAddress(*tokens, labels);
+                printf("address of token %s: %d \n", *tokens, address);
+                if (address == MAX_UINT64T) // if this is not a label, make it lowercase.
+			makeStrLowercase(*tokens);
+		else
+                        sprintf(*tokens, "#%" PRIu64, address); // replace label token with #address.
+                tokens++;
+        }
+}
+
 int main(int argc, char **argv) 
 {
 	FILE* fptr = fopen(argv[1], "rb+");
@@ -56,17 +71,19 @@ int main(int argc, char **argv)
 			char* nextLine = strchr(curLine, '\n');
 			size_t len = (nextLine != NULL) ? (nextLine - curLine) : (strlen(curLine));
 
-			if (len > 0 && curLine[len - 1] == ':' && *curLine != '#')
+			bool emptyLine = len == 0 || *curLine == '#';
+			if (!emptyLine && curLine[len - 1] == ':')
 			{
 				curLabel->address = curAddress;
 				curLabel->name = malloc(len);
 				memset(curLabel->name, '\0', len);
 				strncpy(curLabel->name, curLine, len - 1); // copy from curLine to curLabel's name but ignore the colon.
+				printf("Found label %s \n", curLabel->name);
 				memset(curLine, '#', len); // we can comment out this line as we've read the label and it is not an instruction
+				curLabel++;
 			}
 
-			curAddress += 4;
-			curLabel++;
+			curAddress += emptyLine ? 0 : 4;
 			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
 		}
 
@@ -94,9 +111,9 @@ int main(int argc, char **argv)
 				char* str = malloc(len);
 				memset(str, '\0', len + 1);
 				strncpy(str, curLine, len);
-				makeStrLowercase(str);
-
-				uint32_t word = assembleInstruction(str, labels, currPC);
+				char** tokenized = split(str);
+				processLabelTokens(tokenized, labels);
+				uint32_t word = assembleInstruction(tokenized, labels, currPC);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));

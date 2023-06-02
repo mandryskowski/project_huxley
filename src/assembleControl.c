@@ -179,9 +179,8 @@ TypePair *getAssembleType(char **operation)
     return newTypePair(UNDEFINED_ASS, 0);
 }
 
-int32_t assembleInstruction(char *instruction, Label* labels, uint64_t PC)
+int32_t assembleInstruction(char **tokenized, Label* labels, uint64_t PC)
 {
-    char **tokenized = split(instruction);
     tokenized = getAlias(tokenized);
     TypePair *tp = getAssembleType(tokenized);
     int32_t result = 0;

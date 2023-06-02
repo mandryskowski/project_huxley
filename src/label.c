@@ -1,6 +1,7 @@
 #include "label.h"
-#include <stddef.h>
 #include <string.h>
+		#include <stdio.h>
+		#include <inttypes.h>
 uint64_t getLabelAddress(char* name, Label* label)
 {
 	while (label->name != NULL)
@@ -12,5 +13,5 @@ uint64_t getLabelAddress(char* name, Label* label)
 		label++;
 	}
 
-	return UINT64_C(-1); // return max uint64_t
+	return MAX_UINT64T; // if not found
 }
