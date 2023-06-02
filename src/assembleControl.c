@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include "assembleDPI.h"
 #include "assembleSDT.h"
-#include "branchAssemble.h"
+#include "assembleBranch.h"
 #include "label.h"
 #define DELIMETERS " ,"
 
@@ -22,26 +21,6 @@ TypePair *newTypePair(assembleType aType, int opcode)
 	p->aType = aType;
 	p->opcode = opcode;
 	return p;
-}
-
-void freeStrArray(char **strArray)
-{
-    int size = 0;
-    char **ptr = strArray;
-    while (*ptr != NULL)
-    {
-        size++;
-        ptr++;
-    }
-    //printf("%d\n", size);
-    for (int i = 0; i < size; i++)
-    {
-        //printf("%s xddd\n", strArray[i]);
-        char* currentIntPtr = strArray[i];
-        free(currentIntPtr);
-    }
-    free(strArray);
-    exit(0);
 }
 
 // Checks if a string is contained in the array.
@@ -65,11 +44,10 @@ char **getAlias(char **instruction)
     {
         return instruction;
     }
-    char **result;
+    char **result = calloc(6 * sizeof(char *), 1);;
     char *rzr = instruction[1][0] == 'w' ? "wzr" : "xzr";
     if (!strcmp(*instruction, "mul") || !strcmp(*instruction, "mneg"))
     {
-        result = calloc(6 * sizeof(char *), 1);
         result[0] = !strcmp(*instruction, "mul") ? "madd" : "msub";
         result[1] = instruction[1];
         result[2] = instruction[2];
@@ -78,7 +56,6 @@ char **getAlias(char **instruction)
     }
     else
     {
-        result = calloc(6 * sizeof(char *), 1);
         if (!strcmp(*instruction, "cmp") || !strcmp(*instruction, "cmn") || !strcmp(*instruction, "tst"))
         {
             result[0] = !strcmp(*instruction, "cmp") ? "subs" : (!strcmp(*instruction, "cmn") ? "adds" : "ands");
@@ -232,7 +209,7 @@ int32_t assembleInstruction(char **tokenized, uint64_t PC)
             result = assembleSpecial(tokenized, tp->opcode);
             break;
         default:
-	    printf("-%s-", tokenized[0]);
+	        fprintf(sdterr, "-%s-", tokenized[0]);
             perror("Unhandled assemble type");
             exit(EXIT_FAILURE);
     }
