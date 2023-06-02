@@ -35,7 +35,13 @@ int main(int argc, char **argv)
         long input_file_size = ftell(fptr);
         fseek(fptr, 0, SEEK_SET);
 
-	char* fileStr = malloc(input_file_size);
+	char* fileStr = malloc(input_file_size + 1);
+	char endln = '\n';
+	if(*(fileStr + input_file_size - 1) != endln)
+	{
+		strncat(fileStr, &endln, 1);
+		input_file_size++;
+	}
 	fread(fileStr, sizeof(char), input_file_size, fptr);
 //	fclose(fptr); // close input file
 
@@ -58,7 +64,7 @@ int main(int argc, char **argv)
 				strncpy(curLabel->name, curLine, len - 1); // copy from curLine to curLabel's name but ignore the colon.
 				memset(curLine, '#', len); // we can comment out this line as we've read the label and it is not an instruction
 			}
-			
+
 			curAddress += 4;
 			curLabel++;
 			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
@@ -75,7 +81,6 @@ int main(int argc, char **argv)
 	fseek(fptr, 0, SEEK_SET);
 	
 	FILE* outputFileBegin = outfptr;
-
 	// 2nd pass: translation to binary file
 	{
 		char* curLine = fileStr;
@@ -90,23 +95,14 @@ int main(int argc, char **argv)
 				memset(str, '\0', len + 1);
 				strncpy(str, curLine, len);
 				makeStrLowercase(str);
-				
-				/* If i try to break here then emulate tests fail (the same tests
-				which pass on assemble fail on emulate and idk why T_T
-				if(!strcmp("and x0, x0, x0\0", str))
-				{
-					break;
-				}
-				*/
-				
-				printf("%s\n", str);
 
 				uint32_t word = assembleInstruction(str, labels, currPC);
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));
-//					printf("%x ", (unsigned char) (word >> i));
 				}
+
+				printf("%s: %08x\n", str, word);
 				puts(str);
 				currPC += 4;
 			}

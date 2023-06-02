@@ -1,4 +1,5 @@
 #include "assembleControl.h"
+#include "assembleSpecial.h"
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -51,11 +52,11 @@ int find(char **list, char *element)
     {
         if (!strcmp(list[index], element))
         {
-            return index;
+            return index + 1;
         }
         index++;
     }
-    return -1; //Was not found
+    return 0; //Was not found
 }
 
 char **getAlias(char **instruction)
@@ -80,7 +81,6 @@ char **getAlias(char **instruction)
         result = calloc(5 * sizeof(char *), 1);
         if (!strcmp(*instruction, "cmp") || !strcmp(*instruction, "cmn") || !strcmp(*instruction, "tst"))
         {
-            //printf("ass\n");
             result[0] = !strcmp(*instruction, "cmp") ? "subs" : (!strcmp(*instruction, "cmn") ? "adds" : "ands");
             result[1] = rzr;
             result[2] = instruction[1];
@@ -101,10 +101,8 @@ char **getAlias(char **instruction)
             return instruction;
         }
     }
-//    printf("ass\n");
-//    freeStrArray(instruction);
-//    printf("assxd\n");
-//    free(rzr);
+
+    free(instruction);
     return result;
 }
 
@@ -115,7 +113,7 @@ char *substr(char *string, int start, int end)
     char *result = malloc((end - start + 1) * sizeof(char));
     strncpy(result, string + start, end - start);
     result[end - start] = '\0';
-    //printf("%s\n", result);
+
     return result;
 }
 
@@ -127,15 +125,13 @@ char *tail(char *string)
 // splits instruction into words
 char **split(char *instruction)
 {
-    char **result = malloc(sizeof(char *) * 7);
+    char **result = calloc(sizeof(char *) * 6, 1);
     char **ptr = result;
-    int index = 0;
     for (char *string = strtok(instruction, DELIMETERS); string != NULL; string = strtok(NULL, DELIMETERS))
     {
-        printf("%s: %d\n", string, index++);
         *ptr++ = string;
     }
-    result[ptr - result] = NULL;
+
     return result;
 }
 
@@ -145,53 +141,49 @@ void setBits(int *instruction, int mask, int start)
 }
 
 
-TypePair *getAssembleType(char *operation)
+TypePair *getAssembleType(char **operation)
 {
 
     char *DPops[] = {"add", "adds", "sub", "subs", "and", "bic",
-                    "orr", "orn", "eor", "eon", "ands", "bics", "movn","movmov", "movz", "movk", "madd", "msub", NULL};
+                    "orr", "orn", "eor", "eon", "ands", "bics",
+                    "movn","movmov", "movz", "movk", "madd", "msub", NULL};
     char *BRANCHops[] = {"b", "br", NULL};
     char *SDTops[] = {"ldr", "str", NULL};
-    char *SPECIALops[] = {"nop", "and", ".int", NULL};
+    char *SPECIALops[] = {"nop", ".int", NULL};
 
-    if (find(DPops, operation) != -1){
-        return newTypePair(DP_ASS, find(DPops, operation));
-    }
-    if (find(BRANCHops, operation) != -1)
+    int result;
+
+    if ((result = find(SPECIALops, *operation)))
     {
-        return newTypePair(BRANCH_ASS, find(BRANCHops, operation));
+        return newTypePair(SPECIAL_ASS, result - 1);
+    }
+    else if (operation[3] && !strcmp(*operation, "and") && !strcmp(operation[3], "x0"))
+    {
+        return newTypePair(SPECIAL_ASS, 2);
+    }
+    if ((result = find(DPops, *operation))){
+        return newTypePair(DP_ASS, result - 1);
+    }
+    if ((result = find(BRANCHops, *operation)))
+    {
+        return newTypePair(BRANCH_ASS, result - 1);
     } 
-    else if((strlen(operation) > 1 && operation[0] == 'b' && operation[1] == '.'))
+    else if((strlen(*operation) > 1 && (*operation)[0] == 'b' && (*operation)[1] == '.'))
     {
             return newTypePair(BRANCH_ASS, 2);
     }   
-    if (find(SDTops, operation) != -1)
+    if ((result = find(SDTops, *operation)))
     {
-        return newTypePair(SDT_ASS, find(SDTops, operation));
-    }
-    if (find(SPECIALops, operation) != -1)
-    {
-        return newTypePair(SPECIAL_ASS, find(SPECIALops, operation));
+        return newTypePair(SDT_ASS, result - 1);
     }
     return newTypePair(UNDEFINED_ASS, 0);
 }
 
 int32_t assembleInstruction(char *instruction, Label* labels, uint64_t PC)
 {
-//    printf("%s\n", instruction);
     char **tokenized = split(instruction);
-//    printf("%s\n", instruction);
     tokenized = getAlias(tokenized);
-//    printf("%s\n", instruction);
-/*    char **ptr = tokenized;
-    while (*ptr != NULL){
-        printf("%s\n", *ptr);
-        ptr++;
-    }
-*/
-    TypePair *tp = getAssembleType(*tokenized);
-//    printf("%d\n", getAssembleType(*tokenized));
-    //exit(0);
+    TypePair *tp = getAssembleType(tokenized);
     int32_t result = 0;
 
     switch (tp->aType)
@@ -206,7 +198,7 @@ int32_t assembleInstruction(char *instruction, Label* labels, uint64_t PC)
             result = assembleSDT(tokenized, (SDTOperation)(tp->opcode), PC);
             break;
         case SPECIAL_ASS:
-            //result = ...
+            result = assembleSpecial(tokenized, tp->opcode);
             break;
         default:
 	    printf("-%s-", tokenized[0]);
@@ -214,6 +206,6 @@ int32_t assembleInstruction(char *instruction, Label* labels, uint64_t PC)
             exit(EXIT_FAILURE);
     }
 
-   // freeStrArray(tokenized);
+    free(tokenized);
     return result;
 }
