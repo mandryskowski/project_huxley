@@ -83,14 +83,23 @@ int main(int argc, char **argv)
 			printf("%s\n", thisLineStr);
 			// Remove trailing whitespaces
 			{
-				char* whitespace = strchr(thisLineStr, ' ');
+				size_t leadingWhitespaceLength = strspn(thisLineStr, " ");
+				printf("leading ws len: %d\s", leadingWhitespaceLength);
+
+				if (leadingWhitespaceLength == len)
+				{
+					len = 0;
+				}
+
+				char* whitespace = strchr(thisLineStr + leadingWhitespaceLength, ' ');
 				if (whitespace != NULL)
 				{
 					len = whitespace - thisLineStr;
 					thisLineStr[len] = '\0';
 				}
+			printf("len of line post whitespace: %d |\n", leadingWhitespaceLength); 
+
 			}
-			printf("len of line post whitespace: %d\n", len); 
 
 			if (len == 0) // comment out line consisting of just whitespace
 			{
