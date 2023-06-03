@@ -55,7 +55,7 @@ void setAliasMeaning(char **instruction, int rzrPos)
 void getAlias(char **instruction)
 {
     char *alias[] = {"mul", "mneg", "cmp", "cmn", "tst", "neg", "negs",
-                       "mvn","mov"};
+                       "mvn","mov", NULL};
     char *meaning[] = {"madd", "msub", "subs", "adds", "ands", "sub", "subs",
                         "orn", "orr"};
     int index = find(alias, *instruction);
