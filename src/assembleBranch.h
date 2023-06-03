@@ -1,5 +1,5 @@
-#ifndef ARMV8_25_BRANCHASSEMBLE_H
-#define ARMV8_25_BRANCHASSEMBLE_H
+#ifndef ARMV8_25_ASSEMBLEBRANCH_H
+#define ARMV8_25_ASSEMBLEBRANCH_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -15,4 +15,4 @@ typedef enum
 
 int32_t branchOpcode (char** tokenized, BOperation op, int64_t PC);
 
-#endif //ARMV8_25_BRANCHASSEMBLE_H
+#endif //ARMV8_25_ASSEMBLEBRANCH_H

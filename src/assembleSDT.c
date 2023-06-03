@@ -2,7 +2,6 @@
 #include "assembleControl.h"
 #include <string.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include "control.h"
 #include <stdio.h> // for debugging
 // bits 5-21 and bit 24

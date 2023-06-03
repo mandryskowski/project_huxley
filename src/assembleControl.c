@@ -4,12 +4,14 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include "assembleDPI.h"
 #include "assembleSDT.h"
-#include "branchAssemble.h"
+#include "assembleBranch.h"
 #include "label.h"
+
 #define DELIMETERS " ,"
+#define MAX_INSTRUCTION_SIZE 6
+#define SPECIAL_REGISTER 31
 
 typedef struct TypePair {
 	assembleType aType;
@@ -24,27 +26,8 @@ TypePair *newTypePair(assembleType aType, int opcode)
 	return p;
 }
 
-void freeStrArray(char **strArray)
-{
-    int size = 0;
-    char **ptr = strArray;
-    while (*ptr != NULL)
-    {
-        size++;
-        ptr++;
-    }
-    //printf("%d\n", size);
-    for (int i = 0; i < size; i++)
-    {
-        //printf("%s xddd\n", strArray[i]);
-        char* currentIntPtr = strArray[i];
-        free(currentIntPtr);
-    }
-    free(strArray);
-    exit(0);
-}
-
-// Checks if a string is contained in the array.
+/* Finds index of an element in the list equal to (char *element).
+ * if the element is not found returns 0.*/
 int find(char **list, char *element)
 {
     int index = 0;
@@ -59,55 +42,30 @@ int find(char **list, char *element)
     return 0; //Was not found
 }
 
-char **getAlias(char **instruction)
+/* returns meaning of a given alias*/
+void setAliasMeaning(char **instruction, int rzrPos)
 {
-    if (!instruction[0] || !instruction[1])
-    {
-        return instruction;
-    }
-    char **result;
-    char *rzr = instruction[1][0] == 'w' ? "wzr" : "xzr";
-    if (!strcmp(*instruction, "mul") || !strcmp(*instruction, "mneg"))
-    {
-        result = calloc(6 * sizeof(char *), 1);
-        result[0] = !strcmp(*instruction, "mul") ? "madd" : "msub";
-        result[1] = instruction[1];
-        result[2] = instruction[2];
-        result[3] = instruction[3];
-        result[4] = rzr;
-    }
-    else
-    {
-        result = calloc(6 * sizeof(char *), 1);
-        if (!strcmp(*instruction, "cmp") || !strcmp(*instruction, "cmn") || !strcmp(*instruction, "tst"))
-        {
-            result[0] = !strcmp(*instruction, "cmp") ? "subs" : (!strcmp(*instruction, "cmn") ? "adds" : "ands");
-            result[1] = rzr;
-            result[2] = instruction[1];
-            result[3] = instruction[2];
-            result[4] = instruction[3];
-            result[5] = instruction[4];
-        }
-        else if (!strcmp(*instruction, "neg") || !strcmp(*instruction, "negs") || !strcmp(*instruction, "mvn")
-        || !strcmp(*instruction, "mov"))
-        {
-            result[0] = !strcmp(*instruction, "neg") ? "sub" : (!strcmp(*instruction, "negs") ? "subs" :
-                    (!strcmp(*instruction, "mvn") ? "orn" : "orr"));
-            result[1] = instruction[1];
-            result[2] = rzr;
-            result[3] = instruction[2];
-            result[4] = instruction[3];
-            result[5] = instruction[4];
-        }
-        else
-        {
-            free(result);
-            return instruction;
-        }
-    }
+    memmove(instruction + rzrPos + 1, instruction + rzrPos,
+            (MAX_INSTRUCTION_SIZE - rzrPos - 1) * sizeof (char *));
+    instruction[rzrPos] = instruction[1][0] == 'w' ? "wzr" : "xzr";
+}
 
-    free(instruction);
-    return result;
+/* If a instruction is an alias it is replaced by its meaning.
+ * Otherwise, it returns the given instruction itself.*/
+void getAlias(char **instruction)
+{
+    char *alias[] = {"mul", "mneg", "cmp", "cmn", "tst", "neg", "negs",
+                       "mvn","mov", NULL};
+    char *meaning[] = {"madd", "msub", "subs", "adds", "ands", "sub", "subs",
+                        "orn", "orr"};
+    int index = find(alias, *instruction);
+
+    // Given instruction is an alias. So we replace it with its meaning.
+    if (index)
+    {
+        instruction[0] = meaning[index - 1];
+        setAliasMeaning(instruction, (index < 3) ? 4 : (index < 6) ? 1 : 2);
+    }
 }
 
 // Interval is [start, end)
@@ -121,39 +79,33 @@ char *substr(char *string, int start, int end)
     return result;
 }
 
+// returns the 2nd largest suffix of a string.
 char *tail(char *string)
 {
 	return substr(string, 1, strlen(string));
 }
 
+// Return index of register from associated string.
 int getRegister(char *c)
 {
 	c = tail(c);
-	return (strcmp(c, "zr")) ? atoi(c) : 0b11111;
+	return (strcmp(c, "zr")) ? strtol(c, NULL, 10) : SPECIAL_REGISTER;
 }
 
-int stoi(char *string)
-{
-        if(strlen(string) < 2)
-                return strtol(string, NULL, 10);
-        if(!strcmp("0x", substr(string, 0, 2)))
-                return strtol(string, NULL, 16);
-        return strtol(string, NULL, 10);
-}
-
+// Returns immediate value from associated string.
 int getImmediate(char *c)
 {
 	if(c[0] == '#')
 		c = tail(c);
-	return stoi(c);
+	return strtol(c, NULL, 0);
 }
 
 // splits instruction into words
 char **split(char *instruction)
 {
-    char **result = calloc(sizeof(char *) * 6, 1);
+    char **result = calloc(sizeof(char *) * MAX_INSTRUCTION_SIZE, 1);
     char **ptr = result;
-    for (char *string = strtok(instruction, DELIMETERS); string != NULL; string = strtok(NULL, DELIMETERS))
+    for (char *string = strtok(instruction, DELIMETERS); string; string = strtok(NULL, DELIMETERS))
     {
         *ptr++ = string;
     }
@@ -161,18 +113,20 @@ char **split(char *instruction)
     return result;
 }
 
+/*Truncates bits if operation is 32 bit.*/
 uint32_t truncateBits(uint32_t inputs, int bitCount)
 {
 	assert(bitCount < 32 && bitCount > 0);
 	return inputs & ((1LL << bitCount) - 1);
 }
 
+/* Sets bitmask starting at bit start.*/
 void setBits(int *instruction, int mask, int start)
 {
     *instruction |= mask << start;
 }
 
-
+/*Returns a type and index of given operation.*/
 TypePair *getAssembleType(char **operation)
 {
 
@@ -211,11 +165,21 @@ TypePair *getAssembleType(char **operation)
     return newTypePair(UNDEFINED_ASS, 0);
 }
 
+// Assembles given instruction.
 int32_t assembleInstruction(char **tokenized, uint64_t PC)
 {
-    tokenized = getAlias(tokenized);
+    /* Checks if the instruction has at least 1 word. If it does not
+     * then it is incorrect instruction. Therefore, error is thrown. */
+    if (!tokenized[0])
+    {
+        perror("It is not possible for instruction to be empty\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Gets meaning of an alias and associated index and type of operation.
+    getAlias(tokenized);
     TypePair *tp = getAssembleType(tokenized);
-    int32_t result = 0;
+    int32_t result;
 
     switch (tp->aType)
     {
@@ -232,8 +196,7 @@ int32_t assembleInstruction(char **tokenized, uint64_t PC)
             result = assembleSpecial(tokenized, tp->opcode);
             break;
         default:
-	    printf("-%s-", tokenized[0]);
-            perror("Unhandled assemble type");
+	        fprintf(stderr, "Unhandled assemble type -%s-", tokenized[0]);
             exit(EXIT_FAILURE);
     }
 
