@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
-#include "assembleDPI.h"
 #include "label.h"
 #include "assembleControl.h"
 
@@ -19,16 +17,20 @@ void makeStrLowercase(char* str)
 // Replace all tokens matching a label with their corresponding addresses. Convert the rest to lowercase.
 void processLabelTokens(char** tokens, Label* labels)
 {
-        while (*tokens != NULL)
+    while (*tokens != NULL)
+    {
+        uint64_t address = getLabelAddress(*tokens, labels);
+        printf("address of token %s: %d \n", *tokens, address);
+        if (address == MAX_UINT64T) // if this is not a label, make it lowercase.
         {
-                uint64_t address = getLabelAddress(*tokens, labels);
-                printf("address of token %s: %d \n", *tokens, address);
-                if (address == MAX_UINT64T) // if this is not a label, make it lowercase.
-			makeStrLowercase(*tokens);
-		else
-                        sprintf(*tokens, "#%" PRIu64, address); // replace label token with #address.
-                tokens++;
+            makeStrLowercase(*tokens);
         }
+        else
+        {
+            sprintf(*tokens, "#%" PRIu64, address); // replace label token with #address.
+        }
+        tokens++;
+    }
 }
 
 int main(int argc, char **argv) 
@@ -47,8 +49,8 @@ int main(int argc, char **argv)
 	}
 
 	fseek(fptr, 0, SEEK_END);
-        long input_file_size = ftell(fptr);
-        fseek(fptr, 0, SEEK_SET);
+    long input_file_size = ftell(fptr);
+    fseek(fptr, 0, SEEK_SET);
 
 	char* fileStr = malloc(input_file_size + 1);
 	char endln = '\n';

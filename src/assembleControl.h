@@ -32,4 +32,6 @@ int getRegister(char *c);
 
 int getImmediate(char *c);
 
+int find(char **list, char *element);
+
 #endif //ARMV8_25_ASSEMBLECONTROL_H
