@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "label.h"
+#include "../label.h"
 
 typedef enum 
 {

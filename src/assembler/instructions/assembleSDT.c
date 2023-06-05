@@ -1,8 +1,7 @@
 #include "assembleSDT.h"
-#include "assembleControl.h"
+#include "../util/assembleUtility.h"
 #include <string.h>
 #include <stdbool.h>
-#include "control.h"
 #include <stdio.h> // for debugging
 // bits 5-21 and bit 24
 void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken, bool is64bit)

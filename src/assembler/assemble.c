@@ -4,9 +4,9 @@
 #include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
-#include "assembleDPI.h"
 #include "label.h"
 #include "assembleControl.h"
+#include "instructions/assembleDPI.h"
 
 void makeStrLowercase(char* str)
 {

@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdbool.h>
-#include "assembleControl.h"
+#include "../util/assembleUtility.h"
 #include "assembleDPI.h"
 
 bool isArithmetic(DPOperation op)

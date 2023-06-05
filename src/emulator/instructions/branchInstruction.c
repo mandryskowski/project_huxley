@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "branchInstruction.h"
-#include "state.h"
-#include "control.h"
+#include "../util/state.h"
+#include "../util/emulateUtility.h"
+
 
 bool condHolds(int instruction, ComputerState *computerState)
 {

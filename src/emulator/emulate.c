@@ -3,10 +3,10 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#include "control.h"
-#include "state.h"
-#include "outputFileGenerator.h"
-#include "immediateInstruction.h"
+#include "emulateControl.h"
+#include "util/state.h"
+#include "util/outputFileGenerator.h"
+#include "instructions/immediateInstruction.h"
 
 #define BUFSZ 4
 #define BYTESZ 8
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     fseek(fptr, 0, SEEK_END);
     long file_size = ftell(fptr);
     fseek(fptr, 0, SEEK_SET);
-    printf("fsize %d \n", file_size);
+    //printf("fsize %d \n", file_size);
     fread(computerState->memory, sizeof(char), file_size, fptr);
 
     while(computerState->PC < file_size)

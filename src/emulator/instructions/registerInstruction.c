@@ -1,9 +1,9 @@
-#include "registerInstruction.h"
-#include "bitwiseInstruction.h"
-#include "control.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "immediateInstruction.h"
+#include "registerInstruction.h"
+#include "../util/bitwiseInstruction.h"
+#include "../util/emulateUtility.h"
 
 
 int64_t EncodedRegisterValue(ComputerState* computerState, int encodedReg)

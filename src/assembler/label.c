@@ -1,7 +1,7 @@
 #include "label.h"
 #include <string.h>
-		#include <stdio.h>
-		#include <inttypes.h>
+#include <stdio.h>
+#include <inttypes.h>
 uint64_t getLabelAddress(char* name, Label* label)
 {
 	while (label->name != NULL)

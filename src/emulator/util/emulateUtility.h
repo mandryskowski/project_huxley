@@ -1,9 +1,7 @@
-#ifndef ARMV8_25_CONTROL_H
-#define ARMV8_25_CONTROL_H
-#include <stdint.h>
+#ifndef ARMV8_25_EMULATEUTILITY_H
+#define ARMV8_25_EMULATEUTILITY_H
 
-#include "state.h"
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdbool.h>
 
 typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST = BRANCH, UNDEFINED} instructionType;
@@ -14,6 +12,4 @@ int64_t getBitsSignExt(int start, int end, int64_t instruction);
 
 instructionType getInstructionType(int instruction);
 
-void ExecuteInstruction(int32_t instruction, ComputerState *computerState, char*);
-
-#endif //ARMV8_25_CONTROL_H
+#endif //ARMV8_25_EMULATEUTILITY_H

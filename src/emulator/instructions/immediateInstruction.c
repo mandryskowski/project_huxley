@@ -1,5 +1,5 @@
 #include "immediateInstruction.h"
-#include "control.h"
+#include "../util/emulateUtility.h"
 #include <stdio.h>
 #include <stdlib.h>
 

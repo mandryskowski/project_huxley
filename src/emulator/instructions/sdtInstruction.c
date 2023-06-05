@@ -1,11 +1,10 @@
-#include "sdtInstruction.h"
-#include "state.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include "control.h"
 #include <inttypes.h>
+#include "../util/emulateUtility.h"
+#include "sdtInstruction.h"
 
 int64_t loadFromMemory(const char* absoluteAddress, bool is64bit)
 {
