@@ -3,6 +3,7 @@
 #include "emulateControl.h"
 #include "util/outputFileGenerator.h"
 #include "util/emulateUtility.h"
+#include "util/bitwiseInstruction.h"
 #include "instructions/immediateInstruction.h"
 #include "instructions/branchInstruction.h"
 #include "instructions/registerInstruction.h"
