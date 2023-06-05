@@ -6,97 +6,59 @@
 
 #define MASK (1LL << 32) - 1
 
-void LogicalSL(int64_t* operand, int amount, int truncate)
+
+
+
+int64_t LogicalSL(int64_t operand, int amount, bool is64bit)
 {
-    *operand <<= amount;
-	if (!truncate) {
-        *operand = (int32_t) *operand;
-    }
+    operand = (uint64_t) operand << amount; // Logical shift is performed on unsigned values so we cast to uint64_t.
+    return is64bit ? operand : (int32_t)operand;
 }
 
 
-void LogicalSR(int64_t* operand, int amount, int truncate)
+int64_t LogicalSR(int64_t operand, int amount, bool is64bit)
 {
- 	*operand = (uint64_t)*operand >> amount;
-	if (!truncate)
-    {
-        *operand = (int32_t)*operand;
-    }
+    operand = (uint64_t) operand >> amount; // Again, we cast to uint64_t to perform a logical shift.
+    return is64bit ? operand : (int32_t)operand;
 }
 
-void ArithmeticSR(int64_t *operand, int amount, int truncate)
+int64_t ArithmeticSR(int64_t operand, int amount, bool is64bit)
  {
-    if(!truncate)
+    if (!is64bit)
     {
-        *operand = (int32_t)*operand;
+	    operand = (int32_t)operand; // Take bottom 32 bits and sign extend.
     }
-    *operand >>= amount;
-    if (!truncate)
-    {
-        *operand = (uint32_t)*operand;
-    }
+    operand = operand >> amount;
+    return is64bit ? operand : (int32_t)operand;
 }
 
-void RotateRight(int64_t *operand, int amount, int truncate)
+int64_t RotateRight(int64_t operand, int amount, bool is64bit)
 {
-	if (!truncate)
+	  if (!is64bit)
     {
-        *operand = (uint32_t)*operand;
+      operand = (uint32_t)operand; // Take bottom 32 bits and unsigned extend.
     }
-	*operand = ((uint64_t)*operand >> amount) | (*operand << ((truncate ? 64 : 32) - amount));
-	if(!truncate)
-    {
-        *operand = (uint32_t) *operand;
-    }
-	
+	  operand = LogicalSR(operand, amount, is64bit) | LogicalSL(operand, (is64bit ? 64 : 32) - amount, is64bit);
+    return is64bit ? operand : (int32_t)operand;	
 }
 
-void ExecuteShift(int shiftType, int64_t *operand, int amount, int truncate)
+int64_t ExecuteShift(int shiftType, int64_t operand, int amount, bool is64bit)
 {
     switch(shiftType) {
       case 0b00:
-        LogicalSL(operand, amount, truncate);
+        return LogicalSL(operand, amount, is64bit);
         break;
       case 0b01:
-        LogicalSR(operand, amount, truncate);
+        return LogicalSR(operand, amount, is64bit);
         break;
       case 0b10:
-        ArithmeticSR(operand, amount, truncate);
+        return ArithmeticSR(operand, amount, is64bit);
         break;
       case 0b11:
-        RotateRight(operand, amount, truncate);
+        return RotateRight(operand, amount, is64bit);
         break;
       default:
         perror("Invalid shift type");
-	exit(EXIT_FAILURE);
+        return -1;
     }
 }
-
-/*
-int main() {
-  int64_t operand;
-  int amount, truncation, type;
-  printf("input operand, amount, truncation (0/1), type of shift (0/1/2/3)\n");
-  scanf("%ld %d %d %d", &operand, &amount, &truncation, &type);
-  CarryPair test;
-  switch(type) 
-  {
-    case 0:
-  	test =  LogicalSL(&operand, amount, truncation);
-  	break;
-    case 1:
-	test = LogicalSR(&operand, amount, truncation);
-	break;
-    case 2:
-	test = ArithmeticSR(&operand, amount, truncation);
-	break;
-    case 3:
-	test = RotateRight(&operand, amount, truncation);
-	break;
-    default:
-	printf("%ld\n", test.shift);
-  }
-printf("New value: %ld\nShift carry: %ld\n Trunc carry: %ld\n", operand, test.shift, test.trunc);
-return 0;
-}
-*/

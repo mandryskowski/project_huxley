@@ -23,6 +23,8 @@ char **split(char *instruction);
 
 void setBits(int *instruction, int mask, int start);
 
+int getShiftCode(char *shiftID);
+
 // Truncate a 32-bit number to a maximum of bitCount (bits higher than that are set to 0).
 uint32_t truncateBits(uint32_t inputs, int bitCount);
 

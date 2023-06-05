@@ -13,7 +13,6 @@ int32_t assembleSpecial(char **instruction, int type)
         case SPECIAL_HOLD:
             return 0x8a000000;
         default:
-            printf("%d is not special. It does not deserve to be treated differently", type);
             exit(EXIT_FAILURE);
     }
 }
