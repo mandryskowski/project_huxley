@@ -6,7 +6,7 @@
 typedef struct Label
 {
 	char* name;
-        int64_t address;
+    uint64_t address;
 } Label;      
 
 // Returns the address associated with the given labelName.

@@ -2,14 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int32_t assembleSpecial(char **instruction, SPOperation op)
+/* Assembles special operation*/
+int32_t assembleSpecial(char **instruction, int type)
 {
-    switch (op) {
-        case NOP:
+    switch (type) {
+        case SPECIAL_NOP:
             return 0xd503201f;
-        case DOT_INT:
+        case SPECIAL_DIRECTIVE:
             return strtol(instruction[1], NULL, 0);
-        case AND_END:
+        case SPECIAL_HOLD:
             return 0x8a000000;
         default:
             exit(EXIT_FAILURE);

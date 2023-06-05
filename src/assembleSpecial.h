@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 typedef enum {
-    NOP,
-    DOT_INT,
-    AND_END
-} SPOperation;
+    SPECIAL_NOP,
+    SPECIAL_DIRECTIVE,
+    SPECIAL_HOLD
+} SPECIALOperation;
 
-int32_t assembleSpecial(char **instruction, SPOperation op);
+int32_t assembleSpecial(char **instruction, int type);
 
 #endif //ARMV8_25_ASSEMBLESPECIAL_H
