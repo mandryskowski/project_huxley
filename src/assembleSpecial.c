@@ -4,7 +4,7 @@
 
 int32_t assembleSpecial(char **instruction, SPOperation op)
 {
-    switch (type) {
+    switch (op) {
         case NOP:
             return 0xd503201f;
         case DOT_INT:
