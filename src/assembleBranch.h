@@ -12,7 +12,9 @@ typedef enum
     B_COND
 } BOperation;
 
+int32_t findCondition(char* bracnhCond);
 
 int32_t branchOpcode (char** tokenized, BOperation op, int64_t PC);
+
 
 #endif //ARMV8_25_ASSEMBLEBRANCH_H
