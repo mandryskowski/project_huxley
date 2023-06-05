@@ -80,8 +80,6 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 	int32_t instruction = 0;
 
-	char* shifts[] = {"lsl", "lsr", "asr", "ror"};
-
 	setBits(&instruction, tokenized[1][0] == 'x', 31); //Set sf on bit 31
 
 	if(isArithmetic(op))
@@ -128,15 +126,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			{
 				//If the 4th arg isn't NULL, there exists a shift instruction
 				char *shiftType = tokenized[4]; // Get shift type
-				for(int shiftCode = 0; shiftCode < sizeof(shifts) / sizeof(char *); shiftCode++)
-				{
-
-					if(!strcmp(shifts[shiftCode], shiftType))
-					{
-						setBits(&instruction, shiftCode, 22); //Set shift on bits 22-23
-						break;
-					}
-				}
+				setBits(&instruction, getShiftCode(shiftType), 22); //Set shift on bits 22-23
 
 				int shiftAmount = getImmediate(tokenized[5]); //Get shift amount
 				setBits(&instruction, shiftAmount, 10); //Set operand(sh amm) on bits 10-15
@@ -166,15 +156,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 		{
 			//If the 4th arg isn't NULL, there exists a shift instruction
 			char *shiftType = tokenized[4]; //Get shiftTypehttps://www.rightmove.co.uk/properties/135517445#/floorplan?activePlan=1&channel=RES_LET
-
-			for(int shiftCode = 0; shiftCode < 4; shiftCode++)
-			{
-				if(!strcmp(shifts[shiftCode], shiftType))
-				{
-					setBits(&instruction, shiftCode, 22); //Set shiftCode on bits 22-23
-					break;
-				}
-			}
+			setBits(&instruction, getShiftCode(shiftType), 22); //Set shift on bits 22-23
 
 			int shiftAmount = getImmediate(tokenized[5]); // Get shift amount
 			setBits(&instruction, shiftAmount, 10); //Set operand on bits 10-15

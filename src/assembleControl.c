@@ -68,6 +68,23 @@ void getAlias(char **instruction)
     }
 }
 
+/* Given shift shortcode, returns it's index */
+int getShiftCode(char *shiftID)
+{
+	char* shifts[] = {"lsl", "lsr", "asr", "ror"};
+	for(int shiftCode = 0; shiftCode < sizeof(shifts) / sizeof(char *); shiftCode++)
+        {
+                if(!strcmp(shifts[shiftCode], shiftID))
+                {
+			return shiftCode;
+                }
+        }
+
+	assert(0); //Invalid shiftCode
+	return -1;
+
+}
+
 // Interval is [start, end)
 char *substr(char *string, int start, int end)
 {
@@ -153,11 +170,11 @@ TypePair *getAssembleType(char **operation)
     if ((result = find(BRANCHops, *operation)))
     {
         return newTypePair(BRANCH_ASS, result - 1);
-    } 
+    }
     else if((strlen(*operation) > 1 && (*operation)[0] == 'b' && (*operation)[1] == '.'))
     {
             return newTypePair(BRANCH_ASS, 2);
-    }   
+    }
     if ((result = find(SDTops, *operation)))
     {
         return newTypePair(SDT_ASS, result - 1);
