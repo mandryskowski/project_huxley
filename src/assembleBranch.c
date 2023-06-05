@@ -5,9 +5,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-//Returns the encodig of the condition in branchCond.
-//branchCond has form "b.cond"
-
 int32_t findCondition(char* branchCond)
 {
     //Types of conditions
@@ -27,7 +24,7 @@ int32_t findCondition(char* branchCond)
 
 }
 
-int32_t branchOpcode(char** tokenized, BOperation op, int64_t PC) 
+int32_t assembleBranch(char** tokenized, BOperation op, int64_t PC)
 {
     int32_t instruction = 0;
 
