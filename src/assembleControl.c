@@ -200,6 +200,5 @@ int32_t assembleInstruction(char **tokenized, uint64_t PC)
             exit(EXIT_FAILURE);
     }
 
-    free(tokenized);
     return result;
 }

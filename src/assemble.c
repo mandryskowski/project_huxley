@@ -20,7 +20,7 @@ void processLabelTokens(char** tokens, Label* labels)
     while (*tokens != NULL)
     {
         uint64_t address = getLabelAddress(*tokens, labels);
-        printf("address of token %s: %d \n", *tokens, address);
+        //printf("address of token %s: %d \n", *tokens, address);
         if (address == MAX_UINT64T) // if this is not a label, make it lowercase.
         {
             makeStrLowercase(*tokens);
@@ -33,139 +33,72 @@ void processLabelTokens(char** tokens, Label* labels)
     }
 }
 
-int main(int argc, char **argv) 
+int getFileSize(FILE *file)
 {
-	FILE* fptr = fopen(argv[1], "rb+");
-	FILE* outfptr = fopen(argv[2], "w+");
-	if(fptr == NULL)
-	{
-		printf("Input file could not be opened\n");
-		exit(1);
-	}
-	if (outfptr == NULL)
-	{
-		printf("Output file could not be opened\n");
-		exit(1);
-	}
+    fseek(file, 0, SEEK_END);
+    int result = ftell(file);
+    rewind(file);
 
-	fseek(fptr, 0, SEEK_END);
-    long input_file_size = ftell(fptr);
-    fseek(fptr, 0, SEEK_SET);
-
-	char* fileStr = malloc(input_file_size + 1);
-	char endln = '\n';
-	if(*(fileStr + input_file_size - 1) != endln)
-	{
-		strncat(fileStr, &endln, 1);
-		input_file_size++;
-	}
-	fread(fileStr, sizeof(char), input_file_size, fptr);
-//	fclose(fptr); // close input file
-
-	Label labels[128];
-	// 1st pass: getting labels' addresses
-	{
-		Label* curLabel = labels;
-		char* curLine = fileStr;
-		int64_t curAddress = 0;
-		while(curLine != NULL)
-		{
-			char* nextLine = strchr(curLine, '\n');
-			size_t len = (nextLine != NULL) ? (nextLine - curLine) : (strlen(curLine));
-			char* thisLineStr = malloc(len);
-		
-			if (len == 0 || *curLine == '#') // skip if empty/commented line
-			{
-				curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
-				continue;
-			}
-
-			memset(thisLineStr, '\0', len + 1);
-			strncpy(thisLineStr, curLine, len);
-			printf("%s\n", thisLineStr);
-			// Remove trailing whitespaces
-			{
-				size_t leadingWhitespaceLength = strspn(thisLineStr, " ");
-				printf("leading ws len: %d\s", leadingWhitespaceLength);
-
-				if (leadingWhitespaceLength == len)
-				{
-					len = 0;
-				}
-
-				char* whitespace = strchr(thisLineStr + leadingWhitespaceLength, ' ');
-				if (whitespace != NULL)
-				{
-					len = whitespace - thisLineStr;
-					thisLineStr[len] = '\0';
-				}
-			printf("len of line post whitespace: %d |\n", leadingWhitespaceLength); 
-
-			}
-
-			if (len == 0) // comment out line consisting of just whitespace
-			{
-				*curLine = '#';
-			}
-			else if (thisLineStr[len - 1] == ':') // check if this line represents a label
-			{
-				thisLineStr[len - 1] = '\0'; // get rid of the colon at the end.
-				curLabel->address = curAddress;
-				curLabel->name = thisLineStr;
-				printf("Found label name:%s address:0x%x \n", thisLineStr, curAddress);
-				*curLine = '#'; // we can comment out this line as we've read the label and it is not an instruction
-				curLabel++;
-			}
-			else // otherwise it's an instruction
-			{
-				curAddress += 4;
-			}
-
-			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
-		}
-
-		while (curLabel != labels + 128)
-		{
-			curLabel->name = NULL;
-			curLabel->address = 0;
-			curLabel++;
-		}
-	}
-
-	fseek(fptr, 0, SEEK_SET);
-	
-	FILE* outputFileBegin = outfptr;
-	// 2nd pass: translation to binary file
-	{
-		char* curLine = fileStr;
-		uint64_t currPC = 0;
-		while (curLine != NULL)
-		{
-			char* nextLine = strchr(curLine, '\n');
-			size_t len = (nextLine != NULL) ? (nextLine - curLine) : (strlen(curLine));
-			if (len > 0 && *curLine != '#') // ignore empty or commented lines
-			{
-				printf("next instruction of len %d \n", len);
-				char* str = malloc(len);
-				memset(str, '\0', len + 1);
-				strncpy(str, curLine, len);
-				char** tokenized = split(str);
-				processLabelTokens(tokenized, labels);
-				uint32_t word = assembleInstruction(tokenized, currPC);
-				for (int i = 0; i < 32; i += 8)
-				{
-					fprintf(outfptr, "%c", (unsigned char) (word >> i));
-				}
-
-				printf("%s: %08x\n", str, word);
-				puts(str);
-				currPC += 4;
-			}
-			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;
-		}
-	}
-	
-	fclose(outputFileBegin);
-	return 0;
+    return result;
 }
 
+int main(int argc, char **argv) 
+{
+    FILE* input = fopen(argv[1], "rb+");
+    int fileSize = getFileSize(input);
+    char *data = malloc(fileSize + 1);
+    fread(data, sizeof(char), fileSize, input);
+    char ***tokenized = calloc(sizeof(char **) * (fileSize + 1), 1);
+    char ***tokenizedPtr = tokenized;
+    uint64_t address = 0;
+    Label *label = calloc(128, sizeof(Label));
+    Label *labelEnd = label;
+    char *line;
+
+    // First pass
+    while ((line = strsep(&data, "\n")))
+    {
+        // It's a comment or empty line therefore its irrelevant
+        if (*line == '#' || *line == '\0')
+        {
+            continue;
+        }
+        *tokenizedPtr = split(line);
+        char *operation = **tokenizedPtr;
+        int opLength = strlen(operation);
+        // Is a label
+        if (operation[opLength - 1] == ':')
+        {
+            *labelEnd++ = (Label){substr(operation, 0, opLength - 1), address};
+            continue;
+        }
+
+        tokenizedPtr++;
+        address += 4;
+    }
+
+    tokenizedPtr = tokenized;
+    address = 0;
+    FILE* output = fopen(argv[2], "w+");
+    // Second pass
+    while (*tokenizedPtr)
+    {
+        processLabelTokens(*tokenizedPtr, label);
+        uint32_t word = assembleInstruction(*tokenizedPtr, address);
+        for (int i = 0; i < 32; i += 8)
+        {
+            fprintf(output, "%c", (unsigned char) (word >> i));
+        }
+
+        //printf("%08x\n", word);
+        address += 4;
+        tokenizedPtr++;
+    }
+
+    free(data);
+    free(tokenized);
+    free(label);
+    fclose(input);
+    fclose(output);
+    return 0;
+}
