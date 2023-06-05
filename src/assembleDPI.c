@@ -5,6 +5,7 @@
 
 bool isArithmetic(DPOperation op)
 {
+	//Checks if DPOperation is an arithmetic op
 	switch (op)
 	{
 		case DP_ADD:
@@ -19,6 +20,7 @@ bool isArithmetic(DPOperation op)
 
 bool isLogical(DPOperation op)
 {
+	//Checks if DPOperation is an logical op
 	switch (op)
 	{
 		case DP_AND:
@@ -37,6 +39,7 @@ bool isLogical(DPOperation op)
 
 bool isWideMove(DPOperation op)
 {
+	//Checks if DPOperation is an wide move op
 	switch(op)
 	{
 		case DP_MOVN:
@@ -50,6 +53,7 @@ bool isWideMove(DPOperation op)
 
 bool isMultiply(DPOperation op)
 {
+	//Checks if DPOperation is an multiply op
 	switch(op)
 	{
 		case DP_MADD:
@@ -62,6 +66,7 @@ bool isMultiply(DPOperation op)
 
 char *getSh(char *c)
 {
+	//Gets the first (at most) 2 characters of c
 	if(strlen(c) < 2)
 	{
 		return c;
@@ -77,122 +82,138 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 	char* shifts[] = {"lsl", "lsr", "asr", "ror"};
 
-	//Set SF
-	setBits(&instruction, (tokenized[1][0] == 'x') ? 1 : 0, 31);
+	setBits(&instruction, tokenized[1][0] == 'x', 31); //Set sf on bit 31
 
 	if(isArithmetic(op))
 	{
-		//Set destination register and source register
+		//It it an arithmetic operation
+
+		//Get destination register and source register
 		int rd = getRegister(tokenized[1]);
 		int rn = getRegister(tokenized[2]);
-		setBits(&instruction, rd, 0); //rd
-		setBits(&instruction, rn, 5); //rn
+		setBits(&instruction, rd, 0); //Set rd on bits 0-4
+		setBits(&instruction, rn, 5); //Set rn on bits 5-9
 
-		//Set opcode
+		//Set opcode on bits 29-30
 		setBits(&instruction, op - FIRST_ARITHMETIC, 29);
 
-		//Set DPI type bitcode
-		if(tokenized[3][0] == '#') //Immediate
+		if(tokenized[3][0] == '#')
 		{
-			setBits(&instruction, 0b100, 26);
-			setBits(&instruction, 0b010, 23); //opi
-			int imm12 = getImmediate(tokenized[3]);
-			setBits(&instruction, imm12, 10); //imm12
+			//If it begins with #, it is an immediate value and thus a immediate instruction
+			setBits(&instruction, 0b100, 26); //Set immediate mask on bits 26-28
+			setBits(&instruction, 0b010, 23); //Set opi on bits 23-25
+
+			int imm12 = getImmediate(tokenized[3]); //Get immediate value
+			setBits(&instruction, imm12, 10); //Set imm12 on bits 10-21
 
 			if(tokenized[4] != NULL && !strcmp(getSh(tail(tokenized[5])), "12")) //shift
 			{
-				setBits(&instruction, 0b1, 22); //sh
+				//If the 4th arg isn't NULL, there exists a shift instruction
+				//If the immediate value which follows the shift is #12, then it has to be
+				//logically left shifted by 1
+				setBits(&instruction, 0b1, 22); //Set sh on bit 22
 			}
 
 		}
-		else //Register
+		else
 		{
-			setBits(&instruction, 0b0101, 25);
-			setBits(&instruction, 0b1000, 21); //opr
-			int rm = getRegister(tokenized[3]);
-			setBits(&instruction, rm, 16); //rm
-			if(tokenized[4] != NULL) //shift
+			//Otherwise, it is a register
+			setBits(&instruction, 0b0101, 25); //Set M (0 because it's not multiply) and register mask on bits 26-29
+			setBits(&instruction, 0b1000, 21); //Set opr on bits 21-25
+
+			int rm = getRegister(tokenized[3]); //Get rm register index
+			setBits(&instruction, rm, 16); //Set rm on bits 16-20
+
+			if(tokenized[4] != NULL)
 			{
-				char *shiftType = tokenized[4];
+				//If the 4th arg isn't NULL, there exists a shift instruction
+				char *shiftType = tokenized[4]; // Get shift type
 				for(int shiftCode = 0; shiftCode < sizeof(shifts) / sizeof(char *); shiftCode++)
 				{
 
 					if(!strcmp(shifts[shiftCode], shiftType))
 					{
-						setBits(&instruction, shiftCode, 22); //shift
+						setBits(&instruction, shiftCode, 22); //Set shift on bits 22-23
 						break;
 					}
 				}
 
-				int shiftAmount = getImmediate(tokenized[5]);
-				setBits(&instruction, shiftAmount, 10); //operand
+				int shiftAmount = getImmediate(tokenized[5]); //Get shift amount
+				setBits(&instruction, shiftAmount, 10); //Set operand(sh amm) on bits 10-15
 			}
 		}
 	}
 
 	if(isLogical(op))
 	{
-		//Set destination register and source register
+		//Get all registers
 		int rd = getRegister(tokenized[1]);
                 int rn = getRegister(tokenized[2]);
-
-		setBits(&instruction, rd, 0); //rd
-		setBits(&instruction, rn, 5); //rn
-		//Set opcode
-		setBits(&instruction, (op - FIRST_LOGICAL) >> 1, 29);
-
-		setBits(&instruction, 0b0101, 25);
-		setBits(&instruction, 0b0000, 21); //opr - 0xxx
 		int rm = getRegister(tokenized[3]);
-		setBits(&instruction, rm, 16); //rm
 
-		setBits(&instruction, ((op-FIRST_LOGICAL) & 1), 21); //N
+		setBits(&instruction, rd, 0); //Set rd on bits 0-4
+		setBits(&instruction, rn, 5); //Set rn on bits 5-9
+		setBits(&instruction, rm, 16); //Set rm on bits 16-20
 
-		if(tokenized[4] != NULL) //shift
+		setBits(&instruction, (op - FIRST_LOGICAL) >> 1, 29); //Set opcode on bits 29-30
+
+		setBits(&instruction, 0b0101, 25); //Set bit-logic opcode on bits 25-28
+		setBits(&instruction, 0b0000, 21); //Set opr mask (0xxx) on bits 21-24
+
+		setBits(&instruction, ((op-FIRST_LOGICAL) & 1), 21); //Set N on bit 21
+
+		if(tokenized[4] != NULL)
 		{
-			char *shiftType = tokenized[4];
+			//If the 4th arg isn't NULL, there exists a shift instruction
+			char *shiftType = tokenized[4]; //Get shiftTypehttps://www.rightmove.co.uk/properties/135517445#/floorplan?activePlan=1&channel=RES_LET
+
 			for(int shiftCode = 0; shiftCode < 4; shiftCode++)
 			{
 				if(!strcmp(shifts[shiftCode], shiftType))
 				{
-					setBits(&instruction, shiftCode, 22); //shift
+					setBits(&instruction, shiftCode, 22); //Set shiftCode on bits 22-23
 					break;
 				}
 			}
 
-			int shiftAmount = getImmediate(tokenized[5]);
-			setBits(&instruction, shiftAmount, 10); //operand
+			int shiftAmount = getImmediate(tokenized[5]); // Get shift amount
+			setBits(&instruction, shiftAmount, 10); //Set operand on bits 10-15
 		}
 	}
 
 	if(isMultiply(op))
 	{
+		//It's a multiply operation
+		//Get all registers
 		int rd = getRegister(tokenized[1]);
 		int rn = getRegister(tokenized[2]);
 		int rm = getRegister(tokenized[3]);
 		int ra = getRegister(tokenized[4]);
 
-		setBits(&instruction, rd, 0); //rd
-		setBits(&instruction, rn, 5); //rn
-		setBits(&instruction, ra, 10); //ra
-		setBits(&instruction, op - FIRST_MULTIPLY, 15); //x
-		setBits(&instruction, rm, 16); //rm
-		setBits(&instruction, 0b0011011000, 21);
+		setBits(&instruction, rd, 0); //Set rd on bits 0-4
+		setBits(&instruction, rn, 5); //Set rn on bits 5-9
+		setBits(&instruction, ra, 10); //Set ra on bits 10-14
+		setBits(&instruction, op - FIRST_MULTIPLY, 15); //Set x (mul type) on bit 15
+		setBits(&instruction, rm, 16); //Set rm on bits 16-20
+		setBits(&instruction, 0b0011011000, 21); //Set multiply opcode on bits 21-31
 	}
 
 	if(isWideMove(op))
 	{
-		int rd = getRegister(tokenized[1]);
-		setBits(&instruction, rd, 0);//rd
+		//It's a wide move operation
 
-		setBits(&instruction, 0b100, 26); //imm
-		setBits(&instruction, 0b101, 23); //opi
-		setBits(&instruction, (int)(op - FIRST_WIDE_MOVE), 29); //opc
+		int rd = getRegister(tokenized[1]); //Get rd register
+		setBits(&instruction, rd, 0); //Set rd on bits 0-4
 
-		int imm16 = getImmediate(tokenized[2]);
-		setBits(&instruction, imm16, 5);
+		setBits(&instruction, (int)(op - FIRST_WIDE_MOVE), 29); //Set opc on bits 29-30
+		setBits(&instruction, 0b100, 26); //Set immediate operation on bits 26-28
+		setBits(&instruction, 0b101, 23); //Set opi on bits 23-25
+
+		int imm16 = getImmediate(tokenized[2]); //Get imm16
+		setBits(&instruction, imm16, 5); //Set imm16 on bits 5-20
 		if(tokenized[3] != NULL)
 		{
+			//If 3rd argument is NULL, there is a shift on the wide move
 			int sh = getImmediate(tokenized[4]) >> 4;
 			setBits(&instruction, sh, 21);
 		}
