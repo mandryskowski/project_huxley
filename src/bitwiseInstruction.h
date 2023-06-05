@@ -2,15 +2,16 @@
 #define ARMV8_25_BITWISEINSTRUCTION_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
-void LogicalSL(int64_t* operand, int amount, int truncate);
+int64_t LogicalSL(int64_t operand, int amount, bool is64bit);
 
-void LogicalSR(int64_t* operand, int amount, int truncate);
+int64_t LogicalSR(int64_t operand, int amount, bool is64bit);
 
-void ArithmeticSR(int64_t* operand, int amount, int truncate);
+int64_t ArithmeticSR(int64_t operand, int amount, bool is64bit);
 
-void RotateRight(int64_t* operand, int amount, int truncate);
+int64_t RotateRight(int64_t operand, int amount, bool is64bit);
 
-void ExecuteShift(int shiftType, int64_t *operand, int amount, int truncate);
+int64_t ExecuteShift(int shiftType, int64_t operand, int amount, bool is64bit);
 
 #endif //ARMV8_25_BITWISEINSTRUCTION_H
