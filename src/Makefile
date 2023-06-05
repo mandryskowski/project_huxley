@@ -1,38 +1,49 @@
 CC      ?= gcc
 CFLAGS  ?= -std=c17 -g\
 	-D_POSIX_SOURCE -D_DEFAULT_SOURCE\
-	-Wall -Werror -pedantic
+	-Wall -pedantic
+EMULATE_DIR = emulator
+ASSEMBLE_DIR = assembler
 
-emulateObjects = emulator/emulate.o emulator/emulateControl.o \
-	emulator/util/bitwiseInstruction.o emulator/util/emulateUtility.o emulator/util/outputFileGenerator.o \
-	emulator/instructions/branchInstruction.o emulator/instructions/immediateInstruction.o emulator/instructions/registerInstruction.o emulator/instructions/sdtInstruction.o
+_EMULATE_SOURCE_HEADER_PAIRS = emulateControl \
+	instructions/branchInstruction instructions/immediateInstruction instructions/registerInstruction instructions/sdtInstruction \
+	util/bitwiseInstruction util/emulateUtility util/outputFileGenerator
+_EMULATE_JUST_HEADERS = util/state.h
 
-emulator/emulate.o: emulator/emulateControl.h emulator/util/state.h emulator/util/outputFileGenerator.h emulator/instructions/immediateInstruction.h
-emulator/emulateControl.o: emulator/emulateControl.h emulator/util/outputFileGenerator.h emulator/util/emulateUtility.h emulator/instructions/immediateInstruction.h emulator/instructions/branchInstruction.h emulator/instructions/registerInstruction.h emulator/instructions/sdtInstruction.h
-emulator/util/bitwiseInstruction.o: emulator/util/bitwiseInstruction.h
-emulator/util/emulateUtility.o: emulator/util/emulateUtility.h
-emulator/util/outputFileGenerator.o: emulator/util/outputFileGenerator.h
-emulator/instructions/branchInstruction.o: emulator/instructions/branchInstruction.h emulator/util/state.h emulator/util/emulateUtility.h
-emulator/instructions/immediateInstruction.o: emulator/instructions/immediateInstruction.h emulator/util/emulateUtility.h
-emulator/instructions/registerInstruction.o: emulator/instructions/immediateInstruction.h emulator/instructions/registerInstruction.h emulator/util/bitwiseInstruction.h emulator/util/emulateUtility.h
-emulator/instructions/sdtInstruction.o:	 emulator/util/emulateUtility.h emulator/instructions/sdtInstruction.h
+_EMULATE_HEADERS = $(_EMULATE_SOURCE_HEADER_PAIRS:=.h) $(_EMULATE_JUST_HEADERS)
+EMULATE_HEADERS = $(patsubst %,$(EMULATE_DIR)/%,$(_EMULATE_HEADERS))
 
+_EMULATE_OBJECTS = $(_EMULATE_SOURCE_HEADER_PAIRS:=.o) emulate.o
+EMULATE_OBJECTS = $(patsubst %,$(EMULATE_DIR)/%,$(_EMULATE_OBJECTS))
 
+_ASSEMBLE_SOURCE_HEADER_PAIRS = assembleControl label \
+	instructions/assembleBranch instructions/assembleDPI instructions/assembleSDT instructions/assembleSpecial \
+	util/assembleUtility
+_ASSEMBLE_JUST_HEADERS = 
 
+_ASSEMBLE_HEADERS = $(_ASSEMBLE_SOURCE_HEADER_PAIRS:=.h) $(_ASSEMBLE_JUST_HEADERS)
+ASSEMBLE_HEADERS = $(patsubst %,$(ASSEMBLE_DIR)/%,$(_ASSEMBLE_HEADERS))
+
+_ASSEMBLE_OBJECTS = $(_ASSEMBLE_SOURCE_HEADER_PAIRS:=.o) assemble.o
+ASSEMBLE_OBJECTS = $(patsubst %,$(ASSEMBLE_DIR)/%,$(_ASSEMBLE_OBJECTS))
+
+$(EMULATE_DIR)/%.o: %.c $(EMULATE_HEADERS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(ASSEMBLE_DIR)/%.o: %.c $(ASSEMBLE_HEADERS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 
 .SUFFIXES: .c .o
 
 .PHONY: all clean
 
-emulate: $(emulateObjects)
-	cc -o emulate $(emulateObjects)
+emulate: $(EMULATE_OBJECTS)
+	$(CC) -o $@ $^ $(CFLAGS)
 
-assemble: $(assembleObjects)
-	cc -o assemble $(assembleObjects)
+assemble: $(ASSEMBLE_OBJECTS)
+	$(CC) -o $@ $^ $(CFLAGS)
 
 all: assemble emulate
-
 clean:
-	$(RM) *.o assemble emulate
-	
+	find . -type f -name '*.o' -delete
