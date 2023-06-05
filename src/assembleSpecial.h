@@ -7,7 +7,7 @@ typedef enum {
     SPECIAL_NOP,
     SPECIAL_DIRECTIVE,
     SPECIAL_HOLD
-} SPECIALOperation;
+} SPOperation;
 
 int32_t assembleSpecial(char **instruction, int type);
 

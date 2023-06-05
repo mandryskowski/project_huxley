@@ -1,6 +1,8 @@
 #include "assembleControl.h"
 #include "assembleBranch.h"
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h> 
 
 int32_t findCondition(char* branchCond)
 {
@@ -9,17 +11,18 @@ int32_t findCondition(char* branchCond)
     int encoding[] = {0b0000, 0b0001, 0b1010, 0b1011, 0b1100, 0b1101, 0b1110};
 
     for(int i = 0; i < sizeof(mnemonic) / sizeof(char *); i++)
+    {
+        if(!strcmp(branchCond + 2, mnemonic[i]))
         {
-            if(!strcmp(branchCond + 2, mnemonic[i]))
-            {
-                return encoding[i];
-            }
+            return encoding[i];
         }
+    }
 
     printf("Condition %s does not exist!\n", branchCond);
-    exit(EXIT_FAILURE);    
+    exit(EXIT_FAILURE);
 
 }
+
 
 int32_t assembleBranch(char** tokenized, BOperation op, int64_t PC)
 {
