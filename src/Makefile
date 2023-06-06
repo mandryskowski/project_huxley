@@ -16,7 +16,7 @@ _EMULATE_SOURCE_HEADER_PAIRS = emulateControl \
 _EMULATE_JUST_HEADERS = util/state.h
 
 # Similarly for assemble.
-_ASSEMBLE_SOURCE_HEADER_PAIRS = assembleControl label \
+_ASSEMBLE_SOURCE_HEADER_PAIRS = assembleControl \
 	instructions/assembleBranch instructions/assembleDPI instructions/assembleSDT instructions/assembleSpecial \
 	util/assembleUtility
 

@@ -3,11 +3,30 @@
 #include "emulateControl.h"
 #include "util/outputFileGenerator.h"
 #include "util/emulateUtility.h"
-#include "util/bitwiseInstruction.h"
 #include "instructions/immediateInstruction.h"
 #include "instructions/branchInstruction.h"
 #include "instructions/registerInstruction.h"
 #include "instructions/sdtInstruction.h"
+
+typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST = BRANCH, UNDEFINED} instructionType;
+
+// Returns type of the instruction
+instructionType getInstructionType(int instruction)
+{
+    int bitmasks[] = {0b1000, 0b0101, 0b0100, 0b1010};
+    int dontCares[] = {0b1110, 0b0111, 0b0101, 0b1110};
+    int opcode = getBits(25, 28, instruction);
+    instructionType type = UNDEFINED;
+
+    for (instructionType i = FIRST; i <= LAST; i++)
+    {
+        if ((dontCares[i] & opcode) == bitmasks[i])
+        {
+            type = i;
+        }
+    }
+    return type;
+}
 
 bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState, char* outputFilePath)
 {

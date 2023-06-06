@@ -37,16 +37,15 @@ int main(int argc, char **argv)
     fseek(fptr, 0, SEEK_END);
     long file_size = ftell(fptr);
     fseek(fptr, 0, SEEK_SET);
-    //printf("fsize %d \n", file_size);
+    
     fread(computerState->memory, sizeof(char), file_size, fptr);
 
     while(computerState->PC < file_size)
     {
         ExecuteInstruction(*(int32_t*)(computerState->memory + computerState->PC), computerState, argv[2]);
-        printf("executed instr\n");
         computerState->PC += 4;
     }
-    printf("emulation finished");
+    
     //Exception catching: if instruction set does not terminate with halt command,
     // 					  print final state of the machine
     generateOutputFile(computerState, argv[2]);

@@ -60,14 +60,13 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
         int shiftType = getBits(22, 23, instruction);
         int shiftAmount = getBits(10, 15, instruction);
         bool N = getBit(21, instruction);
-	int bitCount = (sf) ? 63 : 31;
+    	int bitCount = (sf) ? 63 : 31;
 
         //For now hardcoded lsl, will be changed after 1.6 Bitwise Op is implemented
         int64_t op = getBits(0, bitCount, EncodedRegisterValue(computerState, rm));
-        ExecuteShift(shiftType, &op, shiftAmount, sf);
-	//op = getBits(0, bitCount, op);
- 	op = (N) ? (~op) : op;
-	//op = getBits(0, bitCount, op);
+        op = ExecuteShift(shiftType, op, shiftAmount, sf);
+
+ 	    op = (N) ? (~op) : op;
         int64_t registerValue = getBits(0, bitCount, EncodedRegisterValue(computerState, rn));
         int64_t result;
 
@@ -104,17 +103,16 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
         if(!sf)
         {
             result = getBits(0, 31, result);
-//	    result = (int32_t) result;
         }
 
-	//Update flags
-	if(opc == 0b11)
-	{
+	    //Update flags
+	    if(opc == 0b11)
+	    {
 	        computerState->pstate.nf = (sf) ? (result < 0) : ((int32_t) result < 0);
 	        computerState->pstate.zf = (result == 0);
 	        computerState->pstate.cf = 0;
 	        computerState->pstate.vf = 0;
-	}
+	    }
 
         if(rd == 0b11111)
         {

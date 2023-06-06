@@ -3,6 +3,6 @@
 #include <stdint.h>
 #include "util/state.h"
 
-void ExecuteInstruction(int32_t instruction, ComputerState *computerState, char*);
+void ExecuteInstruction(int32_t instruction, ComputerState*, char* outputFilePath);
 
 #endif //ARMV8_25_EMULATECONTROL_H

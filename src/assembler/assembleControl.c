@@ -8,17 +8,18 @@
 #include "instructions/assembleDPI.h"
 #include "instructions/assembleSDT.h"
 #include "instructions/assembleBranch.h"
-#include "label.h"
 
 #define DELIMETERS " ,"
 #define MAX_INSTRUCTION_SIZE 6
 #define SPECIAL_REGISTER 31
 
+// Maintains general instruction type and code within aType
 typedef struct TypePair {
 	assembleType aType;
 	int opcode;
 } TypePair;
 
+// Construction for TypePair
 TypePair *newTypePair(assembleType aType, int opcode)
 {
 	TypePair *p = malloc(sizeof(TypePair));
@@ -38,30 +39,31 @@ TypePair *getAssembleType(char **operation)
     char *SDTops[] = {"ldr", "str", NULL};
     char *SPECIALops[] = {"nop", ".int", NULL};
 
-    int result;
+    int result = 0;
 
-    if ((result = find(SPECIALops, *operation)))
+    if ((result = find(SPECIALops, *operation)) != -1)
     {
-        return newTypePair(SPECIAL_ASS, result - 1);
+        return newTypePair(SPECIAL_ASS, result);
     }
     else if (operation[3] && !strcmp(*operation, "and") && !strcmp(operation[3], "x0"))
     {
         return newTypePair(SPECIAL_ASS, 2);
     }
-    if ((result = find(DPops, *operation))){
-        return newTypePair(DP_ASS, result - 1);
-    }
-    if ((result = find(BRANCHops, *operation)))
+    if ((result = find(DPops, *operation)) != -1)
     {
-        return newTypePair(BRANCH_ASS, result - 1);
+        return newTypePair(DP_ASS, result);
+    }
+    if ((result = find(BRANCHops, *operation)) != -1)
+    {
+        return newTypePair(BRANCH_ASS, result);
     } 
     else if((strlen(*operation) > 1 && (*operation)[0] == 'b' && (*operation)[1] == '.'))
     {
             return newTypePair(BRANCH_ASS, 2);
     }   
-    if ((result = find(SDTops, *operation)))
+    if ((result = find(SDTops, *operation)) != -1)
     {
-        return newTypePair(SDT_ASS, result - 1);
+        return newTypePair(SDT_ASS, result);
     }
     return newTypePair(UNDEFINED_ASS, 0);
 }
@@ -84,16 +86,16 @@ int32_t assembleInstruction(char **tokenized, uint64_t PC)
 
     switch (tp->aType)
     {
-        case DP_ASS:
+        case DP_ASS: // Data processing instruction
             result = assembleDPI(tokenized, (DPOperation)(tp->opcode));
             break;
-        case BRANCH_ASS:
-            result = branchOpcode(tokenized, (BOperation)(tp->opcode), PC);
+        case BRANCH_ASS: // Branch instruction
+            result = assembleBranch(tokenized, (BOperation)(tp->opcode), PC);
             break;
-        case SDT_ASS:
+        case SDT_ASS: // Single Data Transfer instruction
             result = assembleSDT(tokenized, (SDTOperation)(tp->opcode), PC);
             break;
-        case SPECIAL_ASS:
+        case SPECIAL_ASS: // Special instruction
             result = assembleSpecial(tokenized, tp->opcode);
             break;
         default:

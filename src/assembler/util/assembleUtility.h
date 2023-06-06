@@ -3,6 +3,14 @@
 
 #include <inttypes.h>
 
+/* Finds index of an element in the list equal to (char *element).
+ * if the element is not found returns -1.*/
+int find(char **list, char *element);
+
+/* If a instruction is an alias it is replaced by its meaning.
+ * Otherwise, it returns the given instruction itself.*/
+void getAlias(char **instruction);
+
 // Interval is [start, end)
 char *substr(char *string, int start, int end);
 
@@ -13,6 +21,8 @@ char *tail(char *string);
 char **split(char *instruction);
 
 void setBits(int *instruction, int mask, int start);
+
+int getShiftCode(char *shiftID);
 
 // Truncate a 32-bit number to a maximum of bitCount (bits higher than that are set to 0).
 uint32_t truncateBits(uint32_t inputs, int bitCount);

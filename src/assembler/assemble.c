@@ -4,9 +4,9 @@
 #include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
-#include "label.h"
 #include "assembleControl.h"
 #include "instructions/assembleDPI.h"
+#define MAX_UINT64T UINT64_C(-1)
 
 void makeStrLowercase(char* str)
 {
@@ -15,6 +15,30 @@ void makeStrLowercase(char* str)
 		*str = tolower(*str);
 	}
 }
+
+typedef struct Label
+{
+	char* name;
+        int64_t address;
+} Label;     
+
+// Returns the address associated with the given labelName.
+// You must pass the array containing all known labels.
+// If no matching label is found, the function returns MAX_UINT64T.
+uint64_t getLabelAddress(char* name, Label* label)
+{
+	while (label->name != NULL)
+	{
+		if (!strcmp(name, label->name))
+		{
+			return label->address;
+		}
+		label++;
+	}
+
+	return MAX_UINT64T; // if not found
+}
+
 
 // Replace all tokens matching a label with their corresponding addresses. Convert the rest to lowercase.
 void processLabelTokens(char** tokens, Label* labels)
