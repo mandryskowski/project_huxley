@@ -1,8 +1,8 @@
 #ifndef ARMV8_25_BRANCHINSTRUCTION_H
 #define ARMV8_25_BRANCHINSTRUCTION_H
 
-#include "state.h"
+#include "../util/state.h"
 
-void ExecuteBranch(int instruction, ComputerState *computerState);
+void ExecuteBranch(int instruction, ComputerState*);
 
 #endif //ARMV8_25_BRANCHINSTRUCTION_H
