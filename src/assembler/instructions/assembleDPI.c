@@ -60,17 +60,6 @@ bool isMultiply(DPOperation op)
 	}
 }
 
-// Gets the first (at most) 2 characters of c
-char *getSh(char *c)
-{
-	if(strlen(c) < 2)
-	{
-		return c;
-	}
-
-	return substr(c, 0, 2);
-}
-
 int32_t assembleDPI(char **tokenized, DPOperation op)
 {
 
@@ -96,7 +85,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 			int imm12 = getImmediate(tokenized[3]); // Get immediate imm12
 			setBits(&instruction, imm12, 10); // Set imm12 on bits 10-21
 
-			if(tokenized[4] != NULL && !strcmp(getSh(tail(tokenized[5])), "12")) //shift
+			if(tokenized[4] != NULL && getImmediate(tokenized[5]) == 12) //shift
 			{
 				/* If the 4th arg isn't NULL, there exists a shift instruction
 				*  If the immediate value which follows the shift is #12, then it has to be
