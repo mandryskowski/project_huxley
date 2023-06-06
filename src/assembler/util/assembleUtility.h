@@ -3,6 +3,8 @@
 
 #include <inttypes.h>
 
+void free2DArray(void **ptr);
+
 /* Finds index of an element in the list equal to (char *element).
  * if the element is not found returns -1.*/
 int find(char **list, char *element);

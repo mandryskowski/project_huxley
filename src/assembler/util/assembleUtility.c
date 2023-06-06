@@ -9,6 +9,18 @@
 #define MAX_INSTRUCTION_SIZE 6
 #define SPECIAL_REGISTER 31
 
+// Pre: array ends with a null.
+void free2DArray(void **ptr)
+{
+    void **ptrCpy = ptr;
+    while (*ptrCpy)
+    {
+        free(*ptrCpy);
+        ptrCpy++;
+    }
+    free(ptr);
+}
+
 int find(char **list, char *element)
 {
     int index = 0;
@@ -88,15 +100,22 @@ char *tail(char *string)
 // Return index of register from associated string
 int getRegister(char *c)
 {
-	c = tail(c);
-	return (strcmp(c, "zr")) ? strtol(c, NULL, 10) : SPECIAL_REGISTER;
+	char *cTail = tail(c);
+    int result = (strcmp(cTail, "zr")) ? strtol(cTail, NULL, 10) : SPECIAL_REGISTER;
+    free(cTail);
+	return result;
 }
 
 // Returns immediate value from associated string
 int getImmediate(char *c)
 {
 	if(c[0] == '#')
-		c = tail(c);
+    {
+        char *cTail = tail(c);
+        int result = strtol(cTail, NULL, 0);
+        free(cTail);
+        return result;
+    }
 	return strtol(c, NULL, 0);
 }
 

@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include "assembleControl.h"
 #include "util/assembleUtility.h"
@@ -103,6 +102,6 @@ int32_t assembleInstruction(char **tokenized, uint64_t PC)
             exit(EXIT_FAILURE);
     }
 
-    free(tokenized);
+    free(tp);
     return result;
 }

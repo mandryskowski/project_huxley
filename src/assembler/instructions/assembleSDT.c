@@ -2,23 +2,30 @@
 #include "../util/assembleUtility.h"
 #include <string.h>
 #include <stdbool.h>
-#include <stdio.h> // for debugging
+#include <stdlib.h>
+
 // bits 5-21 and bit 24
 void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken, bool is64bit)
 {
 	// bits 5-9: xn
 	{
 		bool endsWithBrace = lhsToken[strlen(lhsToken) - 1] == ']';
-		int xn = getRegister(substr(lhsToken, 1, strlen(lhsToken) - (endsWithBrace ? 1 : 0))); // from lhs, remove "[" and "]" if it exists
+        char *registerString = substr(lhsToken, 1, strlen(lhsToken) - (endsWithBrace ? 1 : 0));
+		int xn = getRegister(registerString); // from lhs, remove "[" and "]" if it exists
 		setBits(word, truncateBits(xn, 5), 5);
+        free(registerString);
 	}
 
 	// bits 10-21
 
 	if (rhsToken == NULL || (rhsToken[0] == '#' && rhsToken[strlen(rhsToken) - 1] == ']')) // unsigned offset
 	{
-		setBits(word, (rhsToken != NULL) ? truncateBits(getImmediate(substr(rhsToken, 0, strlen(rhsToken) - 1)) / (is64bit ? 8 : 4), 12) : 0, 10); // bits 10-21: imm12 (remove "]")
-		setBits(word, 0x1, 24);	// bit 24: set to 1 when it's unsigned offset.
+        if(rhsToken != NULL) {
+            rhsToken[strlen(rhsToken) - 1] = '\0';
+            setBits(word,  truncateBits(getImmediate(rhsToken) / (is64bit ? 8 : 4), 12),
+                    10); // bits 10-21: imm12 (remove "]")
+        }
+        setBits(word, 0x1, 24);	// bit 24: set to 1 when it's unsigned offset.
 		return;
 	}
 
@@ -26,7 +33,8 @@ void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken, bool is64bi
 	{
 		setBits(word, 0x1A, 10); 	 // bits 10-15: pattern (mask 0b011010)
 		setBits(word, 0x1, 21);	     // bit     21: pattern
-		setBits(word, getRegister(substr(rhsToken, 0, strlen(rhsToken) - 1)), 16); // bits 16-20: xm (remove "]").
+        rhsToken[strlen(rhsToken) - 1] = '\0';
+		setBits(word, getRegister(rhsToken), 16); // bits 16-20: xm (remove "]").
 		return;
 	}
 
@@ -35,11 +43,18 @@ void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken, bool is64bi
 	setBits(word, 0x1, 10); // bit 10: pattern
 	bool isPreIndexed  = rhsToken[strlen(rhsToken) - 1] == '!'; // if false, it is post indexed.
 	setBits(word, isPreIndexed, 11); // bit 11: I (flag indicating that it is pre indexed).
-					 //
-	int simm9 = getImmediate(isPreIndexed ? substr(rhsToken, 0, strlen(rhsToken) - 2) : rhsToken); // for pre indexed we remove "#" and "]!" and for post just "#". 
+    int simm9;
+    if(isPreIndexed)
+    {
+        char *preIndexImm = substr(rhsToken, 0, strlen(rhsToken) - 2);
+        simm9 = getImmediate(preIndexImm);
+        free(preIndexImm);
+    }
+    else
+    {
+        simm9 = getImmediate(rhsToken); // for pre indexed we remove "#" and "]!" and for post just "#".
+    }
 	setBits(word, truncateBits(simm9, 9), 12); // bits 12-20: simm9
-
-	return;
 }
 
 int32_t assembleSDT(char** tokenized, SDTOperation op, int64_t PC)
