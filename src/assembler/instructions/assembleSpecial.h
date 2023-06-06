@@ -4,9 +4,9 @@
 #include <stdint.h>
 
 typedef enum {
-    NOP,
-    DOT_INT,
-    AND_END
+    SPECIAL_NOP,
+    SPECIAL_DOT_INT,
+    SPECIAL_AND_END
 } SPOperation;
 
 int32_t assembleSpecial(char **instruction, SPOperation op);

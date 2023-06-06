@@ -22,6 +22,8 @@ char **split(char *instruction);
 
 void setBits(int *instruction, int mask, int start); 
 
+int getShiftCode(char *shiftID);
+
 // Truncate a 32-bit number to a maximum of bitCount (bits higher than that are set to 0).
 uint32_t truncateBits(uint32_t inputs, int bitCount);
 
@@ -30,5 +32,7 @@ int32_t assembleInstruction(char** tokens, uint64_t PC);
 int getRegister(char *c);
 
 int getImmediate(char *c);
+
+int find(char **list, char *element);
 
 #endif //ARMV8_25_ASSEMBLECONTROL_H

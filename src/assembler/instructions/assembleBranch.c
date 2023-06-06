@@ -1,12 +1,9 @@
 #include "../util/assembleUtility.h"
 #include "assembleBranch.h"
-#include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h> 
 
-// Returns the encodig of the condition in branchCond.
-// branchCond has form "b.cond"
 int32_t findCondition(char* branchCond)
 {
     // Types of conditions
@@ -16,15 +13,15 @@ int32_t findCondition(char* branchCond)
     int encoding[] = {0x0, 0x1, 0xA, 0xB, 0xC, 0xD, 0xE};
 
     for(int i = 0; i < sizeof(mnemonic) / sizeof(char *); i++)
+    {
+        if(!strcmp(branchCond + 2, mnemonic[i]))
         {
-            if(!strcmp(branchCond + 2, mnemonic[i]))
-            {
-                return encoding[i];
-            }
+            return encoding[i];
         }
+    }
 
     printf("Condition %s does not exist!\n", branchCond);
-    exit(EXIT_FAILURE);    
+    exit(EXIT_FAILURE);
 
 }
 

@@ -38,7 +38,6 @@ void setSDTOffsetBits(int32_t* word, char* lhsToken, char* rhsToken, bool is64bi
 					 //
 	int simm9 = getImmediate(isPreIndexed ? substr(rhsToken, 0, strlen(rhsToken) - 2) : rhsToken); // for pre indexed we remove "#" and "]!" and for post just "#". 
 	setBits(word, truncateBits(simm9, 9), 12); // bits 12-20: simm9
-	printf(isPreIndexed ? ("PRI %d\n") : ("POI %d\n"), simm9);				
 
 	return;
 }
