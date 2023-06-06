@@ -12,7 +12,7 @@ typedef struct Label
 {
 	char* name;
     int64_t address;
-} Label;     
+} Label;
 
 // Returns the address associated with the given labelName.
 // You must pass the array containing all known labels.
@@ -32,7 +32,7 @@ uint64_t getLabelAddress(char* name, Label* label)
 }
 
 
-// Replace all tokens matching a label with their corresponding addresses. Convert the rest to lowercase.
+// Replace all tokens matching a label with their corresponding addresses.
 void processLabelTokens(char*** tokenized, char** tokens, Label* labels, char **toFreeEnd)
 {
     while (*tokens != NULL)
@@ -72,25 +72,25 @@ int main(int argc, char **argv)
 {
     FILE* input = fopen(argv[1], "rb+");
     int fileSize = getFileSize(input);
-    char *data = malloc(fileSize + 1);
+    char *data = calloc(fileSize + 1, sizeof(char));
     fread(data, sizeof(char), fileSize, input);
-
+    char *dataCopy = data;
     char ***tokenized = calloc(sizeof(char **) * (fileSize + 1), 1);
     char ***tokenizedPtr = tokenized;
     char **toFree = calloc(512, sizeof(char **));
     char **toFreeEnd = toFree;
-    char *line;
     Label *label = calloc(128, sizeof(Label));
     Label *labelEnd = label;
     uint64_t address = 0;
 
     // First pass
-    while ((line = strsepP(&data, "\n")))
+    for(char* line = strsepP(&dataCopy, "\n"); line != NULL; line = strsep(&dataCopy, "\n"))
     {
         // It's a comment or empty line therefore its irrelevant
         char **tokenizedLine = split(line);
         if (*line == '#' || *line == '\0' || *tokenizedLine == NULL)
         {
+	    free(tokenizedLine);
             continue;
         }
 
@@ -100,6 +100,7 @@ int main(int argc, char **argv)
         {
             tokenizedLine[0][opLength - 1] = '\0';
             *labelEnd++ = (Label){*tokenizedLine, address};
+	    free(tokenizedLine);
             continue;
         }
 

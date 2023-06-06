@@ -37,21 +37,24 @@ int main(int argc, char **argv)
     fseek(fptr, 0, SEEK_END);
     long file_size = ftell(fptr);
     fseek(fptr, 0, SEEK_SET);
-    
+
     fread(computerState->memory, sizeof(char), file_size, fptr);
+    fclose(fptr);
 
     while(computerState->PC < file_size)
     {
-        ExecuteInstruction(*(int32_t*)(computerState->memory + computerState->PC), computerState, argv[2]);
+        bool isTerminated = ExecuteInstruction(*(int32_t*)(computerState->memory + computerState->PC), computerState, argv[2]);
+	if(isTerminated)
+		break;
         computerState->PC += 4;
     }
-    
+
     //Exception catching: if instruction set does not terminate with halt command,
     // 					  print final state of the machine
     generateOutputFile(computerState, argv[2]);
 
-    fclose(fptr);
     free(computerState->memory);
     free(computerState);
+
     return 0;
 }

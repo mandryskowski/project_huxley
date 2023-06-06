@@ -35,28 +35,27 @@ instructionType getInstructionType(int instruction)
     return type;
 }
 
-bool ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState, char* outputFilePath)
+int ExecuteSpecialInstruction(int32_t instruction, ComputerState* computerState, char* outputFilePath)
 {
     switch(instruction) {
         case 0xd503201f: // NOP
+	    return 1;
             break;
         case 0x8a000000: // Halt
-            //Send to output file generator
-            generateOutputFile(computerState, outputFilePath);
-            exit(0);
+	    return 2; //Exit code
             break;
         default:
-            return false;
+            return 0;
     }
-    return true;
 }
 
-void ExecuteInstruction(int32_t instruction, ComputerState *computerState, char* outputFilePath)
+bool ExecuteInstruction(int32_t instruction, ComputerState *computerState, char* outputFilePath)
 {
 
     //Special instructions
-    if(ExecuteSpecialInstruction(instruction, computerState, outputFilePath))
-        return;
+    int code = ExecuteSpecialInstruction(instruction, computerState, outputFilePath);
+    if(code)
+        return (code == 2);
 
     //Normal instuctions
     switch (getInstructionType(instruction)) {
@@ -76,4 +75,5 @@ void ExecuteInstruction(int32_t instruction, ComputerState *computerState, char*
             perror("Unsolved type of instruction");
             exit(EXIT_FAILURE);
     }
+    return 0;
 }
