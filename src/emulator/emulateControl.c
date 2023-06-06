@@ -13,14 +13,21 @@ typedef enum  {IMMEDIATE, REGISTER, LOADSTORE, BRANCH, FIRST = IMMEDIATE, LAST =
 // Returns type of the instruction
 instructionType getInstructionType(int instruction)
 {
-    int bitmasks[] = {0b1000, 0b0101, 0b0100, 0b1010};
-    int dontCares[] = {0b1110, 0b0111, 0b0101, 0b1110};
+    /* To get the instruction type we test bits 25-28 against respective bitmasks.
+    * We must also show which bits we don't care about (represented as X in the spec)
+    *  to match all possible patterns. */
+
+    // Bitmasks respectively: 0b1000, 0b0101, 0b0100, 0b1010
+    int bitmasks[] = {0x8, 0x5, 0x4, 0xA};
+    // Used bits respectively: 0b1110, 0b0111, 0b0101, 0b1110. The zero bits represent don't cares.
+    int usedBits[] = {0xE, 0x7, 0x5, 0xE};
+
     int opcode = getBits(25, 28, instruction);
     instructionType type = UNDEFINED;
 
     for (instructionType i = FIRST; i <= LAST; i++)
     {
-        if ((dontCares[i] & opcode) == bitmasks[i])
+        if ((usedBits[i] & opcode) == bitmasks[i])
         {
             type = i;
         }

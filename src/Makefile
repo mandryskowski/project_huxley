@@ -12,7 +12,7 @@ _EMULATE_SOURCE_HEADER_PAIRS = emulateControl \
 	instructions/branchInstruction instructions/immediateInstruction instructions/registerInstruction instructions/sdtInstruction \
 	util/bitwiseInstruction util/emulateUtility util/outputFileGenerator
 
-# Here on the other hand you just add the headers.
+# Here on the other hand you add just the headers.
 _EMULATE_JUST_HEADERS = util/state.h
 
 # Similarly for assemble.
@@ -24,13 +24,14 @@ _ASSEMBLE_JUST_HEADERS =
 
 ########################Project files########################
 
-# Prepend paths with emulate/assemble folder
+# Prepends paths with emulate/assemble folder
 EMULATE_SOURCE_HEADER_PAIRS = $(patsubst %,$(EMULATE_DIR)/%,$(_EMULATE_SOURCE_HEADER_PAIRS))
 EMULATE_JUST_HEADERS = $(patsubst %,$(EMULATE_DIR)/%,$(_EMULATE_JUST_HEADERS))
+
 ASSEMBLE_SOURCE_HEADER_PAIRS = $(patsubst %,$(ASSEMBLE_DIR)/%,$(_ASSEMBLE_SOURCE_HEADER_PAIRS))
 ASSEMBLE_JUST_HEADERS = $(patsubst %,$(ASSEMBLE_DIR)/%,$(_ASSEMBLE_JUST_HEADERS))
 
-# Add .h 
+# Adds .h and .o
 EMULATE_HEADERS = $(EMULATE_SOURCE_HEADER_PAIRS:=.h) $(EMULATE_JUST_HEADERS)
 EMULATE_OBJECTS = $(EMULATE_SOURCE_HEADER_PAIRS:=.o) emulator/emulate.o
 

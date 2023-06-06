@@ -14,7 +14,7 @@ int64_t loadFromMemory(const char* absoluteAddress, bool is64bit)
 
 int64_t* getRegisterOrSP(ComputerState* state, int reg)
 {
-	return (reg == 0b11111) ? ((int64_t*)&state->stack_ptr) : (&state->registers[reg]);
+	return (reg == 0x1F /* which is 0b11111 */) ? ((int64_t*)&state->stack_ptr) : (&state->registers[reg]);
 }
 
 void sdtInstruction(ComputerState* state, const int64_t instruction,
@@ -48,7 +48,7 @@ void sdtInstruction(ComputerState* state, const int64_t instruction,
 
 	else // Register offset
 	{
-		assert(getBit(21, instruction) && getBits(10, 15, instruction) == 0b011010); // verify the rest of pattern
+		assert(getBit(21, instruction) && getBits(10, 15, instruction) == 0x1A); // verify the rest of pattern (0b011010)
 		const int xm = getBits(16, 20, instruction);
 		address += *getRegisterOrSP(state, xm);
 	}

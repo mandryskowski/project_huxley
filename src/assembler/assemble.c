@@ -46,12 +46,17 @@ void processLabelTokens(char** tokens, Label* labels)
         while (*tokens != NULL)
         {
                 uint64_t address = getLabelAddress(*tokens, labels);
-                printf("address of token %s: %d \n", *tokens, address);
+
                 if (address == MAX_UINT64T) // if this is not a label, make it lowercase.
-			makeStrLowercase(*tokens);
-		else
-                        sprintf(*tokens, "#%" PRIu64, address); // replace label token with #address.
-                tokens++;
+				{
+					makeStrLowercase(*tokens);
+				}
+				else
+				{
+					sprintf(*tokens, "#%" PRIu64, address); // replace label token with #address.
+				}
+				
+				tokens++;
         }
 }
 
@@ -108,7 +113,6 @@ int main(int argc, char **argv)
 			// Remove trailing whitespaces
 			{
 				size_t leadingWhitespaceLength = strspn(thisLineStr, " ");
-				printf("leading ws len: %d\s", leadingWhitespaceLength);
 
 				if (leadingWhitespaceLength == len)
 				{
@@ -121,7 +125,6 @@ int main(int argc, char **argv)
 					len = whitespace - thisLineStr;
 					thisLineStr[len] = '\0';
 				}
-			printf("len of line post whitespace: %d |\n", leadingWhitespaceLength); 
 
 			}
 
@@ -134,7 +137,6 @@ int main(int argc, char **argv)
 				thisLineStr[len - 1] = '\0'; // get rid of the colon at the end.
 				curLabel->address = curAddress;
 				curLabel->name = thisLineStr;
-				printf("Found label name:%s address:0x%x \n", thisLineStr, curAddress);
 				*curLine = '#'; // we can comment out this line as we've read the label and it is not an instruction
 				curLabel++;
 			}
@@ -167,20 +169,18 @@ int main(int argc, char **argv)
 			size_t len = (nextLine != NULL) ? (nextLine - curLine) : (strlen(curLine));
 			if (len > 0 && *curLine != '#') // ignore empty or commented lines
 			{
-				printf("next instruction of len %d \n", len);
 				char* str = malloc(len);
 				memset(str, '\0', len + 1);
 				strncpy(str, curLine, len);
 				char** tokenized = split(str);
 				processLabelTokens(tokenized, labels);
 				uint32_t word = assembleInstruction(tokenized, currPC);
+				
 				for (int i = 0; i < 32; i += 8)
 				{
 					fprintf(outfptr, "%c", (unsigned char) (word >> i));
 				}
 
-				printf("%s: %08x\n", str, word);
-				puts(str);
 				currPC += 4;
 			}
 			curLine = (nextLine != NULL) ? (nextLine + 1) : NULL;

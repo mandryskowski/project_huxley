@@ -91,8 +91,8 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 		if(tokenized[3][0] == '#') // Immediate value
 		{
-			setBits(&instruction, 0b100, 26); // Set immediate mask on bits 26-28
-			setBits(&instruction, 0b010, 23); // Set opi on bits 23-25
+			setBits(&instruction, 0x4, 26); // Set immediate mask on bits 26-28 (mask 0b100)
+			setBits(&instruction, 0x2, 23); // Set opi on bits 23-25 (mask 0b010)
 			int imm12 = getImmediate(tokenized[3]); // Get immediate imm12
 			setBits(&instruction, imm12, 10); // Set imm12 on bits 10-21
 
@@ -102,14 +102,14 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 				*  If the immediate value which follows the shift is #12, then it has to be
 				*  logically left shifted by 1 */
 
-				setBits(&instruction, 0b1, 22); // Set sh on bit 22
+				setBits(&instruction, 0x1, 22); // Set sh on bit 22 (mask 0b1)
 			}
 
 		}
 		else //Register
 		{
-			setBits(&instruction, 0b0101, 25); // Set M (0 because it's not multiply) and register mask on bits 26-29
-			setBits(&instruction, 0b1000, 21); // Set opr on bits 21-25
+			setBits(&instruction, 0x5, 25); // Set M (0 because it's not multiply) and register mask on bits 26-29 (so resulting mask is 0b0101))
+			setBits(&instruction, 0x8, 21); // Set opr on bits 21-25 (mask 0b1000)
 
 			int rm = getRegister(tokenized[3]); // Get rm register index
 			setBits(&instruction, rm, 16); // Set rm on bits 16-20
@@ -138,8 +138,8 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 
 		setBits(&instruction, (op - FIRST_LOGICAL) >> 1, 29); // Set opcode on bits 29-30
 
-		setBits(&instruction, 0b0101, 25); // Set bit-logic opcode on bits 25-28
-		setBits(&instruction, 0b0000, 21); // Set opr mask (0xxx) on bits 21-24
+		setBits(&instruction, 0x5, 25); // Set bit-logic opcode on bits 25-28 (mask 0b0101)
+		setBits(&instruction, 0x0, 21); // Set opr mask (0xxx) on bits 21-24
 		
 
 		setBits(&instruction, ((op-FIRST_LOGICAL) & 1), 21); // Set N on bit 21
@@ -167,7 +167,7 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 		setBits(&instruction, ra, 10); // Set ra on bits 10-14
 		setBits(&instruction, op - FIRST_MULTIPLY, 15); // Set x (mul type) on bit 15
 		setBits(&instruction, rm, 16); // Set rm on bits 16-20
-		setBits(&instruction, 0b0011011000, 21); // Set multiply opcode on bits 21-31
+		setBits(&instruction, 0xD8, 21); // Set multiply opcode on bits 21-310 (mask 0b0011011000)
 	}
 
 	if(isWideMove(op))
@@ -176,8 +176,8 @@ int32_t assembleDPI(char **tokenized, DPOperation op)
 		setBits(&instruction, rd, 0); // Set rd on bits 0-4
 
 		setBits(&instruction, (int)(op - FIRST_WIDE_MOVE), 29); // Set opc on bits 29-30
-		setBits(&instruction, 0b100, 26); // Set immediate operation on bits 26-28
-		setBits(&instruction, 0b101, 23); // Set opi on bits 23-25
+		setBits(&instruction, 0x4, 26); // Set immediate operation on bits 26-28 (mask 0b100)
+		setBits(&instruction, 0x5, 23); // Set opi on bits 23-25 (mask 0b101)
 
 		int imm16 = getImmediate(tokenized[2]); // Get imm16
 		setBits(&instruction, imm16, 5); // Set imm16 on bits 5-20

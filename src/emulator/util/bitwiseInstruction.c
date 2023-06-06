@@ -43,16 +43,16 @@ int64_t ExecuteShift(int shiftType, int64_t operand, int amount, bool is64bit)
 {
     switch(shiftType)
     {
-      case 0b00:
+      case 0x0: // 0b00
         return LogicalSL(operand, amount, is64bit);
 
-      case 0b01:
+      case 0x1: // 0b01
         return LogicalSR(operand, amount, is64bit);
 
-      case 0b10:
+      case 0x2: // 0b10
         return ArithmeticSR(operand, amount, is64bit);
 
-      case 0b11:
+      case 0x3: // 0b11
         return RotateRight(operand, amount, is64bit);
 
       default:

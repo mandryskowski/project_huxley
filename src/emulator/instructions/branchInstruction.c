@@ -11,19 +11,19 @@ bool condHolds(int instruction, ComputerState *computerState)
 
     switch (cond)
     {
-        case 0b0000:
+        case 0x0: //0b0000
             return pstate.zf == 1;
-        case 0b0001:
+        case 0x1: //0b0001
             return pstate.zf == 0;
-        case 0b1010:
+        case 0xA: //0b1010
             return pstate.nf == pstate.vf;
-        case 0b1011:
+        case 0xB: //0b1011
             return pstate.nf != pstate.vf;
-        case 0b1100:
+        case 0xC: //0b1100
             return pstate.zf == 0 && pstate.nf == pstate.vf;
-        case 0b1101:
+        case 0xD: //0b1101
             return !(pstate.zf == 0 && pstate.nf == pstate.vf);
-        case 0b1110:
+        case 0xE: //0b1110
             return 1;
         default:
             fprintf(stderr, "Unhandled condition opcode for branch");
@@ -38,10 +38,10 @@ void ExecuteBranch(int instruction, ComputerState *computerState){
 
     switch (opc)
     {
-        case 0b00:
+        case 0x0: // 0b00
             offset = getBitsSignExt(0, 25, instruction) << 2;
             break;
-        case 0b11:
+        case 0x3: // 0b11
             {
                 int rd = getBits(5, 9, instruction);
                 if (rd == 31){
@@ -50,7 +50,7 @@ void ExecuteBranch(int instruction, ComputerState *computerState){
             }
             offset = computerState->registers[rd] - computerState->PC;}
             break;
-        case 0b01:
+        case 0x1: // 0b01
             offset = condHolds(instruction, computerState) ? getBitsSignExt(5, 23, instruction) << 2 : 4;
             break;
         default:
