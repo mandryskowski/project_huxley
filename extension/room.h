@@ -1,4 +1,4 @@
-
+typedef struct Entity Entity;
 typedef enum
 {
     TILE_FLOOR,
