@@ -9,8 +9,7 @@ typedef struct Entity
     Vec2f velocity;
 
     // relative to pos
-    Vec2f hitboxBottomLeft;
-    Vec2f hitboxTopRight;
+    Rectangle hitbox;
 
     bool canFly;
 
@@ -21,6 +20,8 @@ typedef struct Entity
 } Entity;
 
 Entity Entity_construct();
+
+Entity Entity_construct_generic(Rectangle, Vec2f);
 
 typedef struct Player
 {
