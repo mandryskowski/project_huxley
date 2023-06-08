@@ -1,6 +1,7 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 #include "math.h"
+#include <stdbool.h>
 
 typedef struct Entity
 {
@@ -18,6 +19,8 @@ typedef struct Entity
     float SPD;
 
 } Entity;
+
+Entity Entity_construct();
 
 typedef struct Player
 {
