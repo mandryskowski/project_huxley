@@ -1,5 +1,5 @@
 #include "game.h"
-//#include "entity.h"
+#include "entity.h"
 #include "room.h"
 #include "glad/glad.h"
 #include "glfw/glfw3.h"
@@ -13,17 +13,40 @@
 
 void handleEvents(GameState* state)
 {
-    //if ()
+    state->player->entity.velocity = (Vec2f){0.0f, 0.0f};
+    if (glfwGetKey(state->window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        state->player->entity.velocity.y += 1.0f;
+    }
+    if (glfwGetKey(state->window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        state->player->entity.velocity.y -= 1.0f;
+    }
+    if (glfwGetKey(state->window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        state->player->entity.velocity.x += 1.0f;
+    }
+    if (glfwGetKey(state->window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        state->player->entity.velocity.x -= 1.0f;
+    }
+    
+
 }
 void update(GameState* state, float dt)
 {
-    /*Entity* entity = state->currentRoom->entities;
+    Entity** arr = state->currentRoom->entities;
 
-    playerMovement(state, dt);
-    while (entity != NULL)
+    //playerMovement(state, dt);
+    while (*arr != NULL)
     {
-        move(state->currentRoom, entity, dt);
-    }*/
+        Entity* entity = *arr;
+        printf("entity vel %f %f\n", entity->velocity.x, entity->velocity.y);
+                printf("entity pos %f %f\n", entity->pos.x, entity->pos.y);
+        entity->pos = Vec2f_add(entity->pos, Vec2f_scale(entity->velocity, dt));
+        arr++;
+       // move(state->currentRoom, entity, dt);
+    }
 }
 
 void initGame(GameState* state)
@@ -52,7 +75,7 @@ void initGame(GameState* state)
 
 void renderGame(RenderState* rState, GameState* gState)
 {
-    render(rState);
+    render(gState, rState);
 
     glfwSwapBuffers(gState->window);
 }
@@ -62,7 +85,16 @@ void gameLoop(GameState* gState)
     float lastUpdateTime = glfwGetTime();
     RenderState rState;
     Room room;
-    room.entities = NULL;
+    Player player;
+    player.entity = Entity_construct();
+
+    gState->currentRoom = &room;
+    gState->player = &player;
+
+    room.entities = malloc(sizeof(Entity) * 2);
+    room.entities[0] = &player.entity;
+    room.entities[1] = NULL;
+
     for (int x = 0; x < 16; x++)
     {
         for (int y = 0; y < 16; y++)
@@ -88,7 +120,6 @@ void gameLoop(GameState* gState)
     room.tiles[7][5] = (Tile){.textureID = 3, .type = TILE_HOLE};
     room.tiles[9][8] = (Tile){.textureID = 3, .type = TILE_HOLE};
     room.tiles[13][4] = (Tile){.textureID = 3, .type = TILE_HOLE};
-    gState->currentRoom = &room;
 
 
     initRenderState(gState, &rState);

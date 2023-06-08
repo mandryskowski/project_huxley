@@ -1,16 +1,17 @@
-#ifndef ARMV8_25_ASSEMBLECONTROL_H
-#define ARMV8_25_ASSEMBLECONTROL_H
+#ifndef ARMV8_25_ASSEMBLEUTILITY_H
+#define ARMV8_25_ASSEMBLEUTILITY_H
 
-#include <stdint.h>
-#include "label.h"
+#include <inttypes.h>
 
-typedef enum {DP_ASS, BRANCH_ASS, SDT_ASS, SPECIAL_ASS, FIRST_ASS = DP_ASS,
-              LAST_ASS = SPECIAL_ASS, UNDEFINED_ASS} assembleType;
+void free2DArray(void **ptr);
 
-typedef struct String{
-    char *string;
-    int length;
-} String;
+/* Finds index of an element in the list equal to (char *element).
+ * if the element is not found returns -1.*/
+int find(char **list, char *element);
+
+/* If a instruction is an alias it is replaced by its meaning.
+ * Otherwise, it returns the given instruction itself.*/
+void getAlias(char **instruction);
 
 // Interval is [start, end)
 char *substr(char *string, int start, int end);
@@ -28,12 +29,8 @@ int getShiftCode(char *shiftID);
 // Truncate a 32-bit number to a maximum of bitCount (bits higher than that are set to 0).
 uint32_t truncateBits(uint32_t inputs, int bitCount);
 
-int32_t assembleInstruction(char** tokens, uint64_t PC);
-
 int getRegister(char *c);
 
 int getImmediate(char *c);
 
-int find(char **list, char *element);
-
-#endif //ARMV8_25_ASSEMBLECONTROL_H
+#endif //ARMV8_25_ASSEMBLEUTILITY_H

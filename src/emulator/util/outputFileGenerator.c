@@ -2,7 +2,6 @@
 
 void generateOutputFile(ComputerState *computerState, char *outputFilePath)
 {
-	printf("Generating output file.\n");
     FILE *fptr = fopen(outputFilePath, "w");
 
     fprintf(fptr, "Registers:\n");
@@ -26,7 +25,7 @@ void generateOutputFile(ComputerState *computerState, char *outputFilePath)
     {
 	uint32_t word = *(uint32_t*)(computerState->memory + memAddr);
         if(word != 0)
-            fprintf(fptr, "%08x: %08x\n", memAddr, word);//fprintf(fptr, "%08x: %08x\n", memAddr, computerState->memory[memAddr]);
+            fprintf(fptr, "%08x: %08x\n", memAddr, word);
 
     }
     fclose(fptr);

@@ -1,4 +1,5 @@
 #include "math.h"
+#include <math.h>
 #include <stdlib.h>
 
 Mat3f Mat3f_construct(Vec2f translation, Vec2f scale)
@@ -47,7 +48,32 @@ void Mat3f_print(Mat3f* mat)
     }
 }
 
+Vec2i Vec2i_normalize(Vec2i vec)
+{
+    return Vec2i_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
+}
+
+Vec2i Vec2i_add(Vec2i lhs, Vec2i rhs)
+{
+    return (Vec2i){lhs.x + rhs.x, lhs.y + rhs.y};
+}
+
+Vec2i Vec2i_scale(Vec2i vec, float scalar)
+{
+    return (Vec2i) {vec.x * scalar, vec.y * scalar};
+}
+
+Vec2f Vec2f_normalize(Vec2f vec)
+{
+    return Vec2f_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
+}
+
 Vec2f Vec2f_add(Vec2f lhs, Vec2f rhs)
 {
     return (Vec2f){lhs.x + rhs.x, lhs.y + rhs.y};
+}
+
+Vec2f Vec2f_scale(Vec2f vec, float scalar)
+{
+    return (Vec2f) {vec.x * scalar, vec.y * scalar};
 }
