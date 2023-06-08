@@ -10,26 +10,32 @@
 const char vShaderSrc[] = "#version 400 core\n" \
                       "layout (location = 0) in vec2 vPosition;\n" \
                       "layout (location = 1) in vec2 vTexCoord;\n" \
-                      "layout (location = 2) in uint texID;\n" \
+                      "layout (location = 2) in uint vTexID;\n" \
                       "out uint fsTexID;\n" \
                       "out vec2 fsTexCoord;\n" \
+                      "uniform mat3 viewMat;\n" \
                       "void main() \n" \
                       "{ \n" \
-                      " gl_Position = vec4(vPosition / vec2(16.0) - vec2(0.5), 0.0, 1.0);\n" \
-                      " fsTexID = texID;\n" \
+                      " gl_Position = vec4(vec2(viewMat * vec3(vPosition, 1.0)), 0.0, 1.0);\n" \
+                      " fsTexID = vTexID;\n" \
                       " fsTexCoord = vTexCoord;\n" \
                       "}\0";
 
 const char fShaderSrc[] = "#version 400 core\n" \
                       "flat in uint fsTexID;\n" \
                       "in vec2 fsTexCoord;\n" \
-                      "out vec4 color;\n" \
+                      "out vec4 outColor;\n" \
                       "uniform sampler2DArray atlas;\n" \
                       "void main() \n" \
                       "{ \n" \
                       "float test = float(fsTexID);\n" \
                       " //color = vec4((test / 256.0) * 0.75 + 0.25, 0.0, 0.0, 1.0);\n" \
-                      " color = vec4(texture(atlas, vec3(fsTexCoord, fsTexID)));\n" \
+                      " vec4 color = texture(atlas, vec3(fsTexCoord, fsTexID));\n" \
+                      " if (color.a < 0.5) \n" \
+                      "{ \n" \
+                      " discard;\n" \
+                      "} \n" \
+                      "outColor = color;"
                       "// color = vec4(fsTexCoord, 0.0, 1.0);\n" \
                       "}";
 
@@ -40,7 +46,7 @@ typedef struct Vertex
     int textureID;
 } Vertex;
 
-void initVertices(GameState* gameState, Vertex* verts, uint width, uint height)
+void initGridVertices(GameState* gameState, Vertex* verts, uint width, uint height)
 {
     Vec2f offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
                        {0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}}; // top left triangle
@@ -76,16 +82,15 @@ void debugShader(GLint shader)
     }
 }
 
-void initRenderState(GameState* gState, RenderState* rState)
+uint initVAO(GLsizei size, void* data)
 {
-    Vertex vertices[16 * 16 * 6];
-    initVertices(gState, vertices, 16, 16);
-    glGenBuffers(1, &rState->LevelVBO);
-    glGenVertexArrays(1, &rState->LevelVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, rState->LevelVBO);
-    glBufferData(GL_ARRAY_BUFFER, (sizeof(Vertex)) * 16 * 16 * 6, vertices, GL_STATIC_DRAW);
+    uint VAO, VBO;
+    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, (sizeof(Vertex)) * 16 * 16 * 6, data, GL_STATIC_DRAW);
 
-    glBindVertexArray(rState->LevelVAO);
+    glBindVertexArray(VAO);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
     glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void*)offsetof(Vertex, textureID));
@@ -93,6 +98,36 @@ void initRenderState(GameState* gState, RenderState* rState)
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
+
+    return VAO;
+}
+
+void initRenderState(GameState* gState, RenderState* rState)
+{
+    // Grid
+    {
+        Vertex gridVerts[16 * 16 * 6];
+        initGridVertices(gState, gridVerts, 16, 16);
+
+        rState->LevelVAO = initVAO(sizeof(Vertex) * 16 * 16 * 6, gridVerts);
+    }
+
+    // Quad
+    {
+        Vertex quadVerts[6];
+        Vec2f offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
+                       {0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}}; // top left triangle
+        for (int i = 0; i < 6; i++)
+        {
+            quadVerts[i] = (Vertex){{offsets[i].x * 2.0 - 1.0, offsets[i].y * 2.0 - 1.0},
+                            offsets[i],
+                            0};
+        }
+
+        rState->QuadVAO = initVAO(sizeof(Vertex) * 6, quadVerts);
+    }
+
+        
     printf("len %d \n", strlen(vShaderSrc));
     uint vShader = glCreateShader(GL_VERTEX_SHADER);
 
@@ -131,7 +166,20 @@ void render(RenderState* state)
 {
     glUseProgram(state->shader);
 
+    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f, -0.5f}, (Vec2f){1.0f / 16.0f, 1.0f / 16.0f});
+    glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
+    
+    glBindTexture(GL_TEXTURE_2D_ARRAY, state->tileAtlas);
     glBindVertexArray(state->LevelVAO);
-
     glDrawArrays(GL_TRIANGLES, 0, 16 * 16 * 6);
+
+    Mat3f viewMatCharacter = Mat3f_multiply(viewMat, Mat3f_construct((Vec2f){0.5f, 0.0f}, (Vec2f){1.0f, 1.0f}));
+    //Mat3f viewMatCharacter = Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f});
+    //viewMatCharacter = Mat3f_multiply(viewMatCharacter, Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f}));
+    Mat3f_print(&viewMatCharacter);
+    glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMatCharacter.d);
+
+    glBindTexture(GL_TEXTURE_2D_ARRAY, state->characterAtlas);
+    glBindVertexArray(state->QuadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }

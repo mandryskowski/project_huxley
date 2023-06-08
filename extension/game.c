@@ -5,6 +5,7 @@
 #include "glfw/glfw3.h"
 #include "render.h"
 #include "assets.h"
+#include "math.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,10 +94,13 @@ void gameLoop(GameState* gState)
     initRenderState(gState, &rState);
     glEnable(GL_MULTISAMPLE); 
 
-    uint atlasTex = loadAtlas("textures.png", 1, 4);
+    rState.tileAtlas = loadAtlas("textures.png", 1, 4);
+    rState.characterAtlas = loadAtlas("character.png", 1, 1);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, atlasTex);
     glUniform1i(glGetUniformLocation(rState.shader, "atlas"), 0);
+    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f, -0.5f}, (Vec2f){1.0f / 16.0f, 1.0f / 16.0f});
+    Mat3f_print(&viewMat);
+    glUniformMatrix3fv(glGetUniformLocation(rState.shader, "viewMat"), 1, GL_FALSE, viewMat.d);
 
     while (!glfwWindowShouldClose(gState->window))
     {
