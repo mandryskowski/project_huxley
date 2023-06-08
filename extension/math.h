@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #define min(a, b) a < b ? a : b
-#define abs(a) a < 0 ? -a : a
+//#define absGen(a) a < 0 ? -a : a
 
 typedef struct Vec2i
 {
@@ -34,6 +34,12 @@ Vec2i Vec2f_normalize(Vec2i);
 Vec2i Vec2i_add(Vec2i, Vec2i);
 Vec2i Vec2i_scale(Vec2i, float scalar);
 
+bool Vec2f_zero(Vec2f);
+Vec2f Vec2f_add(Vec2f, Vec2f);
+Vec2f Vec2f_scale(Vec2f, float scalar);
+void Vec2f_print(Vec2f);
+
 Rectangle rectangle_Vec2f(Rectangle, Vec2f);
+void Rectangle_print(Rectangle);
 
 #endif // MATH_H

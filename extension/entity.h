@@ -21,6 +21,8 @@ typedef struct Entity
 
 Entity Entity_construct();
 
+Entity Entity_construct_generic(Rectangle, Vec2f);
+
 typedef struct Player
 {
     Entity entity;

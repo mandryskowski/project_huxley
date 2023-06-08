@@ -1,6 +1,8 @@
 #include "math.h"
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 Mat3f Mat3f_construct(Vec2f translation, Vec2f scale)
 {
@@ -48,10 +50,10 @@ void Mat3f_print(Mat3f* mat)
     }
 }
 
-Vec2i Vec2i_normalize(Vec2i vec)
-{
-    return Vec2i_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
-}
+//Vec2i Vec2i_normalize(Vec2i vec)
+//{
+//    return Vec2i_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
+//}
 
 Vec2i Vec2i_add(Vec2i lhs, Vec2i rhs)
 {
@@ -63,11 +65,11 @@ Vec2i Vec2i_scale(Vec2i vec, float scalar)
     return (Vec2i) {vec.x * scalar, vec.y * scalar};
 }
 
-Vec2f Vec2f_normalize(Vec2f vec)
-{
-    return Vec2f_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
-}
-
+//Vec2f Vec2f_normalize(Vec2f vec)
+//{
+//    return Vec2f_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
+//}
+//
 bool Vec2f_zero(Vec2f vec)
 {
     return vec.x == 0 && vec.y == 0;
@@ -81,8 +83,21 @@ Vec2f Vec2f_add(Vec2f lhs, Vec2f rhs)
 Vec2f Vec2f_scale(Vec2f vec, float scalar)
 {
     return (Vec2f) {vec.x * scalar, vec.y * scalar};
+}
+
+void Vec2f_print(Vec2f vec)
+{
+    printf("(%f, %f)", vec.x, vec.y);
+}
 
 Rectangle rectangle_Vec2f(Rectangle rect, Vec2f vec)
 {
     return (Rectangle){Vec2f_add(rect.bottomLeft, vec), Vec2f_add(rect.topRight, vec)};
+}
+
+void Rectangle_print(Rectangle rect)
+{
+    Vec2f_print(rect.bottomLeft);
+    printf(" ");
+    Vec2f_print(rect.topRight);
 }
