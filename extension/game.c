@@ -6,6 +6,8 @@
 #include "render.h"
 #include "assets.h"
 #include "math.h"
+#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 1
+#include "imgui/cimgui.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +33,7 @@ void handleEvents(GameState* state)
         state->player->entity.velocity.x -= 1.0f;
     }
     
-
+    state->player->entity.velocity = Vec2f_scale(state->player->entity.velocity, state->player->entity.SPD);
 }
 void update(GameState* state, float dt)
 {
@@ -48,6 +50,47 @@ void update(GameState* state, float dt)
        // move(state->currentRoom, entity, dt);
     }
 }
+/*
+void gui_init(GameState* gState) {
+    // IMGUI_CHECKVERSION();
+    gState->ctx = igCreateContext(NULL);
+    gState->io  = igGetIO();
+
+    const char* glsl_version = "#version 400 core";
+    ImGui_ImplGlfw_InitForOpenGL(gState->window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    // Setup style
+    igStyleColorsDark(NULL);
+}
+
+void gui_terminate(GameState* gState) {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    igDestroyContext(gState->ctx);
+}
+
+void gui_render() {
+    igRender();
+    ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
+}
+
+void gui_update() {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    igNewFrame();
+
+    igBegin("Test", NULL, 0);
+    igText("Test");
+    igButton("Test",(struct ImVec2){0,0});
+    igEnd();
+
+    // // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. 
+    // // Here we just want to make the demo initial state a bit more friendly!
+    // igSetNextWindowPos((struct ImVec2){0,0}, ImGuiCond_FirstUseEver,(struct ImVec2){0,0} ); 
+    igShowDemoWindow(NULL);
+}*/
+
 
 void initGame(GameState* state)
 {
@@ -71,12 +114,14 @@ void initGame(GameState* state)
         printf("GLAD error\n");
         exit(-1);
     }
+
+   // gui_init(state);
 }
 
 void renderGame(RenderState* rState, GameState* gState)
 {
     render(gState, rState);
-
+   // gui_render();
     glfwSwapBuffers(gState->window);
 }
 void gameLoop(GameState* gState)
@@ -84,35 +129,21 @@ void gameLoop(GameState* gState)
     const float timestep = 1.0f / 60.0f;
     float lastUpdateTime = glfwGetTime();
     RenderState rState;
-    Room room;
+    Room room = Room_construct(24, 16);
     Player player;
     player.entity = Entity_construct();
+    player.entity.SPD = 5.0f;
 
     gState->currentRoom = &room;
     gState->player = &player;
 
-    room.entities = malloc(sizeof(Entity) * 2);
+    room.entities = calloc(2, sizeof(Entity));
     room.entities[0] = &player.entity;
-    room.entities[1] = NULL;
+   // room.entities[1] = NULL;
 
-    for (int x = 0; x < 16; x++)
-    {
-        for (int y = 0; y < 16; y++)
-        {
-            room.tiles[x][y] = (Tile){.textureID = 0, .type = TILE_FLOOR};
-        }
-    }
 
     room.tiles[4][12] = (Tile){.textureID = 1, .type = TILE_BARRIER};
     room.tiles[11][4] = (Tile){.textureID = 1, .type = TILE_BARRIER};
-
-    for (int i = 0; i < 16; i++)
-    {
-        room.tiles[i][0] = (Tile){.textureID = 2, .type = TILE_WALL};
-        room.tiles[i][15] = (Tile){.textureID = 2, .type = TILE_WALL};
-        room.tiles[0][i] = (Tile){.textureID = 2, .type = TILE_WALL};
-        room.tiles[15][i] = (Tile){.textureID = 2, .type = TILE_WALL};
-    }
 
     for (int i = 4; i <= 11; i++)
       room.tiles[i][6] = (Tile){.textureID = 2, .type = TILE_WALL};
@@ -129,9 +160,6 @@ void gameLoop(GameState* gState)
     rState.characterAtlas = loadAtlas("character.png", 1, 1);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(rState.shader, "atlas"), 0);
-    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f, -0.5f}, (Vec2f){1.0f / 16.0f, 1.0f / 16.0f});
-    Mat3f_print(&viewMat);
-    glUniformMatrix3fv(glGetUniformLocation(rState.shader, "viewMat"), 1, GL_FALSE, viewMat.d);
 
     while (!glfwWindowShouldClose(gState->window))
     {
@@ -143,6 +171,7 @@ void gameLoop(GameState* gState)
             update(gState, deltaTime);
             lastUpdateTime = glfwGetTime();
         }
+        //gui_update();
 
         GLenum err = glGetError();
         if (err)
@@ -153,4 +182,7 @@ void gameLoop(GameState* gState)
 
         renderGame(&rState, gState);
     }
+
+    //gui_terminate(gState);
+    glfwTerminate();
 }

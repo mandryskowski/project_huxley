@@ -10,8 +10,8 @@ Mat3f Mat3f_construct(Vec2f translation, Vec2f scale)
     mat.d[0][0] = scale.x;
     mat.d[1][1] = scale.y;
 
-    mat.d[2][0] = translation.x;
-    mat.d[2][1] = translation.y;
+    mat.d[2][0] = scale.x * translation.x;
+    mat.d[2][1] = scale.y * translation.y;
     mat.d[2][2] = 1;
 
     return mat;
