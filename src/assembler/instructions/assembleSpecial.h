@@ -5,10 +5,10 @@
 
 typedef enum {
     SPECIAL_NOP,
-    SPECIAL_DIRECTIVE,
-    SPECIAL_HOLD
+    SPECIAL_DOT_INT,
+    SPECIAL_AND_END
 } SPOperation;
 
-int32_t assembleSpecial(char **instruction, int type);
+int32_t assembleSpecial(char **instruction, SPOperation op);
 
 #endif //ARMV8_25_ASSEMBLESPECIAL_H

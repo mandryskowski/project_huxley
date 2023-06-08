@@ -1,14 +1,14 @@
-#include "registerInstruction.h"
-#include "bitwiseInstruction.h"
-#include "control.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "immediateInstruction.h"
+#include "registerInstruction.h"
+#include "../util/bitwiseInstruction.h"
+#include "../util/emulateUtility.h"
 
 
 int64_t EncodedRegisterValue(ComputerState* computerState, int encodedReg)
 {
-    return (encodedReg == 0b11111) ? (ZR) : (computerState->registers[encodedReg]);
+    return (encodedReg == 0x1F /* which is 0b11111 */) ? (ZR) : (computerState->registers[encodedReg]);
 }
 
 void MultiplyOperation(const int instruction, ComputerState* computerState,
@@ -30,7 +30,7 @@ void MultiplyOperation(const int instruction, ComputerState* computerState,
 
     result = getBits(0, bitCount, result);
 
-    if(rd == 0b11111)
+    if(rd == 0x1F) // 0b11111
     {
         fprintf(stdout, "Load to Zero Register is ignored.\n");
         return;
@@ -60,20 +60,20 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
         int shiftType = getBits(22, 23, instruction);
         int shiftAmount = getBits(10, 15, instruction);
         bool N = getBit(21, instruction);
-	int bitCount = (sf) ? 63 : 31;
+    	int bitCount = (sf) ? 63 : 31;
 
         //For now hardcoded lsl, will be changed after 1.6 Bitwise Op is implemented
         int64_t op = getBits(0, bitCount, EncodedRegisterValue(computerState, rm));
         op = ExecuteShift(shiftType, op, shiftAmount, sf);
-
-    	op = (N) ? (~op) : op;
+ 	    op = (N) ? (~op) : op;
 
         int64_t registerValue = getBits(0, bitCount, EncodedRegisterValue(computerState, rn));
         int64_t result;
 
-        if((opr & 0b1000) && !(opr & 0b0001)) 
+        //if opr matches 1xx0 then it is an arithmetic operation
+        if((opr & 0x8) && !(opr & 0x1)) 
         {
-            //if opr matches 1xx0 then it is an arithmetic operation
+           
             runAddition(sf, opc, rd, op, registerValue, computerState);
             return;
         }
@@ -82,16 +82,16 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
             //if opr matches 0xxx then it is a logic operation
 
             switch(opc) {
-                case 0b00: //and / bic
+                case 0x0: //and / bic
                     result = registerValue & op;
                     break;
-                case 0b01: //orr / orn
+                case 0x1: //orr / orn
                     result = registerValue | op;
                     break;
-                case 0b10: //eon / eor
+                case 0x2: //eon / eor
                     result = registerValue ^ op;
                     break;
-                case 0b11: //ands / bics
+                case 0x3: //ands / bics
                     result = registerValue & op;
                     break;
                 default:
@@ -106,16 +106,16 @@ void ExecuteRegister(int instruction, ComputerState* computerState) {
             result = getBits(0, 31, result);
         }
 
-	//Update flags
-	if(opc == 0b11)
-	{
+	    //Update flags
+	    if(opc == 0x3) // 0b10
+	    {
 	        computerState->pstate.nf = (sf) ? (result < 0) : ((int32_t) result < 0);
 	        computerState->pstate.zf = (result == 0);
 	        computerState->pstate.cf = 0;
 	        computerState->pstate.vf = 0;
-	}
+	    }
 
-        if(rd == 0b11111)
+        if(rd == 0x1F) // 0b11111
         {
             fprintf(stdout, "Load to Zero Register is ignored.\n");
             return;

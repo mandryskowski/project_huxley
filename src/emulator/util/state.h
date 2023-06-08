@@ -1,27 +1,25 @@
-#ifndef STATE_H
-#define STATE_H
+#ifndef ARMV8_STATE_H
+#define ARMV8_STATE_H
 
 #include <stdbool.h>
 #include <stdint.h>
 
 #define ZR 0 // Zero register
 #define MEMORY_SIZE (1<<21) //Size of memory
-#define OUTPUT_FILE_PATH "output.out"
-typedef struct ComputerState ComputerState; // It's irritating to use struct every time...
 
 struct Pstate
 {
     bool nf, zf, cf, vf;
 };
 
-struct ComputerState
+typedef struct ComputerState
 {
 	int64_t registers[31];
 	struct Pstate pstate; // PSTATE flags
 	uint64_t stack_ptr;
 	uint64_t PC;
 	char* memory;
-};
+} ComputerState;
 
 // to test a flag use e.g. state->pstate->NF given ComputerState* state.
-#endif // STATE_H
+#endif // ARMV8_STATE_H

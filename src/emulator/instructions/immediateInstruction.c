@@ -1,5 +1,5 @@
 #include "immediateInstruction.h"
-#include "control.h"
+#include "../util/emulateUtility.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -26,7 +26,7 @@ void runAddition(bool sf, int opc, int rd, int64_t op, int64_t registerValue, Co
     }
 
     //Assigning result
-    if (rd == 0b11111)
+    if (rd == 0x1F) // 0b11111
     {
         if (!getBits(0, 0, opc)){
             computerState->stack_ptr = (sf) ? result : (uint32_t)result;
@@ -67,7 +67,7 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
     int rd = getBits(0, 4, instruction);
     //printf("%u\n", instruction);
 
-    if (opi == 0b010)
+    if (opi == 0x2) //0b010
     {
         //printf("%u\n", instruction);
         // opi is 010 then it is an arithmetic operation.
@@ -75,7 +75,7 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
         int imm12 = getBits(10, 21, instruction);
         int rn = getBits(5, 9, instruction);
         int64_t op = sh ? imm12 << 12 : imm12;
-        int64_t registerValue = (rn == 0b11111) ? computerState->stack_ptr : computerState->registers[rn];
+        int64_t registerValue = (rn == 0x1F /* which is 0b11111 */) ? computerState->stack_ptr : computerState->registers[rn];
 
         // If subtraction make op negative
         /*if (getBits(1, 1, opc))
@@ -85,7 +85,7 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
 
         runAddition(sf, opc, rd, op, registerValue, computerState);
     }
-    else if (opi == 0b101)
+    else if (opi == 0x5) // 0b101
     {
         //opi is 101 then it is a wide move
         int hw = getBits(21, 22, instruction);
@@ -96,13 +96,13 @@ void ExecuteImmediate(int instruction, ComputerState * computerState)
 
         switch (opc)
         {
-            case 0b00:
+            case 0x0: //0b00
                 result = ~op;
                 break;
-            case 0b10:
+            case 0x2: //0b10
                 result = op;
                 break;
-            case  0b11:
+            case 0x3: //0b11
                 result = computerState->registers[rd]
                         - (getBits(shift, shift + 15, computerState->registers[rd]) << shift) + op;
                 break;
