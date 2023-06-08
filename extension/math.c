@@ -68,6 +68,11 @@ Vec2f Vec2f_normalize(Vec2f vec)
     return Vec2f_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
 }
 
+bool Vec2f_zero(Vec2f vec)
+{
+    return vec.x == 0 && vec.y == 0;
+}
+
 Vec2f Vec2f_add(Vec2f lhs, Vec2f rhs)
 {
     return (Vec2f){lhs.x + rhs.x, lhs.y + rhs.y};
@@ -76,4 +81,8 @@ Vec2f Vec2f_add(Vec2f lhs, Vec2f rhs)
 Vec2f Vec2f_scale(Vec2f vec, float scalar)
 {
     return (Vec2f) {vec.x * scalar, vec.y * scalar};
+
+Rectangle rectangle_Vec2f(Rectangle rect, Vec2f vec)
+{
+    return (Rectangle){Vec2f_add(rect.bottomLeft, vec), Vec2f_add(rect.topRight, vec)};
 }

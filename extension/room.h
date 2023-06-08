@@ -1,3 +1,9 @@
+#ifndef ROOM_H
+#define ROOM_H
+
+#include "math.h"
+#include "state.h"
+
 typedef struct Entity Entity;
 typedef enum
 {
@@ -22,3 +28,7 @@ typedef struct Room
     Entity** entities;
     
 } Room;
+
+TileType getTile(Vec2i, GameState *);
+
+#endif // ROOM_H
