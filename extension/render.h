@@ -13,6 +13,6 @@ typedef struct RenderState
 
 void initRenderState(GameState*, RenderState*);
 
-void render(RenderState*);
+void render(GameState*, RenderState*);
 
 #endif // RENDER_H

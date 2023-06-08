@@ -6,12 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "entity.h"
 
 const char vShaderSrc[] = "#version 400 core\n" \
                       "layout (location = 0) in vec2 vPosition;\n" \
                       "layout (location = 1) in vec2 vTexCoord;\n" \
                       "layout (location = 2) in uint vTexID;\n" \
-                      "out uint fsTexID;\n" \
+                      "flat out uint fsTexID;\n" \
                       "out vec2 fsTexCoord;\n" \
                       "uniform mat3 viewMat;\n" \
                       "void main() \n" \
@@ -162,8 +163,10 @@ void initRenderState(GameState* gState, RenderState* rState)
     glDeleteShader(fShader);
 }
 
-void render(RenderState* state)
+void render(GameState* gState, RenderState* state)
 {
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(state->shader);
 
     Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f, -0.5f}, (Vec2f){1.0f / 16.0f, 1.0f / 16.0f});
@@ -173,10 +176,10 @@ void render(RenderState* state)
     glBindVertexArray(state->LevelVAO);
     glDrawArrays(GL_TRIANGLES, 0, 16 * 16 * 6);
 
-    Mat3f viewMatCharacter = Mat3f_multiply(viewMat, Mat3f_construct((Vec2f){0.5f, 0.0f}, (Vec2f){1.0f, 1.0f}));
+    Mat3f viewMatCharacter = Mat3f_multiply(viewMat, Mat3f_construct(gState->player->entity.pos, (Vec2f){1.0f, 1.0f}));
     //Mat3f viewMatCharacter = Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f});
     //viewMatCharacter = Mat3f_multiply(viewMatCharacter, Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f}));
-    Mat3f_print(&viewMatCharacter);
+   // Mat3f_print(&viewMatCharacter);
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMatCharacter.d);
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->characterAtlas);

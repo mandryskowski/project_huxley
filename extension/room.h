@@ -19,6 +19,6 @@ typedef struct Tile
 typedef struct Room
 {
     Tile tiles[16][16];
-    Entity* entities;
+    Entity** entities;
     
 } Room;
