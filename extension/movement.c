@@ -124,7 +124,7 @@ float moveUnitlPossible(Entity **entity, Entity **currEntityPtr, float dt, Recta
 
 void move(GameState* state, Entity** entity, float dt)
 {
-    const int NUM_OF_STEPS = 6;
+    const int NUM_OF_STEPS = 36;
     for (Entity **currEntity = entity; *currEntity; currEntity++)
     {
         Rectangle *obstacles = calloc(8, sizeof(Rectangle));
@@ -161,33 +161,4 @@ void move(GameState* state, Entity** entity, float dt)
 Vec2f* findPath(GameState* state, Entity* entity, Vec2f desiredPosition)
 {
     
-}
-
-int main()
-{
-    Entity e1 = Entity_construct_generic((Rectangle){{-0.2, -0.2}, {0.2, 0.2}}, (Vec2f){10.4, 10.5});
-    e1.velocity = (Vec2f){1, 0};
-    Entity e2 = Entity_construct_generic((Rectangle){{-0.1, -0.3}, {0.1, 0.3}}, (Vec2f){10.8, 10.5});
-    Entity *e1Ptr = calloc(1, sizeof(Entity));
-    *e1Ptr = e1;
-    Entity *e2Ptr = calloc(1, sizeof(Entity));
-    *e2Ptr = e2;
-    Entity **array = calloc(3, sizeof(Entity *));
-    *array = e1Ptr;
-    *(array + 1) = e2Ptr;
-    Room room;
-    for (int i = -1; i < 2; i++){
-        for (int j = -1; j < 2; j++){
-            if (!i && !j){
-                continue;
-            }
-            room.tiles[10 + i][10 + j] = (Tile){TILE_WALL, 0};
-        }
-    }
-    room.tiles[10][10] = (Tile){TILE_FLOOR, 0};
-
-    GameState gameState = {NULL, &room, NULL};
-    move(&gameState, array, 1);
-    //return 0;
-    printf("(%f, %f)", (*array)->pos.x, (*array)->pos.y);
 }

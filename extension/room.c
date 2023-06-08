@@ -1,6 +1,13 @@
 #include "room.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "math.h"
+#include "state.h"
+
+TileType getTile(Vec2i vec, GameState *state)
+{
+    return state->currentRoom->tiles[vec.x][vec.y].type;
+}
 
 Room Room_construct(uint width, uint height)
 {
