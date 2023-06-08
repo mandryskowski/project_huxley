@@ -1,4 +1,7 @@
+#ifndef ROOM_H
+#define ROOM_H
 typedef struct Entity Entity;
+typedef unsigned int uint;
 typedef enum
 {
     TILE_FLOOR,
@@ -18,7 +21,11 @@ typedef struct Tile
 
 typedef struct Room
 {
-    Tile tiles[16][16];
+    Tile** tiles;
+    uint width, height; // in tiles
     Entity** entities;
-    
+
 } Room;
+
+Room Room_construct(uint width, uint height);
+#endif // ROOM_H

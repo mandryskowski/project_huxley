@@ -8,6 +8,7 @@
 #include <string.h>
 #include "entity.h"
 
+
 const char vShaderSrc[] = "#version 400 core\n" \
                       "layout (location = 0) in vec2 vPosition;\n" \
                       "layout (location = 1) in vec2 vTexCoord;\n" \
@@ -89,7 +90,7 @@ uint initVAO(GLsizei size, void* data)
     glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, (sizeof(Vertex)) * 16 * 16 * 6, data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 
     glBindVertexArray(VAO);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
@@ -107,10 +108,10 @@ void initRenderState(GameState* gState, RenderState* rState)
 {
     // Grid
     {
-        Vertex gridVerts[16 * 16 * 6];
-        initGridVertices(gState, gridVerts, 16, 16);
+        Vertex gridVerts[gState->currentRoom->width * gState->currentRoom->height * 6];
+        initGridVertices(gState, gridVerts, gState->currentRoom->width, gState->currentRoom->height);
 
-        rState->LevelVAO = initVAO(sizeof(Vertex) * 16 * 16 * 6, gridVerts);
+        rState->LevelVAO = initVAO(sizeof(Vertex) * gState->currentRoom->width * gState->currentRoom->height * 6, gridVerts);
     }
 
     // Quad
@@ -162,24 +163,24 @@ void initRenderState(GameState* gState, RenderState* rState)
     glDeleteShader(vShader);
     glDeleteShader(fShader);
 }
-
 void render(GameState* gState, RenderState* state)
 {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
     glUseProgram(state->shader);
 
-    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f, -0.5f}, (Vec2f){1.0f / 16.0f, 1.0f / 16.0f});
+    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f * gState->currentRoom->width, -0.5f * gState->currentRoom->height}, (Vec2f){1.0f / gState->currentRoom->height, 1.0f / gState->currentRoom->height});
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
     
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->tileAtlas);
     glBindVertexArray(state->LevelVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 16 * 16 * 6);
+    glDrawArrays(GL_TRIANGLES, 0, gState->currentRoom->width * gState->currentRoom->height * 6);
 
-    Mat3f viewMatCharacter = Mat3f_multiply(viewMat, Mat3f_construct(gState->player->entity.pos, (Vec2f){1.0f, 1.0f}));
+    Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(gState->player->entity.pos, (Vec2f){1.0f, 1.0f}), viewMat);
     //Mat3f viewMatCharacter = Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f});
     //viewMatCharacter = Mat3f_multiply(viewMatCharacter, Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f}));
-   // Mat3f_print(&viewMatCharacter);
+    Mat3f_print(&viewMatCharacter);
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMatCharacter.d);
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->characterAtlas);
