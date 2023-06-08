@@ -1,10 +1,7 @@
 #ifndef ROOM_H
 #define ROOM_H
-
-#include "math.h"
-#include "state.h"
-
 typedef struct Entity Entity;
+typedef unsigned int uint;
 typedef enum
 {
     TILE_FLOOR,
@@ -24,11 +21,11 @@ typedef struct Tile
 
 typedef struct Room
 {
-    Tile tiles[16][16];
+    Tile** tiles;
+    uint width, height; // in tiles
     Entity** entities;
-    
+
 } Room;
 
-TileType getTile(Vec2i, GameState *);
-
+Room Room_construct(uint width, uint height);
 #endif // ROOM_H
