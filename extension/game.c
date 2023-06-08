@@ -6,8 +6,11 @@
 #include "render.h"
 #include "assets.h"
 #include "math.h"
+#include "movement.h"
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 1
-#include "imgui/cimgui.h"
+#define CIMGUI_USE_GLFW 1
+#include "cimgui/cimgui.h"
+#include "cimgui/cimgui_impl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,18 +42,20 @@ void update(GameState* state, float dt)
 {
     Entity** arr = state->currentRoom->entities;
 
+    move(state, arr, dt);
+    return;
     //playerMovement(state, dt);
     while (*arr != NULL)
     {
         Entity* entity = *arr;
         printf("entity vel %f %f\n", entity->velocity.x, entity->velocity.y);
                 printf("entity pos %f %f\n", entity->pos.x, entity->pos.y);
-        entity->pos = Vec2f_add(entity->pos, Vec2f_scale(entity->velocity, dt));
+        //entity->pos = Vec2f_add(entity->pos, Vec2f_scale(entity->velocity, dt));
         arr++;
        // move(state->currentRoom, entity, dt);
     }
 }
-/*
+
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
     gState->ctx = igCreateContext(NULL);
@@ -82,6 +87,7 @@ void gui_update() {
 
     igBegin("Test", NULL, 0);
     igText("Test");
+    igText("Bobi smells");
     igButton("Test",(struct ImVec2){0,0});
     igEnd();
 
@@ -89,8 +95,7 @@ void gui_update() {
     // // Here we just want to make the demo initial state a bit more friendly!
     // igSetNextWindowPos((struct ImVec2){0,0}, ImGuiCond_FirstUseEver,(struct ImVec2){0,0} ); 
     igShowDemoWindow(NULL);
-}*/
-
+}
 
 void initGame(GameState* state)
 {
@@ -115,13 +120,13 @@ void initGame(GameState* state)
         exit(-1);
     }
 
-   // gui_init(state);
+    gui_init(state);
 }
 
 void renderGame(RenderState* rState, GameState* gState)
 {
     render(gState, rState);
-   // gui_render();
+    gui_render();
     glfwSwapBuffers(gState->window);
 }
 void gameLoop(GameState* gState)
@@ -133,6 +138,7 @@ void gameLoop(GameState* gState)
     Player player;
     player.entity = Entity_construct();
     player.entity.SPD = 5.0f;
+
 
     gState->currentRoom = &room;
     gState->player = &player;
@@ -171,7 +177,7 @@ void gameLoop(GameState* gState)
             update(gState, deltaTime);
             lastUpdateTime = glfwGetTime();
         }
-        //gui_update();
+        gui_update();
 
         GLenum err = glGetError();
         if (err)
@@ -183,6 +189,6 @@ void gameLoop(GameState* gState)
         renderGame(&rState, gState);
     }
 
-    //gui_terminate(gState);
+    gui_terminate(gState);
     glfwTerminate();
 }

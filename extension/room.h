@@ -1,6 +1,8 @@
 #ifndef ROOM_H
 #define ROOM_H
 typedef struct Entity Entity;
+typedef struct Vec2i Vec2i;
+typedef struct GameState GameState;
 typedef unsigned int uint;
 typedef enum
 {
@@ -27,5 +29,6 @@ typedef struct Room
 
 } Room;
 
+TileType getTile(Vec2i vec, GameState *state);
 Room Room_construct(uint width, uint height);
 #endif // ROOM_H
