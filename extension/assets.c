@@ -6,6 +6,7 @@
 
 uint loadAtlas(char* filename, int width, int height)
 {
+    stbi_set_flip_vertically_on_load(1);
     int imgWidth, imgHeight, imgChannels;
     unsigned char* data = stbi_load(filename, &imgWidth, &imgHeight, &imgChannels, 0);
 
@@ -22,9 +23,9 @@ uint loadAtlas(char* filename, int width, int height)
     uint atlasTex;
     glGenTextures(1, &atlasTex);
     glBindTexture(GL_TEXTURE_2D_ARRAY, atlasTex);
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGB8, tileWidth, tileWidth, nrTiles, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, tileWidth, tileWidth, nrTiles, 0, (imgChannels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, tileWidth, tileHeight, width * height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, tileWidth, tileHeight, width * height, (imgChannels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
 
     // Texture parameters
     glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR);

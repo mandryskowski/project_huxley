@@ -5,8 +5,10 @@ typedef unsigned int uint;
 
 typedef struct RenderState
 {
-    uint LevelVAO, LevelVBO;
+    uint LevelVAO;
+    uint QuadVAO;
     int shader;
+    uint tileAtlas, characterAtlas;
 } RenderState;
 
 void initRenderState(GameState*, RenderState*);
