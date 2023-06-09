@@ -177,7 +177,10 @@ void render(GameState* gState, RenderState* state)
     glBindVertexArray(state->LevelVAO);
     glDrawArrays(GL_TRIANGLES, 0, gState->currentRoom->width * gState->currentRoom->height * 6);
 
-    Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(gState->player->entity.pos, (Vec2f){1.0f, 1.0f}), viewMat);
+    Entity** entities = gState->currentRoom->entities;
+
+    for(Entity** other = entities; *other != NULL; other++) {
+    Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct((*other)->pos, (Vec2f){1.0f, 1.0f}), viewMat);
     //Mat3f viewMatCharacter = Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f});
     //viewMatCharacter = Mat3f_multiply(viewMatCharacter, Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f}));
     Mat3f_print(&viewMatCharacter);
@@ -186,4 +189,5 @@ void render(GameState* gState, RenderState* state)
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->characterAtlas);
     glBindVertexArray(state->QuadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
 }

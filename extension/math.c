@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#define EPS 1e-6
 
 Mat3f Mat3f_construct(Vec2f translation, Vec2f scale)
 {
