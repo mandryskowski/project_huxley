@@ -7,10 +7,7 @@
 #include "assets.h"
 #include "math.h"
 #include "movement.h"
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 1
-#define CIMGUI_USE_GLFW 1
-#include "cimgui/cimgui.h"
-#include "cimgui/cimgui_impl.h"
+#include "gui.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,47 +53,6 @@ void update(GameState* state, float dt)
     }
 }
 
-void gui_init(GameState* gState) {
-    // IMGUI_CHECKVERSION();
-    gState->ctx = igCreateContext(NULL);
-    gState->io  = igGetIO();
-
-    const char* glsl_version = "#version 400 core";
-    ImGui_ImplGlfw_InitForOpenGL(gState->window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    // Setup style
-    igStyleColorsDark(NULL);
-}
-
-void gui_terminate(GameState* gState) {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    igDestroyContext(gState->ctx);
-}
-
-void gui_render() {
-    igRender();
-    ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
-}
-
-void gui_update() {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    igNewFrame();
-
-    igBegin("Test", NULL, 0);
-    igText("Test");
-    igText("Bobi smells");
-    igButton("Test",(struct ImVec2){0,0});
-    igEnd();
-
-    // // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. 
-    // // Here we just want to make the demo initial state a bit more friendly!
-    // igSetNextWindowPos((struct ImVec2){0,0}, ImGuiCond_FirstUseEver,(struct ImVec2){0,0} ); 
-    igShowDemoWindow(NULL);
-}
-
 void initGame(GameState* state)
 {
     glfwInit();
@@ -123,7 +79,7 @@ void initGame(GameState* state)
     gui_init(state);
 }
 
-void renderGame(RenderState* rState, GameState* gState)
+void renderGame(GameState* gState, RenderState* rState)
 {
     render(gState, rState);
     gui_render();
@@ -164,20 +120,21 @@ void gameLoop(GameState* gState)
 
     rState.tileAtlas = loadAtlas("textures.png", 1, 4);
     rState.characterAtlas = loadAtlas("character.png", 1, 1);
+    rState.bDebugHitboxes = false;
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(rState.shader, "atlas"), 0);
 
     while (!glfwWindowShouldClose(gState->window))
     {
         glfwPollEvents();
-        handleEvents(gState);
         float deltaTime = glfwGetTime() - lastUpdateTime;
         if (deltaTime >= timestep)
         {
+            handleEvents(gState);
             update(gState, deltaTime);
             lastUpdateTime = glfwGetTime();
         }
-        gui_update();
+        gui_update(gState, &rState);
 
         GLenum err = glGetError();
         if (err)
@@ -186,7 +143,7 @@ void gameLoop(GameState* gState)
         }
 
 
-        renderGame(&rState, gState);
+        renderGame(gState, &rState);
     }
 
     gui_terminate(gState);

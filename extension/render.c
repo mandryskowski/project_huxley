@@ -28,17 +28,21 @@ const char fShaderSrc[] = "#version 400 core\n" \
                       "in vec2 fsTexCoord;\n" \
                       "out vec4 outColor;\n" \
                       "uniform sampler2DArray atlas;\n" \
+                      "uniform int materialType;\n" \
+                      "uniform vec4 modelColor;\n" \
                       "void main() \n" \
                       "{ \n" \
-                      "float test = float(fsTexID);\n" \
-                      " //color = vec4((test / 256.0) * 0.75 + 0.25, 0.0, 0.0, 1.0);\n" \
-                      " vec4 color = texture(atlas, vec3(fsTexCoord, fsTexID));\n" \
+                      "vec4 color = vec4(0.0);\n" \
+                      "if (materialType == 0) { \n" \
+                      " color = texture(atlas, vec3(fsTexCoord, fsTexID));\n" \
+                      "} else if (materialType == 1) { \n" \
+                      " color = vec4(1.0, 0.5, 0.31, 1.0);\n" \
+                      "}\n" \
                       " if (color.a < 0.5) \n" \
                       "{ \n" \
                       " discard;\n" \
                       "} \n" \
                       "outColor = color;"
-                      "// color = vec4(fsTexCoord, 0.0, 1.0);\n" \
                       "}";
 
 typedef struct Vertex
@@ -170,7 +174,9 @@ void render(GameState* gState, RenderState* state)
 
     glUseProgram(state->shader);
 
-    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f * gState->currentRoom->width, -0.5f * gState->currentRoom->height}, (Vec2f){1.0f / gState->currentRoom->height, 1.0f / gState->currentRoom->height});
+    glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
+
+    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f * gState->currentRoom->width / gState->currentRoom->height, -0.5f}, (Vec2f){1.0f / gState->currentRoom->height, 1.0f / gState->currentRoom->height});
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
     
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->tileAtlas);
@@ -180,10 +186,23 @@ void render(GameState* gState, RenderState* state)
     Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(gState->player->entity.pos, (Vec2f){1.0f, 1.0f}), viewMat);
     //Mat3f viewMatCharacter = Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f});
     //viewMatCharacter = Mat3f_multiply(viewMatCharacter, Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f}));
-    Mat3f_print(&viewMatCharacter);
+    //Mat3f_print(&viewMatCharacter);
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMatCharacter.d);
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->characterAtlas);
     glBindVertexArray(state->QuadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    if (state->bDebugHitboxes)
+    {
+        Vec2f hitboxSize = Vec2f_add(gState->player->entity.hitbox.topRight, Vec2f_scale(gState->player->entity.hitbox.bottomLeft, -1.0f));
+        Vec2f hitboxPos = Vec2f_add(gState->player->entity.hitbox.bottomLeft, Vec2f_scale(hitboxSize, 0.5f));
+        Mat3f hitboxMat = Mat3f_multiply(Mat3f_construct(Vec2f_add(gState->player->entity.pos, hitboxPos), hitboxSize), viewMat);
+
+
+        Vec2f_print(hitboxPos);
+        glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, hitboxMat.d);
+        glUniform1i(glGetUniformLocation(state->shader, "materialType"), 1);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
 }
