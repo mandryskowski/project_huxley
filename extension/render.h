@@ -1,6 +1,7 @@
 #ifndef RENDER_H
 #define RENDER_H
 #include "state.h"
+#include <stdbool.h>
 typedef unsigned int uint;
 
 typedef struct RenderState
@@ -9,6 +10,8 @@ typedef struct RenderState
     uint QuadVAO;
     int shader;
     uint tileAtlas, characterAtlas;
+
+    bool bDebugHitboxes;
 } RenderState;
 
 void initRenderState(GameState*, RenderState*);
