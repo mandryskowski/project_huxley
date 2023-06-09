@@ -47,7 +47,7 @@ void checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, float *highe
 {
     Vec2f collisionResult = detectCollisionRect(currHitbox, otherHitbox, velocity);
     //printf("xddd\n");
-    if (collisionResult.x > 0 && collisionResult.y > 0)
+    if (collisionResult.x > EPS && collisionResult.y > EPS)
     {
         printf("xddd ____\n");
         Rectangle_print(currHitbox);

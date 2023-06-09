@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#define EPS 1e-6
 #define min(a, b) a < b ? a : b
 //#define absGen(a) a < 0 ? -a : a
 

@@ -54,7 +54,7 @@ endif
 ########################Project files########################
 
 # Here you add the names of header-source file pairs. E.g. gameControl adds gameControl.h and gameControl.c
-_GAME_SOURCE_HEADER_PAIRS = game math room render assets entity movement\
+_GAME_SOURCE_HEADER_PAIRS = game math room render assets entity movement pathfind\
 
 # Here on the other hand you add just the headers.
 _GAME_JUST_HEADERS = state.h
