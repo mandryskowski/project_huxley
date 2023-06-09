@@ -39,8 +39,19 @@ void update(GameState* state, float dt)
 {
     Entity** arr = state->currentRoom->entities;
 
+    Vec2f* velocities = path((**arr).pos, arr + 1, state);
+
+    int index = 0;
+    for(Entity** other = arr+1; *other != NULL; other++)
+    {
+	(*other)->velocity = *(velocities+index);
+	index++;
+    }
+
     move(state, arr, dt);
+
     return;
+
     //playerMovement(state, dt);
     while (*arr != NULL)
     {
@@ -99,9 +110,18 @@ void gameLoop(GameState* gState)
     gState->currentRoom = &room;
     gState->player = &player;
 
-    room.entities = calloc(2, sizeof(Entity));
+    Entity enemy = Entity_construct();
+    enemy.pos = (Vec2f){10.0f, 10.0f};
+    Entity enemy2 = Entity_construct();
+    enemy.pos = (Vec2f){9.0f, 9.0f};
+    Entity enemy3 = Entity_construct();
+    enemy.pos = (Vec2f){8.0f, 8.0f};
+
+    room.entities = calloc(4, sizeof(Entity));
     room.entities[0] = &player.entity;
-   // room.entities[1] = NULL;
+    room.entities[1] = &enemy;
+    room.entities[2] = &enemy2;
+    room.entities[3] = &enemy3;
 
 
     room.tiles[4][12] = (Tile){.textureID = 1, .type = TILE_BARRIER};
