@@ -1,6 +1,7 @@
 #include "gui.h"
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 1
 #define CIMGUI_USE_GLFW 1
+#define CIMGUI_USE_OPENGL3
 #include "cimgui/cimgui.h"
 #include "cimgui/cimgui_impl.h"
 #include "state.h"
@@ -50,8 +51,9 @@ void gui_update(GameState* gState, RenderState* rState) {
 
     igBegin("Game debug", NULL, 0);
     igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);
-    
-    igSliderFloat("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f, NULL, 0);
+
+    sliderDouble("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f);
+    sliderDouble("Player movement swing", &gState->player->movement_swing, 0.0f, 1.0f);
     // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
     if (igTreeNode_Str("Entity tree"))
     {
@@ -70,6 +72,7 @@ void gui_update(GameState* gState, RenderState* rState) {
                 igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
                 sliderDoubleN("Hitbox Left Bottom", &(*arr)->hitbox.bottomLeft, 2, -1.0f, 1.0f);
                 sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
+                sliderDoubleN("attack_Velocity", &(*arr)->attack_velocity, 2, 0.0, 5.0);
 
                 
                 sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);

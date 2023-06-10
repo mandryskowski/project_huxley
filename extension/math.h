@@ -5,6 +5,8 @@
 
 #define EPSILON 1e-10
 #define min(a, b) a < b ? a : b
+#define max(a, b) a > b ? a : b
+
 //#define absGen(a) a < 0 ? -a : a
 
 typedef struct Vec2i
@@ -37,6 +39,7 @@ Vec2i Vec2i_scale(Vec2i, float scalar);
 bool Vec2i_equals(Vec2i, Vec2i);
 
 bool Vec2d_zero(Vec2d);
+Vec2d Vec2d_normalize(Vec2d);
 Vec2d Vec2d_add(Vec2d, Vec2d);
 Vec2d Vec2d_scale(Vec2d, double scalar);
 void Vec2d_print(Vec2d);

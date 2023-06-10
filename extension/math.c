@@ -67,7 +67,11 @@ Vec2i Vec2i_scale(Vec2i vec, float scalar)
 
 Vec2d Vec2d_normalize(Vec2d vec)
 {
-    return Vec2d_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
+    if (Vec2d_zero(vec))
+    {
+        return vec;
+    }
+    return Vec2d_scale(vec, 1.0 / sqrt(vec.x * vec.x + vec.y * vec.y));
 }
 
 bool Vec2i_equals(Vec2i lhs, Vec2i rhs)
@@ -76,7 +80,7 @@ bool Vec2i_equals(Vec2i lhs, Vec2i rhs)
 }
 bool Vec2d_zero(Vec2d vec)
 {
-    return vec.x == 0 && vec.y == 0;
+    return fabs(vec.x) < EPSILON && fabs(vec.y) < EPSILON;
 }
 
 Vec2d Vec2d_add(Vec2d lhs, Vec2d rhs)
