@@ -50,9 +50,14 @@ void gui_update(GameState* gState, RenderState* rState) {
 
     igBegin("Game debug", NULL, 0);
     igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);
+    igCheckbox("Isometric render", &rState->renderIsometric);
     
     igSliderFloat("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f, NULL, 0);
+    igSliderInt2("Resolution", &rState->resolution, 1, 2048, NULL, 0);
+
     // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
+    igCheckbox("VSync?", &rState->VSync);
+    igShowMetricsWindow(NULL);
     if (igTreeNode_Str("Entity tree"))
     {
         Entity** arr = gState->currentRoom->entities;
@@ -71,10 +76,15 @@ void gui_update(GameState* gState, RenderState* rState) {
                 sliderDoubleN("Hitbox Left Bottom", &(*arr)->hitbox.bottomLeft, 2, -1.0f, 1.0f);
                 sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
 
-                
-                sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
-                igCheckbox("Can fly?", &(*arr)->canFly);
-                igSliderInt("HP", &(*arr)->HP, 0.0f, 100.0f, NULL, 0);
+                if (igTreeNode_Str("Stats"))
+                {
+                    sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
+                    igCheckbox("Can fly?", &(*arr)->canFly);
+                    igSliderInt("HP", &(*arr)->HP, 0, 100, NULL, 0);
+                    igSliderInt("ATK", &(*arr)->ATK, 0, 100, NULL, 0);
+
+                    igTreePop();
+                }
                 igTreePop();
             }
             i++;
@@ -84,9 +94,4 @@ void gui_update(GameState* gState, RenderState* rState) {
     }
 
     igEnd();
-
-    // // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. 
-    // // Here we just want to make the demo initial state a bit more friendly!
-    // igSetNextWindowPos((struct ImVec2){0,0}, ImGuiCond_FirstUseEver,(struct ImVec2){0,0} ); 
-    igShowDemoWindow(NULL);
 }

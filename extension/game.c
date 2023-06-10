@@ -63,7 +63,7 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
-    state->window = glfwCreateWindow(800, 800, "Huxley game", NULL, NULL);
+    state->window = glfwCreateWindow(1920, 1080, "Huxley game", glfwGetPrimaryMonitor(), NULL);
 
     if (state->window == NULL)
     {
@@ -84,6 +84,7 @@ void initGame(GameState* state)
 
 void renderGame(GameState* gState, RenderState* rState)
 {
+    glfwSwapInterval(rState->VSync);
     render(gState, rState);
     gui_render();
     glfwSwapBuffers(gState->window);
@@ -92,7 +93,7 @@ void gameLoop(GameState* gState)
 {
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
-    RenderState rState;
+    RenderState rState = RenderState_construct();
     Room room = Room_construct(24, 16);
     Player player;
     player.entity = Entity_construct();
@@ -130,10 +131,6 @@ void gameLoop(GameState* gState)
 
     initRenderState(gState, &rState);
     glEnable(GL_MULTISAMPLE); 
-
-    rState.tileAtlas = loadAtlas("textures.png", 1, 4);
-    rState.characterAtlas = loadAtlas("character.png", 1, 1);
-    rState.bDebugHitboxes = false;
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(rState.shader, "atlas"), 0);
 

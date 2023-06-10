@@ -14,7 +14,7 @@ typedef struct Entity
     bool canFly;
 
     int HP, maxHP;
-    float ATK;
+    int ATK;
     double SPD;
 
 } Entity;
