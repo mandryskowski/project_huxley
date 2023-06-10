@@ -12,6 +12,13 @@ void playerMovement(GameState* state, double dt)
 {
 
 }
+
+void deal_collison_damage(Entity *entity, Entity *other)
+{
+    handle_attack(entity, other, ATTACK_CONTACT);
+    handle_attack(other, entity, ATTACK_CONTACT);
+}
+
 Vec2d detectCollisionRect(Rectangle a, Rectangle b, Vec2d velocity)
 {
     double overlapX = a.topRight.x > b.topRight.x ? b.topRight.x - a.bottomLeft.x : a.topRight.x - b.bottomLeft.x;
@@ -20,7 +27,7 @@ Vec2d detectCollisionRect(Rectangle a, Rectangle b, Vec2d velocity)
     return (Vec2d){overlapX + EPSILON, overlapY + EPSILON};
 }
 
-void checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *highestAfterCollision,  Vec2d *newVelocity, Vec2d velocity)
+bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *highestAfterCollision,  Vec2d *newVelocity, Vec2d velocity)
 {
     Vec2d collisionResult = detectCollisionRect(currHitbox, otherHitbox, velocity);
     
@@ -44,7 +51,9 @@ void checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
                 newVelocity->y = 0;
             }
         }
+        return true;
     }
+    return false;
 }
 
 double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles)
@@ -57,23 +66,37 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
 
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
-        if (otherPtr == currEntityPtr)
+        if (otherPtr == currEntityPtr || isDead(*otherPtr) ||
+        ((isProjectile(*otherPtr) || isProjectile(*currEntityPtr)) && (*otherPtr)->faction == (*currEntityPtr)->faction))
         {
             continue;
         }
         Entity *other = *otherPtr;
 
-        Vec2d currEntityNewPos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt));
-        Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntityNewPos);
         Rectangle otherHitbox = rectangle_Vec2d(other->hitbox, other->pos);
-
-        checkForCollision(currHitbox, otherHitbox, &highestAfterCollision, &newVelocity, currEntity->velocity);
+        bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
+                                          &newVelocity, currEntity->velocity);
+        if (collides)
+        {
+            deal_collison_damage(currEntity, other);
+            if (isDead(*currEntityPtr))
+            {
+                return 0; // Entity is dead
+            }
+        }
     }
 
     for (Rectangle *obstacle = obstacles; obstacle->topRight.x; obstacle++)
     {
         Rectangle otherHitbox = *obstacle;
-        checkForCollision(currHitbox, otherHitbox, &highestAfterCollision, &newVelocity, currEntity->velocity);
+        bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
+                                          &newVelocity, currEntity->velocity);
+
+        if (collides && isProjectile(currEntity))
+        {
+            killEntity(currEntity);
+            return  0; // Entity is dead
+        }
     }
 
     currEntity->pos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt - highestAfterCollision));
@@ -132,7 +155,7 @@ void move(GameState* state, Entity** entity, double dt)
         for (int i = 0; i < NUM_OF_STEPS; i++)
         {
             double timePerStep = dt / NUM_OF_STEPS;
-            while (timePerStep && !Vec2d_zero((*currEntity)->velocity))
+            while (timePerStep && !Vec2d_zero((*currEntity)->velocity) && !isDead(*currEntity))
             {
                 timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles);
             }
