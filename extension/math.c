@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-Mat3f Mat3f_construct(Vec2f translation, Vec2f scale)
+Mat3f Mat3f_construct(Vec2d translation, Vec2d scale)
 {
     Mat3f mat;
     memset(&mat.d, 0, sizeof(float) * 3 * 3); // fill matrix with 0s
@@ -65,58 +65,58 @@ Vec2i Vec2i_scale(Vec2i vec, float scalar)
     return (Vec2i) {vec.x * scalar, vec.y * scalar};
 }
 
-Vec2f Vec2f_normalize(Vec2f vec)
+Vec2d Vec2d_normalize(Vec2d vec)
 {
-    return Vec2f_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
+    return Vec2d_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
 }
 
 bool Vec2i_equals(Vec2i lhs, Vec2i rhs)
 {
     return (lhs.x == rhs.x && lhs.y == rhs.y);
 }
-bool Vec2f_zero(Vec2f vec)
+bool Vec2d_zero(Vec2d vec)
 {
     return vec.x == 0 && vec.y == 0;
 }
 
-Vec2f Vec2f_add(Vec2f lhs, Vec2f rhs)
+Vec2d Vec2d_add(Vec2d lhs, Vec2d rhs)
 {
-    return (Vec2f){lhs.x + rhs.x, lhs.y + rhs.y};
+    return (Vec2d){lhs.x + rhs.x, lhs.y + rhs.y};
 }
 
-Vec2f Vec2f_scale(Vec2f vec, float scalar)
+Vec2d Vec2d_scale(Vec2d vec, double scalar)
 {
-    return (Vec2f) {vec.x * scalar, vec.y * scalar};
+    return (Vec2d) {vec.x * scalar, vec.y * scalar};
 }
 
-void Vec2f_print(Vec2f vec)
+void Vec2d_print(Vec2d vec)
 {
     printf("(%f, %f)", vec.x, vec.y);
 }
 
-Rectangle rectangle_Vec2f(Rectangle rect, Vec2f vec)
+Rectangle rectangle_Vec2d(Rectangle rect, Vec2d vec)
 {
-    return (Rectangle){Vec2f_add(rect.bottomLeft, vec), Vec2f_add(rect.topRight, vec)};
+    return (Rectangle){Vec2d_add(rect.bottomLeft, vec), Vec2d_add(rect.topRight, vec)};
 }
 
 void Rectangle_print(Rectangle rect)
 {
-    Vec2f_print(rect.bottomLeft);
+    Vec2d_print(rect.bottomLeft);
     printf(" ");
-    Vec2f_print(rect.topRight);
+    Vec2d_print(rect.topRight);
 }
 
-bool Vec2f_equals(Vec2f lhs, Vec2f rhs)
+bool Vec2d_equals(Vec2d lhs, Vec2d rhs)
 {
-    return (fabs(lhs.x - rhs.x) < EPS && fabs(lhs.y - rhs.y) < EPS);
+    return (fabs(lhs.x - rhs.x) < EPSILON && fabs(lhs.y - rhs.y) < EPSILON);
 }
 
-Vec2i Vec2f_to_Vec2i(Vec2f vec)
+Vec2i Vec2d_to_Vec2i(Vec2d vec)
 {
     return (Vec2i){floor(vec.x), floor(vec.y)};
 }
 
-Vec2f Vec2i_to_Vec2f(Vec2i vec)
+Vec2d Vec2i_to_Vec2d(Vec2i vec)
 {
-    return (Vec2f){(float)vec.x, (float)vec.y};
+    return (Vec2d){(double)vec.x, (double)vec.y};
 }

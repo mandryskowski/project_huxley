@@ -33,46 +33,56 @@ void gui_render() {
     ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
 }
 
+void sliderDouble(char* label, double* ptr, double min, double max)
+{
+    igSliderScalar(label, ImGuiDataType_Double, ptr, &min, &max, NULL, 0);
+}
+
+void sliderDoubleN(char* label, double* ptr, uint n, double min, double max)
+{
+    igSliderScalarN(label, ImGuiDataType_Double, ptr, n, &min, &max, NULL, 0);
+}
+
 void gui_update(GameState* gState, RenderState* rState) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
 
-    igBegin("Test", NULL, 0);
+    igBegin("Game debug", NULL, 0);
     igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);
     
-    if (igTreeNode_Str("Debug"))
+    igSliderFloat("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f, NULL, 0);
+    // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
+    if (igTreeNode_Str("Entity tree"))
     {
-        igSliderFloat("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f, NULL, 0);
-       // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
-        if (igTreeNode_Str("Basic trees"))
+        Entity** arr = gState->currentRoom->entities;
+        int i = 0;
+        while (*arr != NULL)
         {
-            Entity** arr = gState->currentRoom->entities;
-            int i = 0;
-            while (*arr != NULL)
+            // Use SetNextItemOpen() so set the default state of a node to be open. We could
+            // also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
+            if (i == 0)
+                igSetNextItemOpen(true, ImGuiCond_Once);
+                
+            if (igTreeNode_Ptr((void*)(intptr_t)i, "Entity %d", i))
             {
-                // Use SetNextItemOpen() so set the default state of a node to be open. We could
-                // also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
+                igText("Position %f %f", (*arr)->pos.x, (*arr)->pos.y);
+                igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
+                sliderDoubleN("Hitbox Left Bottom", &(*arr)->hitbox.bottomLeft, 2, -1.0f, 1.0f);
+                sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
 
-                if (igTreeNode_Ptr((void*)(intptr_t)i, "Entity %d", i))
-                {
-                    igText("Position %f %f", (*arr)->pos.x, (*arr)->pos.y);
-                    igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
-                    igText("Hitbox Left Bottom %f %f", (*arr)->hitbox.bottomLeft.x, (*arr)->hitbox.bottomLeft.y);
-                    igText("Hitbox Top Right %f %f", (*arr)->hitbox.topRight.x, (*arr)->hitbox.topRight.y);
-                    igSliderFloat("SPD", &(*arr)->SPD, 0.0f, 20.0f, NULL, 0);
-                    if (igSmallButton("button")) {}
-                    igTreePop();
-                }
-                i++;
-                arr++;
+                
+                sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
+                igCheckbox("Can fly?", &(*arr)->canFly);
+                igSliderInt("HP", &(*arr)->HP, 0.0f, 100.0f, NULL, 0);
+                igTreePop();
             }
-            igTreePop();
+            i++;
+            arr++;
         }
         igTreePop();
     }
 
-    igButton("Test",(struct ImVec2){0,0});
     igEnd();
 
     // // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. 

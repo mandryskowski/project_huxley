@@ -16,7 +16,7 @@
 
 void handleEvents(GameState* state)
 {
-    Vec2f velChange = (Vec2f){0.0f, 0.0f};
+    Vec2d velChange = (Vec2d){0.0f, 0.0f};
     if (glfwGetKey(state->window, GLFW_KEY_W) == GLFW_PRESS)
     {
         velChange.y += 1.0f;
@@ -34,20 +34,20 @@ void handleEvents(GameState* state)
         velChange.x -= 1.0f;
     }
     
-    velChange = Vec2f_scale(velChange, state->player->entity.SPD);
-    state->player->entity.velocity = Vec2f_add(Vec2f_scale(state->player->entity.velocity, state->player->acceleration_const),
-                                               Vec2f_scale(velChange, 1.0f - state->player->acceleration_const));
+    velChange = Vec2d_scale(velChange, state->player->entity.SPD);
+    state->player->entity.velocity = Vec2d_add(Vec2d_scale(state->player->entity.velocity, state->player->acceleration_const),
+                                               Vec2d_scale(velChange, 1.0f - state->player->acceleration_const));
 }
-void update(GameState* state, float dt)
+void update(GameState* state, double dt)
 {
     Entity** arr = state->currentRoom->entities;
 
-    Vec2f* velocities = path((**arr).pos, arr + 1, state);
+    Vec2d* velocities = path((**arr).pos, arr + 1, state);
 
     int index = 0;
     for(Entity** other = arr+1; *other != NULL; other++)
     {
-        (*other)->velocity = Vec2f_scale(*(velocities+index), (*other)->SPD);
+        (*other)->velocity = Vec2d_scale(*(velocities+index), (*other)->SPD);
         index++;
     }
 
@@ -90,8 +90,8 @@ void renderGame(GameState* gState, RenderState* rState)
 }
 void gameLoop(GameState* gState)
 {
-    const float timestep = 1.0f / 60.0f;
-    float lastUpdateTime = glfwGetTime();
+    const double timestep = 1.0 / 60.0;
+    double lastUpdateTime = glfwGetTime();
     RenderState rState;
     Room room = Room_construct(24, 16);
     Player player;
@@ -104,11 +104,11 @@ void gameLoop(GameState* gState)
     gState->player = &player;
 
     Entity enemy = Entity_construct();
-    enemy.pos = (Vec2f){10.0f, 10.0f};
+    enemy.pos = (Vec2d){10.0f, 10.0f};
     Entity enemy2 = Entity_construct();
-    enemy.pos = (Vec2f){9.0f, 9.0f};
+    enemy.pos = (Vec2d){9.0f, 9.0f};
     Entity enemy3 = Entity_construct();
-    enemy.pos = (Vec2f){8.0f, 8.0f};
+    enemy.pos = (Vec2d){8.0f, 8.0f};
 
     room.entities = calloc(4, sizeof(Entity));
     room.entities[0] = &player.entity;
@@ -140,7 +140,7 @@ void gameLoop(GameState* gState)
     while (!glfwWindowShouldClose(gState->window))
     {
         glfwPollEvents();
-        float deltaTime = glfwGetTime() - lastUpdateTime;
+        double deltaTime = glfwGetTime() - lastUpdateTime;
         if (deltaTime >= timestep)
         {
             handleEvents(gState);

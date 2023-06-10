@@ -19,9 +19,9 @@ bool isWalkable(Room* room, Vec2i tile) {
 const int dx[10] = {0, -1, -1, -1, 0, 1, 1, 1, 0, -1};
 const int dy[10] = {1, 1, 0, -1, -1, -1, 0, 1, 1, 1};
 
-Vec2f* path(Vec2f start, Entity** entities, GameState* gState) {
+Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
 
-    Vec2i startTile = Vec2f_to_Vec2i(start);
+    Vec2i startTile = Vec2d_to_Vec2i(start);
 
     Vec2i* queue = calloc(gState->currentRoom->width * gState->currentRoom->height, sizeof(Vec2i));
     int qFront = 0, qEnd = 0;
@@ -52,17 +52,17 @@ Vec2f* path(Vec2f start, Entity** entities, GameState* gState) {
     Entity** entity = entities;
     while(*entity != NULL) {
         sz++;
-        Vec2i tile = Vec2f_to_Vec2i((*entity)->pos);
+        Vec2i tile = Vec2d_to_Vec2i((*entity)->pos);
         bfs[tile.x][tile.y]-=10;
         entity++;
     }
 
-    Vec2f* velocity = calloc(sz + 1, sizeof(Vec2f));
+    Vec2d* velocity = calloc(sz + 1, sizeof(Vec2d));
 
     Entity** entityPos = entities;
     int index = 0;
     while(*entityPos != NULL) {
-        Vec2i tile = Vec2f_to_Vec2i((*entityPos)->pos);
+        Vec2i tile = Vec2d_to_Vec2i((*entityPos)->pos);
         int maxNext = 0;
         Vec2i nextPos = tile;
 
@@ -82,7 +82,7 @@ Vec2f* path(Vec2f start, Entity** entities, GameState* gState) {
                 }
             }
         }
-        velocity[index++] = Vec2i_to_Vec2f(Vec2i_add(nextPos, Vec2i_scale(tile, -1)));
+        velocity[index++] = Vec2i_to_Vec2d(Vec2i_add(nextPos, Vec2i_scale(tile, -1)));
         entityPos++;
     }
 
@@ -102,16 +102,16 @@ int main()
 {
     GameState* gState = calloc(1, sizeof(GameState));
     gState->currentRoom = calloc(1, sizeof(Room));
-    Vec2f playerPos = (Vec2f){12, 12};
+    Vec2d playerPos = (Vec2d){12, 12};
     Entity entity = Entity_construct();
     Entity entity2 = Entity_construct();
-    entity2.pos = (Vec2f){13, 14};
+    entity2.pos = (Vec2d){13, 14};
     gState->currentRoom->tiles[1][2].type = TILE_WALL;
     gState->currentRoom->tiles[2][1].type = TILE_WALL;
     Entity** entities = calloc(3, sizeof(Entity));
     entities[0] = &entity;
     entities[1] = &entity2;
-    Vec2f* paths = path(playerPos, entities, gState);
+    Vec2d* paths = path(playerPos, entities, gState);
     for(int i = 0; i < 3; i++) {
 	printf("%f %f\n", paths[i].x, paths[i].y);
     }
