@@ -26,8 +26,9 @@ ifeq ($(OS),Windows_NT)
     endif
 else
     UNAME_S := $(shell uname -s)
-    CFLAGS += -Llib/linux -lcimgui
-    LDFLAGS="-Wl,-rpath,lib/linux/"
+#    CFLAGS += -Llib/linux -lcimgui
+    LDFLAGS="-Wl,-rpath,lib/macos/"
+	CFLAGS += -Llib/macos -lcimgui
     ifeq ($(UNAME_S),Linux)
         CFLAGS += -D LINUX 
     endif
