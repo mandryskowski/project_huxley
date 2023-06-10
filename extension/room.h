@@ -26,6 +26,7 @@ typedef struct Room
     Tile** tiles;
     uint width, height; // in tiles
     Entity** entities;
+    int entity_cnt;
 
 } Room;
 

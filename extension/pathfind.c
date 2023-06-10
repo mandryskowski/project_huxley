@@ -51,9 +51,13 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
     int sz = 0;
     Entity** entity = entities;
     while(*entity != NULL) {
+        if (isProjectile(*entity)) {
+            entity++;
+            continue;
+        }
         sz++;
         Vec2i tile = Vec2d_to_Vec2i((*entity)->pos);
-        bfs[tile.x][tile.y]-=10;
+        bfs[tile.x][tile.y] -= 10;
         entity++;
     }
 
@@ -62,6 +66,12 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
     Entity** entityPos = entities;
     int index = 0;
     while(*entityPos != NULL) {
+
+        if (isProjectile(*entityPos)) {
+            entityPos++;
+            continue;
+        }
+
         Vec2i tile = Vec2d_to_Vec2i((*entityPos)->pos);
         int maxNext = 0;
         Vec2i nextPos = tile;
