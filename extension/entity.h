@@ -26,5 +26,6 @@ Entity Entity_construct_generic(Rectangle, Vec2f);
 typedef struct Player
 {
     Entity entity;
+    float acceleration_const; // between 0 and 1
 } Player;
 #endif // ENTITY_H

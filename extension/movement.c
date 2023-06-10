@@ -39,7 +39,6 @@ Vec2f detectCollisionRect(Rectangle a, Rectangle b, Vec2f velocity)
 //    float overlapY = velocity.y > b.topRight.y ? b.topRight.y - a.bottomLeft.y : a.topRight.y - b.bottomLeft.y;
     float overlapX = a.topRight.x > b.topRight.x ? b.topRight.x - a.bottomLeft.x : a.topRight.x - b.bottomLeft.x;
     float overlapY = a.topRight.y > b.topRight.y ? b.topRight.y - a.bottomLeft.y : a.topRight.y - b.bottomLeft.y;
-    printf("%f x overlap\n", overlapX);
     return (Vec2f){overlapX, overlapY};
 }
 
@@ -49,15 +48,9 @@ void checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, float *highe
     //printf("xddd\n");
     if (collisionResult.x > EPS && collisionResult.y > EPS)
     {
-        printf("xddd ____\n");
-        Rectangle_print(currHitbox);
-        printf("\n");
-        Rectangle_print(otherHitbox);
-        printf(" \n______\n");
         float xtime = velocity.x ? fabs(collisionResult.x / velocity.x) : 1e9;
         float ytime = velocity.y ? fabs(collisionResult.y / velocity.y) : 1e9;
         float timeAfterCollision = min(xtime, ytime);
-        printf("%f %f something\n", xtime, ytime);
         if (timeAfterCollision > *highestAfterCollision)
         {
             *highestAfterCollision = timeAfterCollision;
@@ -82,8 +75,6 @@ float moveUnitlPossible(Entity **entity, Entity **currEntityPtr, float dt, Recta
     Vec2f newVelocity = currEntity->velocity;
     Vec2f currEntityNewPos = Vec2f_add(currEntity->pos, Vec2f_scale(currEntity->velocity, dt));
     Rectangle currHitbox = rectangle_Vec2f(currEntity->hitbox, currEntityNewPos);
-    Vec2f_print(currEntityNewPos);
-    printf(" new pos to hit\n");
 
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
@@ -109,15 +100,7 @@ float moveUnitlPossible(Entity **entity, Entity **currEntityPtr, float dt, Recta
 
     //Vec2f_print(currEntity->velocity);
     //printf(" %f xddd\n", highestAfterCollision);
-    printf("%p pointer\n", currEntity);
-    Vec2f_print(currEntity->velocity);
-    printf(" velocity\n");
-    Vec2f_print(currEntity->pos);
-    printf(" before move\n");
     currEntity->pos = Vec2f_add(currEntity->pos, Vec2f_scale(currEntity->velocity, dt - highestAfterCollision));
-    Vec2f_print(currEntity->pos);
-    printf(" after move\n");
-    printf("scalar: %f %f\n", dt, highestAfterCollision);
     currEntity->velocity = newVelocity;
     return highestAfterCollision;
 }

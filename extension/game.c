@@ -8,6 +8,7 @@
 #include "math.h"
 #include "movement.h"
 #include "gui.h"
+#include "pathfind.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,25 +16,27 @@
 
 void handleEvents(GameState* state)
 {
-    state->player->entity.velocity = (Vec2f){0.0f, 0.0f};
+    Vec2f velChange = (Vec2f){0.0f, 0.0f};
     if (glfwGetKey(state->window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        state->player->entity.velocity.y += 1.0f;
+        velChange.y += 1.0f;
     }
     if (glfwGetKey(state->window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        state->player->entity.velocity.y -= 1.0f;
+        velChange.y -= 1.0f;
     }
     if (glfwGetKey(state->window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        state->player->entity.velocity.x += 1.0f;
+        velChange.x += 1.0f;
     }
     if (glfwGetKey(state->window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        state->player->entity.velocity.x -= 1.0f;
+        velChange.x -= 1.0f;
     }
     
-    state->player->entity.velocity = Vec2f_scale(state->player->entity.velocity, state->player->entity.SPD);
+    velChange = Vec2f_scale(velChange, state->player->entity.SPD);
+    state->player->entity.velocity = Vec2f_add(Vec2f_scale(state->player->entity.velocity, state->player->acceleration_const),
+                                               Vec2f_scale(velChange, 1.0f - state->player->acceleration_const));
 }
 void update(GameState* state, float dt)
 {
@@ -44,24 +47,13 @@ void update(GameState* state, float dt)
     int index = 0;
     for(Entity** other = arr+1; *other != NULL; other++)
     {
-	(*other)->velocity = *(velocities+index);
-	index++;
+        (*other)->velocity = Vec2f_scale(*(velocities+index), (*other)->SPD);
+        index++;
     }
 
     move(state, arr, dt);
 
     return;
-
-    //playerMovement(state, dt);
-    while (*arr != NULL)
-    {
-        Entity* entity = *arr;
-        printf("entity vel %f %f\n", entity->velocity.x, entity->velocity.y);
-                printf("entity pos %f %f\n", entity->pos.x, entity->pos.y);
-        //entity->pos = Vec2f_add(entity->pos, Vec2f_scale(entity->velocity, dt));
-        arr++;
-       // move(state->currentRoom, entity, dt);
-    }
 }
 
 void initGame(GameState* state)
@@ -105,6 +97,7 @@ void gameLoop(GameState* gState)
     Player player;
     player.entity = Entity_construct();
     player.entity.SPD = 5.0f;
+    player.acceleration_const = 0.8;
 
 
     gState->currentRoom = &room;
