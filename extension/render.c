@@ -47,14 +47,14 @@ const char fShaderSrc[] = "#version 400 core\n" \
 
 typedef struct Vertex
 {
-    Vec2f position;
-    Vec2f texCoord;
+    Vec2d position;
+    Vec2d texCoord;
     int textureID;
 } Vertex;
 
 void initGridVertices(GameState* gameState, Vertex* verts, uint width, uint height)
 {
-    Vec2f offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
+    Vec2d offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
                        {0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}}; // top left triangle
     for (int x = 0; x < width; x++)
     {
@@ -62,7 +62,7 @@ void initGridVertices(GameState* gameState, Vertex* verts, uint width, uint heig
         {
             for (int i = 0; i < 6; i++)
             {
-                *verts = (Vertex){.position = Vec2f_add(offsets[i], (Vec2f){x, y}),
+                *verts = (Vertex){.position = Vec2d_add(offsets[i], (Vec2d){x, y}),
                                   .texCoord = offsets[i],
                                   .textureID = gameState->currentRoom->tiles[x][y].textureID};
                                   //.textureID = y * 16 + x};
@@ -97,8 +97,8 @@ uint initVAO(GLsizei size, void* data)
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 
     glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+    glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glVertexAttribPointer(1, 2, GL_DOUBLE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
     glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void*)offsetof(Vertex, textureID));
 
     glEnableVertexAttribArray(0);
@@ -121,7 +121,7 @@ void initRenderState(GameState* gState, RenderState* rState)
     // Quad
     {
         Vertex quadVerts[6];
-        Vec2f offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
+        Vec2d offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
                        {0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}}; // top left triangle
         for (int i = 0; i < 6; i++)
         {
@@ -176,7 +176,7 @@ void render(GameState* gState, RenderState* state)
 
     glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
 
-    Mat3f viewMat = Mat3f_construct((Vec2f){-0.5f * gState->currentRoom->width / gState->currentRoom->height, -0.5f}, (Vec2f){1.0f / gState->currentRoom->height, 1.0f / gState->currentRoom->height});
+    Mat3f viewMat = Mat3f_construct((Vec2d){-0.5f * gState->currentRoom->width / gState->currentRoom->height, -0.5f}, (Vec2d){1.0f / gState->currentRoom->height, 1.0f / gState->currentRoom->height});
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
     
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->tileAtlas);
@@ -187,7 +187,7 @@ void render(GameState* gState, RenderState* state)
 
     for(Entity** ent = entities; *ent != NULL; ent++)
     {
-        Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct((*ent)->pos, (Vec2f){1.0f, 1.0f}), viewMat);
+        Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct((*ent)->pos, (Vec2d){1.0f, 1.0f}), viewMat);
         glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
         glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMatCharacter.d);
 
@@ -197,9 +197,9 @@ void render(GameState* gState, RenderState* state)
 
         if (state->bDebugHitboxes)
         {
-            Vec2f hitboxSize = Vec2f_add((*ent)->hitbox.topRight, Vec2f_scale((*ent)->hitbox.bottomLeft, -1.0f));
-            Vec2f hitboxPos = Vec2f_add((*ent)->hitbox.bottomLeft, Vec2f_scale(hitboxSize, 0.5f));
-            Mat3f hitboxMat = Mat3f_multiply(Mat3f_construct(Vec2f_add((*ent)->pos, hitboxPos), Vec2f_scale(hitboxSize, 0.5f)), viewMat);
+            Vec2d hitboxSize = Vec2d_add((*ent)->hitbox.topRight, Vec2d_scale((*ent)->hitbox.bottomLeft, -1.0f));
+            Vec2d hitboxPos = Vec2d_add((*ent)->hitbox.bottomLeft, Vec2d_scale(hitboxSize, 0.5f));
+            Mat3f hitboxMat = Mat3f_multiply(Mat3f_construct(Vec2d_add((*ent)->pos, hitboxPos), Vec2d_scale(hitboxSize, 0.5f)), viewMat);
 
             glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, hitboxMat.d);
             glUniform1i(glGetUniformLocation(state->shader, "materialType"), 1);
