@@ -185,27 +185,25 @@ void render(GameState* gState, RenderState* state)
 
     Entity** entities = gState->currentRoom->entities;
 
-    for(Entity** other = entities; *other != NULL; other++) {
-    Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct((*other)->pos, (Vec2f){1.0f, 1.0f}), viewMat);
-    //Mat3f viewMatCharacter = Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f});
-    //viewMatCharacter = Mat3f_multiply(viewMatCharacter, Mat3f_construct((Vec2f){0.0f, 0.0f}, (Vec2f){1.0f, 1.0f}));
-    //Mat3f_print(&viewMatCharacter);
-    glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMatCharacter.d);
-
-    glBindTexture(GL_TEXTURE_2D_ARRAY, state->characterAtlas);
-    glBindVertexArray(state->QuadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    if (state->bDebugHitboxes)
+    for(Entity** ent = entities; *ent != NULL; ent++)
     {
-        Vec2f hitboxSize = Vec2f_add(gState->player->entity.hitbox.topRight, Vec2f_scale(gState->player->entity.hitbox.bottomLeft, -1.0f));
-        Vec2f hitboxPos = Vec2f_add(gState->player->entity.hitbox.bottomLeft, Vec2f_scale(hitboxSize, 0.5f));
-        Mat3f hitboxMat = Mat3f_multiply(Mat3f_construct(Vec2f_add(gState->player->entity.pos, hitboxPos), hitboxSize), viewMat);
+        Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct((*ent)->pos, (Vec2f){1.0f, 1.0f}), viewMat);
+        glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
+        glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMatCharacter.d);
 
-
-        Vec2f_print(hitboxPos);
-        glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, hitboxMat.d);
-        glUniform1i(glGetUniformLocation(state->shader, "materialType"), 1);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, state->characterAtlas);
+        glBindVertexArray(state->QuadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        if (state->bDebugHitboxes)
+        {
+            Vec2f hitboxSize = Vec2f_add((*ent)->hitbox.topRight, Vec2f_scale((*ent)->hitbox.bottomLeft, -1.0f));
+            Vec2f hitboxPos = Vec2f_add((*ent)->hitbox.bottomLeft, Vec2f_scale(hitboxSize, 0.5f));
+            Mat3f hitboxMat = Mat3f_multiply(Mat3f_construct(Vec2f_add((*ent)->pos, hitboxPos), Vec2f_scale(hitboxSize, 0.5f)), viewMat);
+
+            glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, hitboxMat.d);
+            glUniform1i(glGetUniformLocation(state->shader, "materialType"), 1);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
     }
 }

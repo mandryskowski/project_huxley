@@ -82,7 +82,6 @@ Vec2f* path(Vec2f start, Entity** entities, GameState* gState) {
                 }
             }
         }
-	printf("%d %d -> %d %d\n", tile.x, tile.y, nextPos.x, nextPos.y);
         velocity[index++] = Vec2i_to_Vec2f(Vec2i_add(nextPos, Vec2i_scale(tile, -1)));
         entityPos++;
     }

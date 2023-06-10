@@ -7,6 +7,7 @@
 #include "entity.h"
 #include "room.h"
 #include "render.h"
+#include "math.h"
 
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
@@ -42,6 +43,7 @@ void gui_update(GameState* gState, RenderState* rState) {
     
     if (igTreeNode_Str("Debug"))
     {
+        igSliderFloat("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f, NULL, 0);
        // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
         if (igTreeNode_Str("Basic trees"))
         {
@@ -56,6 +58,9 @@ void gui_update(GameState* gState, RenderState* rState) {
                 {
                     igText("Position %f %f", (*arr)->pos.x, (*arr)->pos.y);
                     igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
+                    igText("Hitbox Left Bottom %f %f", (*arr)->hitbox.bottomLeft.x, (*arr)->hitbox.bottomLeft.y);
+                    igText("Hitbox Top Right %f %f", (*arr)->hitbox.topRight.x, (*arr)->hitbox.topRight.y);
+                    igSliderFloat("SPD", &(*arr)->SPD, 0.0f, 20.0f, NULL, 0);
                     if (igSmallButton("button")) {}
                     igTreePop();
                 }
