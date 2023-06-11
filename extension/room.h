@@ -1,5 +1,9 @@
 #ifndef ROOM_H
 #define ROOM_H
+
+#include <stdio.h>
+
+typedef struct Player Player;
 typedef struct Entity Entity;
 typedef struct Vec2i Vec2i;
 typedef struct GameState GameState;
@@ -10,6 +14,7 @@ typedef enum
     TILE_BARRIER,
     TILE_WALL,
     TILE_HOLE,
+    TILE_DOOR,
 
     TILE_FIRST = TILE_FLOOR,
     TILE_LAST = TILE_HOLE
@@ -31,5 +36,5 @@ typedef struct Room
 } Room;
 
 TileType getTile(Vec2i vec, GameState *state);
-Room Room_construct(uint width, uint height);
+Room *Room_construct(uint width, uint height, FILE *file, Player *player);
 #endif // ROOM_H

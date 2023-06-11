@@ -14,7 +14,7 @@ RenderState RenderState_construct()
     return (RenderState){.bDebugHitboxes = false, .VSync = true, .renderIsometric = true,
                          .characterAtlas = loadAtlas("character.png", 1, 1), .LevelVAO = 0, .IsoLevelVAO = 0, .QuadVAO = 0, .shader = 0, .tileAtlas = loadAtlas("textures.png", 1, 4),
                          .isoTileAtlas = loadAtlas("isotextures_actual.png", 1, 8), .isoCharacterAtlas = loadAtlas("isocharacter.png", 1, 1),
-                         .resolution = (Vec2i){1024, 1024}};
+                         .resolution = (Vec2i){2048, 2048}};
 }
 
 

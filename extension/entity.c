@@ -3,20 +3,42 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Entity Entity_construct_zombie()
+void construct_zombie(Entity *monster)
 {
-    return (Entity) {.ATK = 1, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.5f, -0.5f}, (Vec2d){0.5f, 0.5f}},
+    *monster =  (Entity) {.ATK = 2, .canFly = false,
+            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
      .HP = 100, .maxHP = 100,
-     .pos = (Vec2d){4.0f, 4.0f}, .SPD = 1, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 10};
+     .SPD = 3, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120};
 }
 
-Entity Entity_construct_player()
+void construct_shooter(Entity *monster)
 {
-    return (Entity) {.ATK = 1, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.5f, -0.5f}, (Vec2d){0.5f, 0.5f}},
-            .HP = 100, .maxHP = 100,
-            .pos = (Vec2d){4.0f, 4.0f}, .SPD = 1, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 60};
+    *monster =  (Entity) {.ATK = 1, .canFly = false,
+            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
+            .HP = 60, .maxHP = 60,
+            .SPD = 2, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 120, .attack_SPD = 10, .attack_velocity = {0, 0}};
+}
+
+void construct_flying_shooter(Entity *monster)
+{
+    *monster =  (Entity) {.ATK = 1, .canFly = true,
+            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
+            .HP = 60, .maxHP = 60,
+            .SPD = 4, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}};
+}
+
+Player *Entity_construct_player()
+{
+    Player *player = calloc(sizeof(Player), 1);
+    Entity *entity = calloc(sizeof(Entity), 1);
+
+    *entity = (Entity) {.ATK = 1, .canFly = false,
+            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
+            .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0f, 0.0f},
+            .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30};
+    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8};
+
+    return player;
 }
 
 Entity construct_projectile(Entity *creator)
@@ -25,6 +47,32 @@ Entity construct_projectile(Entity *creator)
             .hitbox = (Rectangle){(Vec2d){-0.1f, -0.1f}, (Vec2d){0.1f, 0.1f}},
             .HP = INT_MAX, .maxHP = INT_MAX,
             .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction};
+}
+
+Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
+{
+    Entity *monster = calloc(1, sizeof(Entity));
+
+    switch (type)
+    {
+        case ZOMBIE:
+            construct_zombie(monster);
+            break;
+        case SHOOTER:
+            construct_shooter(monster);
+            break;
+        case FLYING_SHOOTER:
+            construct_flying_shooter(monster);
+            break;
+        default:
+            perror("not a monster mf\n");
+            exit(0);
+    }
+
+    monster->room = room;
+    monster->pos = pos;
+
+    return monster;
 }
 
 bool isProjectile(Entity *entity)

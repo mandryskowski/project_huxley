@@ -65,16 +65,21 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
 
     Entity** entityPos = entities;
     int index = 0;
+
     while(*entityPos != NULL) {
+
 
         if (isProjectile(*entityPos)) {
             entityPos++;
             continue;
         }
 
+        (*entityPos)->attack_velocity = Vec2d_scale(Vec2d_normalize((Vec2d){start.x + 0.5 - (*entityPos)->pos.x, start.y + 0.5 - (*entityPos)->pos.y}), (*entityPos)->attack_SPD);
+        handle_attack(*entityPos, NULL, SPAWN_PROJECTILE);
         Vec2i tile = Vec2d_to_Vec2i((*entityPos)->pos);
         int maxNext = 0;
         Vec2i nextPos = tile;
+
 
         for(int dir = 1; dir < 9; dir++) //NSEW + DIAG
         {
