@@ -6,7 +6,7 @@
 Entity Entity_construct_zombie()
 {
     return (Entity) {.ATK = 1, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.5f, -0.5f}, (Vec2d){0.5f, 0.5f}},
+            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
      .HP = 100, .maxHP = 100,
      .pos = (Vec2d){4.0f, 4.0f}, .SPD = 1, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 10};
 }
@@ -14,7 +14,7 @@ Entity Entity_construct_zombie()
 Entity Entity_construct_player()
 {
     return (Entity) {.ATK = 1, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.5f, -0.5f}, (Vec2d){0.5f, 0.5f}},
+            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
             .HP = 100, .maxHP = 100,
             .pos = (Vec2d){4.0f, 4.0f}, .SPD = 1, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 60};
 }
