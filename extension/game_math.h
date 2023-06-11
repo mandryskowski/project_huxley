@@ -1,9 +1,10 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef GAME_MATH_H
+#define GAME_MATH_H
 
 #include <stdbool.h>
 
 #define EPSILON 1e-10
+#define PI 3.14159265359
 #define min(a, b) a < b ? a : b
 #define max(a, b) a > b ? a : b
 
@@ -39,6 +40,7 @@ Vec2i Vec2i_scale(Vec2i, float scalar);
 bool Vec2i_equals(Vec2i, Vec2i);
 
 bool Vec2d_zero(Vec2d);
+Vec2d Vec2d_rotate(Vec2d, double);
 Vec2d Vec2d_normalize(Vec2d);
 Vec2d Vec2d_add(Vec2d, Vec2d);
 Vec2d Vec2d_scale(Vec2d, double scalar);
@@ -51,4 +53,4 @@ bool Vec2d_equals(Vec2d, Vec2d);
 Vec2i Vec2d_to_Vec2i(Vec2d);
 Vec2d Vec2i_to_Vec2d(Vec2i);
 
-#endif // MATH_H
+#endif // GAME_MATH_H

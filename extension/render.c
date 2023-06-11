@@ -1,12 +1,13 @@
 #include "render.h"
 #include "glad/glad.h"
-#include "math.h"
+#include "game_math.h"
 #include "room.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "entity.h"
+#include "assets.h"
 
 RenderState RenderState_construct()
 {
@@ -264,7 +265,7 @@ void initRenderState(GameState* gState, RenderState* rState)
     glDeleteShader(fShader);
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void renderGrid(GameState* gState, RenderState* state, Mat3f* viewMat)

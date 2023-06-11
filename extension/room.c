@@ -1,7 +1,7 @@
 #include "room.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "math.h"
+#include "game_math.h"
 #include "state.h"
 
 TileType getTile(Vec2i vec, GameState *state)

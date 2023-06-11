@@ -5,7 +5,7 @@
 #include "glfw/glfw3.h"
 #include "render.h"
 #include "assets.h"
-#include "math.h"
+#include "game_math.h"
 #include "movement.h"
 #include "gui.h"
 #include "pathfind.h"
@@ -38,7 +38,7 @@ void updateVelocity(GameState* state, int up, int down, int right, int left, dou
         velChange.x -= 1.0f;
     }
 
-    velChange = Vec2d_scale(Vec2d_normalize(velChange), max_spd);
+    velChange = Vec2d_rotate(Vec2d_scale(Vec2d_normalize(velChange), max_spd), -45);
     *velocity = Vec2d_add(Vec2d_scale(*velocity, acceleration), Vec2d_scale(velChange, 1.0f - acceleration));
 }
 
@@ -126,7 +126,9 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
-    state->window = glfwCreateWindow(1920, 1080, "Huxley game", glfwGetPrimaryMonitor(), NULL);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    GLFW_COCOA_RETINA_FRAMEBUFFER;
+    state->window = glfwCreateWindow(1920, 1080, "Huxley game", NULL, NULL);
 
     if (state->window == NULL)
     {

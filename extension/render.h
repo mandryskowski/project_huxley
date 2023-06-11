@@ -2,7 +2,7 @@
 #define RENDER_H
 #include "state.h"
 #include <stdbool.h>
-#include "math.h"
+#include "game_math.h"
 typedef unsigned int uint;
 
 typedef struct RenderState
