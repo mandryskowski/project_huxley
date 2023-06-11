@@ -1,5 +1,6 @@
 #ifndef ENTITY_H
 #define ENTITY_H
+
 #include "game_math.h"
 #include "room.h"
 #include <stdbool.h>
@@ -13,6 +14,10 @@ typedef enum {
 typedef enum {
     ALLY, ENEMY
 } Faction;
+
+typedef enum {
+    ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER
+} MonsterType;
 
 typedef void (*Attack_Func)(Entity *, Entity *, AttackType);
 
@@ -37,8 +42,15 @@ typedef struct Entity
     Room *room;
 } Entity;
 
-Entity Entity_construct_zombie();
-Entity Entity_construct_player();
+typedef struct Player
+{
+    Entity *entity;
+    double acceleration_const; // between 0 and 1
+    double movement_swing; // between 0 and 1
+} Player;
+
+Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
+Player *Entity_construct_player();
 
 Entity Entity_construct_generic(Rectangle, Vec2d);
 
@@ -54,10 +66,4 @@ void zombie_attack(Entity *, Entity *, AttackType);
 void projectile_attack(Entity *, Entity *, AttackType);
 void shooter_attack(Entity *, Entity *, AttackType);
 
-typedef struct Player
-{
-    Entity entity;
-    double acceleration_const; // between 0 and 1
-    double movement_swing; // between 0 and 1
-} Player;
 #endif // ENTITY_H
