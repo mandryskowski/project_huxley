@@ -37,15 +37,15 @@ void generate_room(int seed)
         for (int j = 1; j < width - 1; j++)
         {
             int prob = rand() % 100;
-            if (prob < 90)
+            if (prob < 93)
             {
                 tiles[i][j] = TILE_FLOOR;
             }
-            else if (prob < 93)
+            else if (prob < 94)
             {
                 tiles[i][j] = TILE_HOLE;
             }
-            else if (prob < 96)
+            else if (prob < 97)
             {
                 tiles[i][j] = TILE_BARRIER;
             }
@@ -64,8 +64,8 @@ void generate_room(int seed)
                 monsters[i][j] = NOT_MONSTER;
                 continue;
             }
-            int prob = rand() % 400;
-            if (prob < 5)
+            int prob = rand() % 300;
+            if (prob < 1)
             {
                 monsters[i][j] = ZOMBIE;
             }

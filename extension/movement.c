@@ -33,8 +33,8 @@ bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
     
     if (collisionResult.x > 0 && collisionResult.y > 0)
     {
-        double xtime = velocity.x ? fabs(((double)collisionResult.x + EPSILON) / velocity.x) : 1e9;
-        double ytime = velocity.y ? fabs(((double)collisionResult.y + EPSILON) / velocity.y) : 1e9;
+        double xtime = velocity.x ? fabs(((double)collisionResult.x + EPSILON / 2) / velocity.x) : 1e9;
+        double ytime = velocity.y ? fabs(((double)collisionResult.y + EPSILON / 2) / velocity.y) : 1e9;
         double timeAfterCollision = min(xtime, ytime);
 
         if (timeAfterCollision > *highestAfterCollision)
@@ -78,6 +78,15 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
                                           &newVelocity, currEntity->velocity);
         if (collides)
         {
+//            Entity  **xd = entity;
+//            while (*xd)
+//            {
+//                printf("%p\n", (*xd)->attack_func);
+//                (*xd)->attack_func(*xd, NULL, ATTACK_CONTACT);
+//                xd++;
+//            }
+//            printf("%p\n", zombie_attack);
+//            exit(0);
             deal_collison_damage(currEntity, other);
             if (isDead(*currEntityPtr))
             {
@@ -112,10 +121,6 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
         
         if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
         {
-//            if (currEntity->canFly && getTile(tile, state) == TILE_BARRIER)
-//            {
-//                printf("xddd\n");
-//            }
             *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
         }
     }
