@@ -1,7 +1,7 @@
 #include "glfw/glfw3.h"
 #include "state.h"
 #include <math.h>
-#include "math.h"
+#include "game_math.h"
 #include "entity.h"
 #include "room.h"
 #include <stdbool.h>

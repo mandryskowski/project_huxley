@@ -1,6 +1,6 @@
 #ifndef ENTITY_H
 #define ENTITY_H
-#include "math.h"
+#include "game_math.h"
 #include "room.h"
 #include <stdbool.h>
 
