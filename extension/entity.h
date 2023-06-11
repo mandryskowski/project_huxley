@@ -19,7 +19,7 @@ typedef enum {
     ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER
 } MonsterType;
 
-typedef void (*Attack_Func)(Entity *, Entity *, AttackType);
+typedef bool (*Attack_Func)(Entity *, Entity *, AttackType);
 
 typedef struct Entity
 {
@@ -61,9 +61,5 @@ bool isDead(Entity *);
 void killEntity(Entity *);
 
 void handle_attack(Entity *, Entity *, AttackType);
-
-void zombie_attack(Entity *, Entity *, AttackType);
-void projectile_attack(Entity *, Entity *, AttackType);
-void shooter_attack(Entity *, Entity *, AttackType);
 
 #endif // ENTITY_H

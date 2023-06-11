@@ -110,7 +110,7 @@ void update(GameState* state, double dt)
     }
 
     if (!Vec2d_zero(state->player->entity->attack_velocity)) {
-        handle_attack(&state->player->entity, NULL, SPAWN_PROJECTILE);
+        handle_attack(state->player->entity, NULL, SPAWN_PROJECTILE);
     }
 
     move(state, arr, dt);
