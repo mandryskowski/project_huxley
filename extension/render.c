@@ -1,19 +1,20 @@
 #include "render.h"
 #include "glad/glad.h"
-#include "math.h"
+#include "game_math.h"
 #include "room.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "entity.h"
+#include "assets.h"
 
 RenderState RenderState_construct()
 {
     return (RenderState){.bDebugHitboxes = false, .VSync = true, .renderIsometric = true,
                          .characterAtlas = loadAtlas("character.png", 1, 1), .LevelVAO = 0, .IsoLevelVAO = 0, .QuadVAO = 0, .shader = 0, .tileAtlas = loadAtlas("textures.png", 1, 4),
                          .isoTileAtlas = loadAtlas("isotextures_actual.png", 1, 8), .isoCharacterAtlas = loadAtlas("isocharacter.png", 1, 1),
-                         .resolution = (Vec2i){1024, 1024}};
+                         .resolution = (Vec2i){2048, 2048}};
 }
 
 
@@ -264,7 +265,7 @@ void initRenderState(GameState* gState, RenderState* rState)
     glDeleteShader(fShader);
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void renderGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
