@@ -198,7 +198,7 @@ void generate_room(int seed)
     fclose(file);
 }
 
-
+//
 
 int main()
 {
