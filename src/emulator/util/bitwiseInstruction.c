@@ -2,7 +2,7 @@
 #include "emulateUtility.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <game_math.h>
+#include <math.h>
 
 
 int64_t LogicalSL(int64_t operand, int amount, bool is64bit)
