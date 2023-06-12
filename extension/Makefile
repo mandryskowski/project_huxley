@@ -28,7 +28,7 @@ else
     UNAME_S := $(shell uname -s)
         
     ifeq ($(UNAME_S),Linux)
-        CFLAGS += -D LINUX -Llib/linux -lcimgui
+        CFLAGS += -D LINUX -Llib/linux -lcimgui -lm
         LDFLAGS="-Wl,-rpath,lib/linux/"
     endif
     ifeq ($(UNAME_S),Darwin)
