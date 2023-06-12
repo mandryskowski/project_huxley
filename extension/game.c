@@ -5,7 +5,7 @@
 #include "glfw/glfw3.h"
 #include "render.h"
 #include "assets.h"
-#include "math.h"
+#include "game_math.h"
 #include "movement.h"
 #include "gui.h"
 #include "pathfind.h"
@@ -38,25 +38,25 @@ void updateVelocity(GameState* state, int up, int down, int right, int left, dou
         velChange.x -= 1.0f;
     }
 
-    velChange = Vec2d_scale(Vec2d_normalize(velChange), max_spd);
+    velChange = Vec2d_rotate(Vec2d_scale(Vec2d_normalize(velChange), max_spd), -45);
     *velocity = Vec2d_add(Vec2d_scale(*velocity, acceleration), Vec2d_scale(velChange, 1.0f - acceleration));
 }
 
 void handleEvents(GameState* state)
 {
-    updateVelocity(state, GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_A, state->player->entity.SPD,
-                   &state->player->entity.velocity, state->player->acceleration_const);
-    updateVelocity(state, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_RIGHT, GLFW_KEY_LEFT, state->player->entity.attack_SPD,
-                   &state->player->entity.attack_velocity, 0);
+    updateVelocity(state, GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_A, state->player->entity->SPD,
+                   &state->player->entity->velocity, state->player->acceleration_const);
+    updateVelocity(state, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_RIGHT, GLFW_KEY_LEFT, state->player->entity->attack_SPD,
+                   &state->player->entity->attack_velocity, 0);
 
-    Vec2d vel_norm = Vec2d_normalize(state->player->entity.velocity);
-    Vec2d vel_atk_norm = Vec2d_normalize(state->player->entity.attack_velocity);
+    Vec2d vel_norm = Vec2d_normalize(state->player->entity->velocity);
+    Vec2d vel_atk_norm = Vec2d_normalize(state->player->entity->attack_velocity);
 
     if (!Vec2d_zero(vel_atk_norm))
     {
-        state->player->entity.attack_velocity = Vec2d_scale(Vec2d_add(
+        state->player->entity->attack_velocity = Vec2d_scale(Vec2d_add(
                 Vec2d_scale(vel_norm, state->player->movement_swing),
-                Vec2d_scale(vel_atk_norm, 1 - state->player->movement_swing)), state->player->entity.attack_SPD);
+                Vec2d_scale(vel_atk_norm, 1 - state->player->movement_swing)), state->player->entity->attack_SPD);
     }
 }
 
@@ -109,8 +109,8 @@ void update(GameState* state, double dt)
         index++;
     }
 
-    if (!Vec2d_zero(state->player->entity.attack_velocity)) {
-        handle_attack(&state->player->entity, NULL, SPAWN_PROJECTILE);
+    if (!Vec2d_zero(state->player->entity->attack_velocity)) {
+        handle_attack(state->player->entity, NULL, SPAWN_PROJECTILE);
     }
 
     move(state, arr, dt);
@@ -126,7 +126,9 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
-    state->window = glfwCreateWindow(1920, 1080, "Huxley game", glfwGetPrimaryMonitor(), NULL);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    GLFW_COCOA_RETINA_FRAMEBUFFER;
+    state->window = glfwCreateWindow(1920, 1080, "Huxley game", NULL, NULL);
 
     if (state->window == NULL)
     {
@@ -157,48 +159,23 @@ void gameLoop(GameState* gState)
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
     RenderState rState = RenderState_construct();
-    Room room = Room_construct(24, 16);
-    Player player;
-    player.entity = Entity_construct_player();
-    player.entity.SPD = 5.0f;
-    player.acceleration_const = 0.8;
-    player.movement_swing = 0.3;
 
+    Player *player;
+    player = Entity_construct_player();
 
-    gState->currentRoom = &room;
-    gState->player = &player;
+    FILE *file = fopen("predefinedRooms/new_room", "r");
+    int height, width;
+    fscanf(file, "%d %d", &width, &height);
 
-    Entity enemy = Entity_construct_zombie();
-    enemy.pos = (Vec2d){10.0f, 10.0f};
-    Entity enemy2 = Entity_construct_zombie();
-    enemy.pos = (Vec2d){9.0f, 9.0f};
-    Entity enemy3 = Entity_construct_zombie();
-    enemy.pos = (Vec2d){8.0f, 8.0f};
-    enemy.room = &room;
-    enemy2.room = &room;
-    enemy3.room = &room;
-    player.entity.room = &room;
+    Room *room = Room_construct(width, height, file, player);
 
-    room.entities = calloc(1000, sizeof(Entity));
-    room.entities[0] = &player.entity;
-    room.entities[1] = &enemy;
-    room.entities[2] = &enemy2;
-    room.entities[3] = &enemy3;
-    room.entity_cnt = 4;
+    gState->currentRoom = room;
+    gState->player = player;
 
-
-    room.tiles[4][12] = (Tile){.textureID = 1, .type = TILE_BARRIER};
-    room.tiles[11][4] = (Tile){.textureID = 1, .type = TILE_BARRIER};
-
-    for (int i = 4; i <= 11; i++)
-      room.tiles[i][6] = (Tile){.textureID = 2, .type = TILE_WALL};
-    
-    room.tiles[7][5] = (Tile){.textureID = 3, .type = TILE_HOLE};
-    room.tiles[9][8] = (Tile){.textureID = 3, .type = TILE_HOLE};
-    room.tiles[13][4] = (Tile){.textureID = 3, .type = TILE_HOLE};
-
+    fclose(file);
 
     initRenderState(gState, &rState);
+
     glEnable(GL_MULTISAMPLE); 
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(rState.shader, "atlas"), 0);
@@ -220,7 +197,6 @@ void gameLoop(GameState* gState)
         {
             printf("GL error %d\n", err);
         }
-
 
         renderGame(gState, &rState);
     }

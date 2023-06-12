@@ -1,6 +1,5 @@
-#include "math.h"
+#include "game_math.h"
 #include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -63,6 +62,12 @@ Vec2i Vec2i_add(Vec2i lhs, Vec2i rhs)
 Vec2i Vec2i_scale(Vec2i vec, float scalar)
 {
     return (Vec2i) {vec.x * scalar, vec.y * scalar};
+}
+
+Vec2d Vec2d_rotate(Vec2d vec, double angle)
+{
+    angle = PI * angle / 180;
+    return (Vec2d){vec.x * cos(angle) - vec.y * sin(angle), vec.x * sin(angle) + vec.y * cos(angle)};
 }
 
 Vec2d Vec2d_normalize(Vec2d vec)

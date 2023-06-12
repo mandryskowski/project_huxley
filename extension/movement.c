@@ -1,7 +1,7 @@
 #include "glfw/glfw3.h"
 #include "state.h"
 #include <math.h>
-#include "math.h"
+#include "game_math.h"
 #include "entity.h"
 #include "room.h"
 #include <stdbool.h>
@@ -33,8 +33,8 @@ bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
     
     if (collisionResult.x > 0 && collisionResult.y > 0)
     {
-        double xtime = velocity.x ? fabs(((double)collisionResult.x + EPSILON) / velocity.x) : 1e9;
-        double ytime = velocity.y ? fabs(((double)collisionResult.y + EPSILON) / velocity.y) : 1e9;
+        double xtime = velocity.x ? fabs(((double)collisionResult.x + EPSILON / 2) / velocity.x) : 1e9;
+        double ytime = velocity.y ? fabs(((double)collisionResult.y + EPSILON / 2) / velocity.y) : 1e9;
         double timeAfterCollision = min(xtime, ytime);
 
         if (timeAfterCollision > *highestAfterCollision)
@@ -78,6 +78,15 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
                                           &newVelocity, currEntity->velocity);
         if (collides)
         {
+//            Entity  **xd = entity;
+//            while (*xd)
+//            {
+//                printf("%p\n", (*xd)->attack_func);
+//                (*xd)->attack_func(*xd, NULL, ATTACK_CONTACT);
+//                xd++;
+//            }
+//            printf("%p\n", zombie_attack);
+//            exit(0);
             deal_collison_damage(currEntity, other);
             if (isDead(*currEntityPtr))
             {
@@ -104,13 +113,13 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     return highestAfterCollision;
 }
 
-void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state)
+void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state, Entity *currEntity)
 {
     for (int i = cBounds.x; i <= cBounds.y; i++)
     {
         Vec2i tile = isX ? (Vec2i){valBound, i} : (Vec2i){i, valBound};
         
-        if (getTile(tile, state) != TILE_FLOOR)
+        if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
         {
             *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
         }
@@ -127,20 +136,20 @@ void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameSt
 
     if (currEntity->velocity.x > 0)
     {
-        add_wall(y_bounds, currHitbox.topRight.x + 1, true, &obstaclesEnd, state);
+        add_wall(y_bounds, currHitbox.topRight.x + 1, true, &obstaclesEnd, state, currEntity);
     }
     else
     {
-        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state);
+        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity);
     }
 
     if (currEntity->velocity.y > 0)
     {
-        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state);
+        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity);
     }
     else
     {
-        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state);
+        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity);
     }
 }
 

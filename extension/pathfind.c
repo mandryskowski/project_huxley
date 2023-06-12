@@ -151,12 +151,16 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
 
 	Vec2d hbCenter = Vec2d_add(Vec2d_center(entityPos->hitbox), entityPos->pos);
 
-        Vec2i tile = Vec2d_to_Vec2i(entityPos->pos);
+    Vec2i tile = Vec2d_to_Vec2i(entityPos->pos);
 	Vec2d tileCenter = Vec2d_add(Vec2i_to_Vec2d(tile), (Vec2d){0.5f, 0.5f});
 
-        double maxNext = D_INF;
-        Vec2i nextPos = tile;
+    (*entityPos)->attack_velocity = Vec2d_scale(Vec2d_normalize((Vec2d){start.x + 0.5 - (*entityPos)->pos.x, start.y + 0.5 - (*entityPos)->pos.y}), (*entityPos)->attack_SPD);
+
+    double maxNext = D_INF;
+
+    Vec2i nextPos = tile;
 	int newDir = -1;
+
 
         for(int dir = 1; dir < 9; dir++) //NSEW + DIAG
         {

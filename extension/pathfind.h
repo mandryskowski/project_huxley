@@ -1,7 +1,7 @@
 #ifndef PATHFIND_H
 #define PATHFIND_H
 
-#include "math.h"
+#include "game_math.h"
 #include "entity.h"
 #include "state.h"
 

@@ -8,7 +8,7 @@
 #include "entity.h"
 #include "room.h"
 #include "render.h"
-#include "math.h"
+#include "game_math.h"
 
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
