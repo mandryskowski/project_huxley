@@ -9,6 +9,7 @@
 #include "room.h"
 #include "render.h"
 #include "game_math.h"
+#include "level.h"
 
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
@@ -63,7 +64,7 @@ void gui_update(GameState* gState, RenderState* rState) {
     igShowMetricsWindow(NULL);
     if (igTreeNode_Str("Entity tree"))
     {
-        Entity** arr = gState->currentRoom->entities;
+        Entity** arr = gState->currentLevel->currentRoom->entities;
         int i = 0;
         while (*arr != NULL)
         {

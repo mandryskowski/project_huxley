@@ -8,6 +8,7 @@
 #include <string.h>
 #include "entity.h"
 #include "assets.h"
+#include "level.h"
 
 RenderState RenderState_construct()
 {
@@ -76,7 +77,7 @@ void initGridVertices(GameState* gameState, Vertex* verts, uint width, uint heig
             {
                 *verts = (Vertex){.position = Vec2d_add(offsets[i], (Vec2d){x, y}),
                                   .texCoord = offsets[i],
-                                  .textureID = gameState->currentRoom->tiles[x][y].textureID};
+                                  .textureID = gameState->currentLevel->currentRoom->tiles[x][y].textureID};
                                   //.textureID = y * 16 + x};
                 //printf("vert %f %f \n", verts->position.x, verts->position.y);
                 verts++;
@@ -115,10 +116,10 @@ void initIsoVertices(GameState* gameState, Vertex* verts, uint width, uint heigh
             const Vec2d quadPos = Vec2d_add(Vec2d_scale(xOffset, (width - 1 - x)), 
                                             Vec2d_scale(yOffset, (height - 1 - y)));
             int texID = 7;
-            if (gameState->currentRoom->tiles[x][y].type == TILE_WALL)
+            if (gameState->currentLevel->currentRoom->tiles[x][y].type == TILE_WALL)
             {
-                bool rightWall = (y > 0 && gameState->currentRoom->tiles[x][y - 1].type != TILE_WALL);
-                bool leftWall = (x > 0 && gameState->currentRoom->tiles[x - 1][y].type != TILE_WALL);
+                bool rightWall = (y > 0 && gameState->currentLevel->currentRoom->tiles[x][y - 1].type != TILE_WALL);
+                bool leftWall = (x > 0 && gameState->currentLevel->currentRoom->tiles[x - 1][y].type != TILE_WALL);
                 if (leftWall && rightWall)
                 {
                     texID = 5;
@@ -136,11 +137,11 @@ void initIsoVertices(GameState* gameState, Vertex* verts, uint width, uint heigh
                     texID = 0;
                 }
             }
-            else if (gameState->currentRoom->tiles[x][y].type == TILE_BARRIER)
+            else if (gameState->currentLevel->currentRoom->tiles[x][y].type == TILE_BARRIER)
             {
                 texID = 2;
             }
-            else if (gameState->currentRoom->tiles[x][y].type == TILE_HOLE)
+            else if (gameState->currentLevel->currentRoom->tiles[x][y].type == TILE_HOLE)
             {
                 texID = 3;
             }
@@ -152,7 +153,7 @@ void initIsoVertices(GameState* gameState, Vertex* verts, uint width, uint heigh
                                   .texCoord = Vec2d_add((Vec2d){0.5, 0.5}, Vec2d_scale(offsets[i], 0.5)),
                                   .textureID = texID};
 
-                                  //.textureID = gameState->currentRoom->tiles[x][y].textureID};
+                                  //.textureID = gameState->currentLevel->currentRoom->tiles[x][y].textureID};
                                   //.textureID = y * 16 + x};
                 //printf("tcoord %f %f\n", verts->texCoord.x, verts->texCoord.y);
                 verts++;
@@ -201,18 +202,18 @@ void initRenderState(GameState* gState, RenderState* rState)
 {
     // Grid
     {
-        Vertex gridVerts[gState->currentRoom->width * gState->currentRoom->height * 6];
-        initGridVertices(gState, gridVerts, gState->currentRoom->width, gState->currentRoom->height);
+        Vertex gridVerts[gState->currentLevel->currentRoom->width * gState->currentLevel->currentRoom->height * 6];
+        initGridVertices(gState, gridVerts, gState->currentLevel->currentRoom->width, gState->currentLevel->currentRoom->height);
 
-        rState->LevelVAO = initVAO(sizeof(Vertex) * gState->currentRoom->width * gState->currentRoom->height * 6, gridVerts);
+        rState->LevelVAO = initVAO(sizeof(Vertex) * gState->currentLevel->currentRoom->width * gState->currentLevel->currentRoom->height * 6, gridVerts);
     }
 
     //  ISO Grid
     {
-        Vertex gridVerts[gState->currentRoom->width * gState->currentRoom->height * 6];
-        initIsoVertices(gState, gridVerts, gState->currentRoom->width, gState->currentRoom->height);
+        Vertex gridVerts[gState->currentLevel->currentRoom->width * gState->currentLevel->currentRoom->height * 6];
+        initIsoVertices(gState, gridVerts, gState->currentLevel->currentRoom->width, gState->currentLevel->currentRoom->height);
 
-        rState->IsoLevelVAO = initVAO(sizeof(Vertex) * gState->currentRoom->width * gState->currentRoom->height * 6, gridVerts);
+        rState->IsoLevelVAO = initVAO(sizeof(Vertex) * gState->currentLevel->currentRoom->width * gState->currentLevel->currentRoom->height * 6, gridVerts);
     }
 
     // Quad
@@ -270,29 +271,29 @@ void initRenderState(GameState* gState, RenderState* rState)
 
 void renderGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
 {
-    *viewMat = Mat3f_construct((Vec2d){-0.5f * gState->currentRoom->width / gState->currentRoom->height, -0.5f}, (Vec2d){1.0f / gState->currentRoom->height, 1.0f / gState->currentRoom->height});
+    *viewMat = Mat3f_construct((Vec2d){-0.5f * gState->currentLevel->currentRoom->width / gState->currentLevel->currentRoom->height, -0.5f}, (Vec2d){1.0f / gState->currentLevel->currentRoom->height, 1.0f / gState->currentLevel->currentRoom->height});
      glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat->d);
     
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->tileAtlas);
     glBindVertexArray(state->LevelVAO);
-    glDrawArrays(GL_TRIANGLES, 0, gState->currentRoom->width * gState->currentRoom->height * 6);
+    glDrawArrays(GL_TRIANGLES, 0, gState->currentLevel->currentRoom->width * gState->currentLevel->currentRoom->height * 6);
 }
 
 void renderIsoGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
 {
-    *viewMat = Mat3f_construct((Vec2d){0.0 * gState->currentRoom->width / gState->currentRoom->height, 0.1f}, (Vec2d){1.0f / gState->currentRoom->height, 1.0f / gState->currentRoom->height});
+    *viewMat = Mat3f_construct((Vec2d){0.0 * gState->currentLevel->currentRoom->width / gState->currentLevel->currentRoom->height, 0.1f}, (Vec2d){1.0f / gState->currentLevel->currentRoom->height, 1.0f / gState->currentLevel->currentRoom->height});
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat->d);
     glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->isoTileAtlas);
     glBindVertexArray(state->IsoLevelVAO);
-    glDrawArrays(GL_TRIANGLES, 0, gState->currentRoom->width * gState->currentRoom->height * 6);
+    glDrawArrays(GL_TRIANGLES, 0, gState->currentLevel->currentRoom->width * gState->currentLevel->currentRoom->height * 6);
     //glDrawArrays(GL_TRIANGLES, 0, 4* 6);
 }
 
 Vec2d getIsoOrGridPos(GameState* gState, RenderState* rState, Vec2d pos)
 {
-    return rState->renderIsometric ? getIsoPos(pos, (Vec2i){gState->currentRoom->width, gState->currentRoom->height}) : pos;
+    return rState->renderIsometric ? getIsoPos(pos, (Vec2i){gState->currentLevel->currentRoom->width, gState->currentLevel->currentRoom->height}) : pos;
 }
 
 void render(GameState* gState, RenderState* state)
@@ -310,7 +311,7 @@ void render(GameState* gState, RenderState* state)
    
     state->renderIsometric ? renderIsoGrid(gState, state, &viewMat) : renderGrid(gState, state, &viewMat);
 
-    Entity** entities = gState->currentRoom->entities;
+    Entity** entities = gState->currentLevel->currentRoom->entities;
 
     for(Entity** ent = entities; *ent != NULL; ent++)
     {
