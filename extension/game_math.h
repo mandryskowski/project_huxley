@@ -5,8 +5,8 @@
 
 #define EPSILON 1e-10
 #define PI 3.14159265359
-#define min(a, b) a < b ? a : b
-#define max(a, b) a > b ? a : b
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 //#define absGen(a) a < 0 ? -a : a
 

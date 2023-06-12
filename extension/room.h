@@ -18,7 +18,7 @@ typedef enum
     TILE_DOOR,
 
     TILE_FIRST = TILE_FLOOR,
-    TILE_LAST = TILE_HOLE
+    TILE_LAST = TILE_DOOR
 } TileType;
 
 typedef enum
