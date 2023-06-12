@@ -129,7 +129,7 @@ Vec2d Vec2i_to_Vec2d(Vec2i vec)
 {
     return (Vec2d){(double)vec.x, (double)vec.y};
 }
-/* Returns the scalar distance between two points.
+/* Returns the scalar distance between two points
  * */
 double Vec2d_metric_distance(Vec2d lhs, Vec2d rhs)
 {
