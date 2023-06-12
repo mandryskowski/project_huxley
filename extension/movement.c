@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "level.h"
 
 void playerMovement(GameState* state, double dt)
 {
@@ -56,7 +57,7 @@ bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
     return false;
 }
 
-double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles)
+double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles, GameState *state)
 {
     double highestAfterCollision = 0;
     Entity *currEntity = *currEntityPtr;
@@ -78,15 +79,6 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
                                           &newVelocity, currEntity->velocity);
         if (collides)
         {
-//            Entity  **xd = entity;
-//            while (*xd)
-//            {
-//                printf("%p\n", (*xd)->attack_func);
-//                (*xd)->attack_func(*xd, NULL, ATTACK_CONTACT);
-//                xd++;
-//            }
-//            printf("%p\n", zombie_attack);
-//            exit(0);
             deal_collison_damage(currEntity, other);
             if (isDead(*currEntityPtr))
             {
@@ -101,10 +93,13 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
         bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
                                           &newVelocity, currEntity->velocity);
 
-        if (collides && isProjectile(currEntity))
+        if (collides)
         {
-            killEntity(currEntity);
-            return  0; // Entity is dead
+            if (isProjectile(currEntity))
+            {
+                killEntity(currEntity);
+                return  0; // Entity is dead
+            }
         }
     }
 
@@ -113,11 +108,16 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     return highestAfterCollision;
 }
 
-void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state, Entity *currEntity)
+void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state, Entity *currEntity, bool is_clear)
 {
     for (int i = cBounds.x; i <= cBounds.y; i++)
     {
         Vec2i tile = isX ? (Vec2i){valBound, i} : (Vec2i){i, valBound};
+
+        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
+        {
+            continue;
+        }
         
         if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
         {
@@ -126,7 +126,7 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
     }
 }
 
-void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameState *state)
+void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameState *state, bool is_clear)
 {
     Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntity->pos);
     Vec2i x_bounds = currEntity->velocity.x >= 0 ? (Vec2i){currHitbox.bottomLeft.x,  currHitbox.topRight.x + 1}
@@ -136,37 +136,38 @@ void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameSt
 
     if (currEntity->velocity.x > 0)
     {
-        add_wall(y_bounds, currHitbox.topRight.x + 1, true, &obstaclesEnd, state, currEntity);
+        add_wall(y_bounds, currHitbox.topRight.x + 1, true, &obstaclesEnd, state, currEntity, is_clear);
     }
     else
     {
-        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity);
+        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity, is_clear);
     }
 
     if (currEntity->velocity.y > 0)
     {
-        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity);
+        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity, is_clear);
     }
     else
     {
-        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity);
+        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity, is_clear);
     }
 }
 
 void move(GameState* state, Entity** entity, double dt)
 {
     const int NUM_OF_STEPS = 6;
+    bool is_clear = isClear(state->currentLevel->currentRoom);
     for (Entity **currEntity = entity; *currEntity; currEntity++)
     {
         Rectangle *obstacles = calloc(50, sizeof(Rectangle));
-        add_potential_obstacles(obstacles, *currEntity, state);
+        add_potential_obstacles(obstacles, *currEntity, state, is_clear);
         
         for (int i = 0; i < NUM_OF_STEPS; i++)
         {
             double timePerStep = dt / NUM_OF_STEPS;
             while (timePerStep && !Vec2d_zero((*currEntity)->velocity) && !isDead(*currEntity))
             {
-                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles);
+                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles, state);
             }
         }
         free(obstacles);

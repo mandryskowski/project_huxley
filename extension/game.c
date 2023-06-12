@@ -9,6 +9,8 @@
 #include "movement.h"
 #include "gui.h"
 #include "pathfind.h"
+#include "util.h"
+#include "level.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,17 +64,10 @@ void handleEvents(GameState* state)
 
 void update_cooldowns(GameState* state)
 {
-    for (Entity **entity = state->currentRoom->entities; *entity; entity++)
+    for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
     {
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
     }
-}
-
-void swap(void **this, void **other)
-{
-    void *helper = *this;
-    *this = *other;
-    *other = helper;
 }
 
 void erase_dead(Room *room)
@@ -94,7 +89,8 @@ void erase_dead(Room *room)
 
 void update(GameState* state, double dt)
 {
-    Entity** arr = state->currentRoom->entities;
+    state->renderNewRoom = false;
+    Entity** arr = state->currentLevel->currentRoom->entities;
 
     Vec2d* velocities = path((**arr).pos, arr + 1, state);
 
@@ -112,10 +108,22 @@ void update(GameState* state, double dt)
     if (!Vec2d_zero(state->player->entity->attack_velocity)) {
         handle_attack(state->player->entity, NULL, SPAWN_PROJECTILE);
     }
+    for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
+    {
+        handle_attack(*entity, NULL, SPAWN_PROJECTILE);
+    }
 
     move(state, arr, dt);
     update_cooldowns(state);
-    erase_dead(state->currentRoom);
+    erase_dead(state->currentLevel->currentRoom);
+    if (getTile(Vec2d_to_Vec2i(state->player->entity->pos), state) == TILE_DOOR)
+    {
+        jump_to_next_room(state);
+    }
+    if (state->renderNewRoom)
+    {
+        printf("xdd\n");
+    }
 }
 
 void initGame(GameState* state)
@@ -162,17 +170,9 @@ void gameLoop(GameState* gState)
 
     Player *player;
     player = Entity_construct_player();
-
-    FILE *file = fopen("predefinedRooms/new_room", "r");
-    int height, width;
-    fscanf(file, "%d %d", &width, &height);
-
-    Room *room = Room_construct(width, height, file, player);
-
-    gState->currentRoom = room;
     gState->player = player;
 
-    fclose(file);
+    gState->currentLevel = construct_level(player, 6);
 
     initRenderState(gState, &rState);
 
