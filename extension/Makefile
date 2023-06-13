@@ -28,7 +28,7 @@ else
     UNAME_S := $(shell uname -s)
         
     ifeq ($(UNAME_S),Linux)
-        CFLAGS += -D LINUX -Llib/linux -lcimgui
+        CFLAGS += -D LINUX -Llib/linux -lcimgui -lm
         LDFLAGS="-Wl,-rpath,lib/linux/"
     endif
     ifeq ($(UNAME_S),Darwin)
@@ -55,7 +55,7 @@ endif
 ########################Project files########################
 
 # Here you add the names of header-source file pairs. E.g. gameControl adds gameControl.h and gameControl.c
-_GAME_SOURCE_HEADER_PAIRS = game game_math room render assets entity movement gui pathfind pqueue\
+_GAME_SOURCE_HEADER_PAIRS = game game_math room render assets entity movement gui pathfind util level pqueue\
 
 # Here on the other hand you add just the headers.
 _GAME_JUST_HEADERS = state.h

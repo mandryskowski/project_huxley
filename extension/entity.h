@@ -33,7 +33,7 @@ typedef struct Entity
     bool canFly;
 
     int HP, maxHP, attack_cooldown, cooldown_left;
-    double ATK;
+    int ATK;
     double SPD, attack_SPD;
 
     Faction faction;
