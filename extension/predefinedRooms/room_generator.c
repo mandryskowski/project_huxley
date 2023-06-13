@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "../room.h"
 #include "../entity.h"
+#include "../movement.h"
 #include "../game_math.h"
 #include "structure_builder.h"
 #include "generator_attributes.h"
@@ -10,8 +11,8 @@
 
 void put_tiles(Room* room, Mode mode)
 {
-    int height = room->height;
-    int width = room->width;
+    int height = room->size.y;
+    int width = room->size.x;
 
     // for (int i = 1; i < height - 1; i++)
     // {
@@ -96,29 +97,29 @@ Room *generate_room(int seed, Mode mode)
     if(tiles == NULL) {exit(EXIT_FAILURE);}
 
     room->tiles = tiles;
-    room->height = height;
-    room->width = width;
+    room->size.y = height;
+    room->size.x = width;
 
     for (int i = 1; i < height - 1; i++)
     {
         for (int j = 1; j < width - 1; j++)
         {
             int prob = rand() % 100;
-            if (prob < 90)
+            if (prob < 100)
             {
-                tiles[i][j] = TILE_FLOOR;
+                tiles[i][j].type = TILE_FLOOR;
             }
             else if (prob < 94)
             {
-                tiles[i][j] = TILE_HOLE;
+                tiles[i][j].type = TILE_HOLE;
             }
             else if (prob < 97)
             {
-                tiles[i][j] = TILE_BARRIER;
+                tiles[i][j].type = TILE_BARRIER;
             }
             else
             {
-                tiles[i][j] = TILE_WALL;
+                tiles[i][j].type = TILE_WALL;
             }
         }
     }
@@ -126,13 +127,13 @@ Room *generate_room(int seed, Mode mode)
     {
         for (int j = 0; j < width; j++)
         {
-            if (tiles[i][j] != TILE_FLOOR)
+            if (tiles[i][j].type != TILE_FLOOR)
             {
-                monsters[i][j] = NOT_MONSTER;
+                monsters[i][j]= NOT_MONSTER;
                 continue;
             }
-            int prob = rand() % 500;
-            if (prob < 2)
+            int prob = rand() % 600;
+            if (prob < 0)
             {
                 monsters[i][j] = ZOMBIE;
             }
@@ -144,17 +145,21 @@ Room *generate_room(int seed, Mode mode)
             {
                 monsters[i][j] = FLYING_SHOOTER;
             }
+            else if (prob < 0)
+            {
+                monsters[i][j] = BOMBER;
+            }
             else
             {
                 monsters[i][j] = NOT_MONSTER;
             }
         }
     }
-    FILE *file = fopen("predefinedRooms/new_room", "w");
+    FILE *file = fopen("predefinedRooms/room_generator", "w");
     fprintf(file, "%d %d\n", height, width);
     for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < room->width; j++)
+        for (int j = 0; j < room->size.x; j++)
         {
             if (j)
             {
@@ -165,9 +170,9 @@ Room *generate_room(int seed, Mode mode)
         fprintf(file, "\n");
     }
 
-    for (int i = 0; i < room->height; i++)
+    for (int i = 0; i < room->size.y; i++)
     {
-        for (int j = 0; j < room->width; j++)
+        for (int j = 0; j < room->size.x; j++)
         {
             if (j)
             {
@@ -180,14 +185,14 @@ Room *generate_room(int seed, Mode mode)
 
     Tile** tiles = room->tiles;
     //Freeing tile space.
-    for(int i = 0; i < room->height; i++)
+    for(int i = 0; i < room->size.y; i++)
     {
         free(tiles[i]);
     }
     free(tiles);
 
     //Freeing monsters space.
-    for(int i = 0; i < room->height; i++)
+    for(int i = 0; i < room->size.y; i++)
     {
         free(monsters[i]);
     }
@@ -200,13 +205,8 @@ Room *generate_room(int seed, Mode mode)
 
 int main()
 {
-<<<<<<< Updated upstream
     Room *room = generate_room(-1, EASY);
     MonsterType** monsters = spawn_monsters(room, EASY);
     room_to_file(room, monsters);
     printf("new room generated\n");
 }
-=======
-    generate_room(-1);
-}
->>>>>>> Stashed changes

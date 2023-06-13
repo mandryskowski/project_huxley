@@ -15,7 +15,6 @@ typedef struct GameState
     struct ImGuiContext* ctx;
     struct ImGuiIO* io;
     struct Level* currentLevel;
-    //struct Room* currentRoom;
     struct Player* player;
     bool renderNewRoom;
 } GameState;
