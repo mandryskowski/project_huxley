@@ -81,6 +81,10 @@ void erase_dead(Room *room)
         Entity **entity = room->entities + i;
         if (*entity && isDead(*entity))
         {
+            if ((*entity)->death_func)
+            {
+                (*entity)->death_func(*entity);
+            }
             free(*entity);
             *entity = NULL;
             swap(entity, (room->entities + room->entity_cnt - 1));
@@ -98,7 +102,7 @@ void update(GameState* state, double dt)
     Entity** arr = state->currentLevel->currentRoom->entities;
 
 
-    if (frame_cnt % 1 == 0)
+    if (frame_cnt % 5 == 0)
     {
         int index = 0;
         Vec2d* velocities = path((**arr).pos, arr + 1, state);
