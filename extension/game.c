@@ -17,7 +17,13 @@
 
 void errorCallback(int lol, const char* str)
 {
-    printf("Blad %d: %s \n", lol, str);
+    printf("Error %d: %s \n", lol, str);
+}
+
+void framebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+    RenderState* rState = glfwGetWindowUserPointer(window);
+    rState->resolution = (Vec2i){width, height};
 }
 
 void updateVelocity(GameState* state, int up, int down, int right, int left, double max_spd, Vec2d *velocity, double acceleration)
@@ -167,9 +173,11 @@ void gameLoop(GameState* gState)
     RenderState rState = RenderState_construct();
 
     {
-        const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        rState.resolution = (Vec2i) {mode->width, mode->height};
+        glfwGetFramebufferSize(gState->window, &rState.resolution.x, &rState.resolution.y);
     }
+
+    glfwSetWindowUserPointer(gState->window, &rState);
+    glfwSetWindowSizeCallback(gState->window, framebufferSizeCallback);
 
     Player *player;
     player = Entity_construct_player();
@@ -186,6 +194,7 @@ void gameLoop(GameState* gState)
     while (!glfwWindowShouldClose(gState->window))
     {
         glfwPollEvents();
+
         double deltaTime = glfwGetTime() - lastUpdateTime;
         if (deltaTime >= timestep)
         {
