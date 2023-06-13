@@ -9,6 +9,7 @@
 #include "room.h"
 #include "render.h"
 #include "game_math.h"
+#include "level.h"
 
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
@@ -60,27 +61,27 @@ void gui_update(GameState* gState, RenderState* rState) {
     sliderDoubleN("Camera size", &gState->player->cameraSize, 2, 1.0, 32.0);
     if (igButton("1:1 camera to room size", (ImVec2){0, 0}))
     {
-        double size = (double)min(gState->currentRoom->size.x, gState->currentRoom->size.y);
+        double size = (double)min(gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
         gState->player->cameraSize = (Vec2d){size, size};
     }
     igSameLine(0, 16.0);
     if (igButton("Stretch camera to room size", (ImVec2){0, 0}))
     {
-        gState->player->cameraSize = Vec2i_to_Vec2d(gState->currentRoom->size);
+        gState->player->cameraSize = Vec2i_to_Vec2d(gState->currentLevel->currentRoom->size);
     }
     // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
 
     if (igButton("Kill all non-player entities", (ImVec2){0, 0}))
     {
-        for (int i = 1; i < gState->currentRoom->entity_cnt; i++)
+        for (int i = 1; i < gState->currentLevel->currentRoom->entity_cnt; i++)
         {
-            gState->currentRoom->entities[i]->HP = 0;
+            gState->currentLevel->currentRoom->entities[i]->HP = 0;
         }
     }
     igShowMetricsWindow(NULL);
     if (igTreeNode_Str("Entity tree"))
     {
-        Entity** arr = gState->currentRoom->entities;
+        Entity** arr = gState->currentLevel->currentRoom->entities;
         int i = 0;
         while (*arr != NULL)
         {
