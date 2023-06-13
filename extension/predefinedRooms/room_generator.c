@@ -5,9 +5,74 @@
 #include "../entity.h"
 #include "../movement.h"
 #include "../game_math.h"
+#include "structure_builder.h"
+#include "generator_attributes.h"
+#include "monster_spawner.h"
 
-void generate_room(int seed)
+void put_tiles(Room* room, Mode mode)
 {
+    int height = room->height;
+    int width = room->width;
+
+    // for (int i = 1; i < height - 1; i++)
+    // {
+    //     for (int j = 1; j < width - 1; j++)
+    //     {
+    //         int prob = rand() % 100;
+    //         if (prob < 93)
+    //         {
+    //             tiles[i][j] = TILE_FLOOR;
+    //         }
+    //         else if (prob < 94)
+    //         {
+    //             tiles[i][j] = TILE_HOLE;
+    //         }
+    //         else if (prob < 97)
+    //         {
+    //             tiles[i][j] = TILE_BARRIER;
+    //         }
+    //         else
+    //         {
+    //             tiles[i][j] = TILE_WALL;
+    //         }
+    //     }
+    // }
+
+    //VISIBLE TILES 
+    Vec2i topLeft = (Vec2i) {1, height - 1};
+    Vec2i topRight = (Vec2i) {width - 1, height - 1};
+    Vec2i bottomRight = (Vec2i) {width - 1, 1};
+    Vec2i bottomLeft = (Vec2i) {1, 1};
+    Vec2i middle = Vec2i_middle(topLeft, bottomRight);
+
+    //SEGMENTATION FAULT MEANS THERE IS NOT ENOUGH ROOM TO SPAWN THE PLAYER
+    //patternBuilder(room, CHECKERED, topLeft, middle, TILE_BARRIER);
+    //patternBuilder(room, CHECKERED, middle, topRight, TILE_BARRIER);
+    //patternBuilder(room, CHECKERED, middle, bottomLeft,TILE_BARRIER);
+
+    //ADDING THE OUTLINE
+    for (int i = 0; i < height; i++)
+    {
+        room->tiles[i][0].type = TILE_WALL;
+        room->tiles[i][width - 1].type = TILE_WALL;
+    }
+    for (int i = 0; i < width; i++)
+    {
+        room->tiles[0][i].type = TILE_WALL;
+        room->tiles[height - 1][i].type = TILE_WALL;
+    }
+
+    //ADDING THE DOORS
+    room->tiles[0][width / 2 - 1].type = TILE_DOOR;
+    room->tiles[0][width / 2].type = TILE_DOOR;
+    room->tiles[height / 2 - 1][0].type = TILE_DOOR;
+    room->tiles[height / 2][0].type = TILE_DOOR;
+}
+
+Room *generate_room(int seed, Mode mode)
+{
+    Room *room = malloc(sizeof(Room));
+
     if (seed == -1)
     {
         srand48(clock());
@@ -17,21 +82,23 @@ void generate_room(int seed)
         srand(seed);
     }
 
-    int height = rand() % 5 * 2 + 20, width = rand() % 5 * 2 + 20;
-    TileType tiles[height][width];
-    int monsters[height][width];
+    //SETTING SIZE
+    int height = rand() % 5 * 2 + 20;
+    int width = rand() % 5 * 2 + 20;
+    printf("height is %d and width is %d\n", height, width);
 
-    for (int i = 0; i < height; i++)
+    //Allocating tile mem.
+    Tile** tiles = calloc(height, sizeof(Tile*));
+    for(int i=0;i<height;i++)
     {
-        tiles[i][0] = TILE_WALL;
-        tiles[i][width - 1] = TILE_WALL;
+        tiles[i] = calloc(width, sizeof(Tile));
+        if(tiles[i] == NULL) {exit(EXIT_FAILURE);}
     }
+    if(tiles == NULL) {exit(EXIT_FAILURE);}
 
-    for (int i = 0; i < width; i++)
-    {
-        tiles[0][i] = TILE_WALL;
-        tiles[height - 1][i] = TILE_WALL;
-    }
+    room->tiles = tiles;
+    room->height = height;
+    room->width = width;
 
     for (int i = 1; i < height - 1; i++)
     {
@@ -92,20 +159,20 @@ void generate_room(int seed)
     fprintf(file, "%d %d\n", height, width);
     for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < room->width; j++)
         {
             if (j)
             {
                 fprintf(file, " ");
             }
-            fprintf(file, "%d", tiles[i][j]);
+            fprintf(file, "%d", room->tiles[i][j].type);
         }
         fprintf(file, "\n");
     }
 
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < room->height; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < room->width; j++)
         {
             if (j)
             {
@@ -115,10 +182,31 @@ void generate_room(int seed)
         }
         fprintf(file, "\n");
     }
+
+    Tile** tiles = room->tiles;
+    //Freeing tile space.
+    for(int i = 0; i < room->height; i++)
+    {
+        free(tiles[i]);
+    }
+    free(tiles);
+
+    //Freeing monsters space.
+    for(int i = 0; i < room->height; i++)
+    {
+        free(monsters[i]);
+    }
+    free(monsters);
+
+    free(room);
+
     fclose(file);
 }
 
 int main()
 {
-    generate_room(-1);
+    Room *room = generate_room(-1, EASY);
+    MonsterType** monsters = spawn_monsters(room, EASY);
+    room_to_file(room, monsters);
+    printf("new room generated\n");
 }
