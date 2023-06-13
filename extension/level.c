@@ -44,6 +44,7 @@ void jump_to_next_room(GameState *state)
 
     if (isClear(level->currentRoom) && newRoom->type != NOT_ROOM)
     {
+        level->prevRoomCoords = level->currRoomCoords;
         level->currRoomCoords = newRoomCoords;
         *level->currentRoom->entities = NULL;
         level->currentRoom = newRoom;
@@ -132,7 +133,7 @@ Level *construct_level(Player *player, int room_number)
 
     level->map[map_width / 2][map_width / 2] = construct_room("predefinedRooms/start_room", NORMAL_ROOM);
     level->currentRoom = level->map[map_width / 2][map_width / 2];
-    level->currRoomCoords = (Vec2i){map_width / 2, map_width / 2};
+    level->prevRoomCoords = level->currRoomCoords = (Vec2i){map_width / 2, map_width / 2};
     *level->currentRoom->entities = player->entity;
     player->entity->room = level->currentRoom;
     player->entity->pos = (Vec2d){10, 10};

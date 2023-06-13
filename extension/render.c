@@ -13,9 +13,9 @@
 RenderState RenderState_construct()
 {
     return (RenderState){.bDebugHitboxes = false, .VSync = true, .renderIsometric = true,
-                         .characterAtlas = loadAtlas("character.png", 1, 1), .LevelVAO = 0, .IsoLevelVAO = 0, .QuadVAO = 0, .shader = 0, .tileAtlas = loadAtlas("textures.png", 1, 4),
+                         .characterAtlas = loadAtlas("character.png", 1, 1), .LevelVAO = 0, .IsoLevelVAO = 0, .IsoLevelVAO2 = 0, .QuadVAO = 0, .shader = 0, .tileAtlas = loadAtlas("textures.png", 1, 4),
                          .isoTileAtlas = loadAtlas("isoatlas.png", 4, 4), .isoCharacterAtlas = loadAtlas("isocharacter.png", 2, 2),
-                         .resolution = (Vec2i){2048, 2048}};
+                         .resolution = (Vec2i){2048, 2048}, .backgroundColor = (Vec4d){0.2, 0.2, 0.2, 1.0}};
 }
 
 
@@ -56,7 +56,9 @@ const char fShaderSrc[] = "#version 400 core\n" \
                       " color = unColor;\n" \
                       "} else if (materialType == 2 || materialType == 4) {\n" \
                       " color = texture(atlas, vec3(texCoord, unTexId)); \n" \
-                      " }if (color.a < 0.5) \n" \
+                      " } else if (materialType == 5) { \n" \
+                      " color = texture(atlas, vec3(texCoord, fsTexID)) * unColor;\n" \
+                      "} if (color.a < 0.5) \n" \
                       "{\n" \
                       " discard;\n" \
                       "} \n" \
@@ -247,10 +249,11 @@ void refreshRoom(GameState* gState, RenderState* rState)
         Vertex gridVerts[gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6];
         initIsoVertices(gState, gridVerts, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
 
-        if (rState->IsoLevelVAO != 0)
+        if (rState->IsoLevelVAO2 != 0)
         {
-            glDeleteVertexArrays(1, &rState->IsoLevelVAO);
+            glDeleteVertexArrays(1, &rState->IsoLevelVAO2);
         }
+        rState->IsoLevelVAO2 = rState->IsoLevelVAO;
         rState->IsoLevelVAO = initVAO(sizeof(Vertex) * gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6, gridVerts);
     }
 }
@@ -314,32 +317,47 @@ void initRenderState(GameState* gState, RenderState* rState)
     glDepthFunc(GL_LEQUAL);
 }
 
-void renderGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
+Mat3f renderGrid(GameState* gState, RenderState* state)
 {
-    *viewMat = Mat3f_construct((Vec2d){-0.5f * gState->currentLevel->currentRoom->size.x / gState->currentLevel->currentRoom->size.y, -0.5f}, (Vec2d){1.0f / gState->currentLevel->currentRoom->size.y, 1.0f / gState->currentLevel->currentRoom->size.y});
-     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat->d);
+    Mat3f viewMat = Mat3f_construct((Vec2d){-0.5f * gState->currentLevel->currentRoom->size.x / gState->currentLevel->currentRoom->size.y, -0.5f}, (Vec2d){1.0f / gState->currentLevel->currentRoom->size.y, 1.0f / gState->currentLevel->currentRoom->size.y});
+    glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
     
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->tileAtlas);
     glBindVertexArray(state->LevelVAO);
     glDrawArrays(GL_TRIANGLES, 0, gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6);
+    return viewMat;
 }
 
-void renderIsoGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
+Mat3f renderIsoGrid(GameState* gState, RenderState* state, uint gridVao, Vec2d offset)
 {
         Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * ((double)state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
     Vec2d lolOffset = (Vec2d){0,0};// Vec2d_add(Vec2d_scale(gState->player->cameraSize, -0.19), (Vec2d){5.94, 5.94});
-    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add((Vec2d){0,0},Vec2d_add(gState->player->entity->pos, Vec2d_rotate(Vec2d_scale(gState->player->cameraSize, 0), 0))), gState->currentLevel->currentRoom->size);
+    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add(offset,Vec2d_add(gState->player->entity->pos, Vec2d_rotate(Vec2d_scale(gState->player->cameraSize, 0), 0))), gState->currentLevel->currentRoom->size);
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (0.19 * gState->player->cameraSize.x / gState->currentRoom->size.y),  -cameraCenterGrid.y* (0.19 * gState->player->cameraSize.y / gState->currentRoom->size.y)}, (Vec2d){lolOffset.x / gState->currentRoom->size.y, lolOffset.y / gState->currentRoom->size.y});
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (5.0 / gState->currentRoom->size.y),  -cameraCenterGrid.y* (5.0 / gState->currentRoom->size.y)}, (Vec2d){5.0f / gState->currentRoom->size.y, 5.0f / gState->currentRoom->size.y});
-    *viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * scaledSize.x,  -cameraCenterGrid.y* scaledSize.y}, scaledSize);
+    Mat3f viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * scaledSize.x,  -cameraCenterGrid.y* scaledSize.y}, scaledSize);
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * 0.05,  -cameraCenterGrid.y* 0.05}, (Vec2d){1.0 / (gState->player->cameraSize.x) *0.055, (1.0 / gState->player->cameraSize.y) * 0.055});
     //*viewMat = Mat3f_construct(getIsoPos(Vec2d_scale(Vec2i_to_Vec2d(gState->currentRoom->size), 0.5), gState->currentRoom->size), (Vec2d){1.0f / gState->currentRoom->size.y, 1.0f / gState->currentRoom->size.y});
-    glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat->d);
-    glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
+    glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
+    if (gridVao == state->IsoLevelVAO2)
+        {
+            double fadeVal;
+            if (offset.x < 0) fadeVal = 1.0 - (gState->currentLevel->currentRoom->size.x - gState->player->entity->pos.x) / 8.0;
+            else if (offset.x > 0) fadeVal = 1.0 - gState->player->entity->pos.x / 8.0;
+            else if (offset.y < 0) fadeVal = 1.0 - (gState->currentLevel->currentRoom->size.y - gState->player->entity->pos.y) / 8.0;
+            else fadeVal = 1.0 - gState->player->entity->pos.y / 8.0;
+           // printf ("fade %f %f \n", offset.x, offset.y);
+            Vec4f fadeCol = Vec4d_to_Vec4f(Vec4d_lerp(state->backgroundColor, (Vec4d){1.0, 1.0, 1.0, 1.0}, min(1.0, fadeVal)));
+           // printf ("fadecol %f %f %f %f \n", fadeCol.x, fadeCol.y, fadeCol.z, fadeCol.w);
+            glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, &fadeCol);
+            glUniform1i(glGetUniformLocation(state->shader, "materialType"), 5);
+        }
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->isoTileAtlas);
-    glBindVertexArray(state->IsoLevelVAO);
+    glBindVertexArray(gridVao);
     glDrawArrays(GL_TRIANGLES, 0, gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6);
+    glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
+    return viewMat;
     //glDrawArrays(GL_TRIANGLES, 0, 4* 6);
 }
 
@@ -350,8 +368,12 @@ Vec2d getIsoOrGridPos(GameState* gState, RenderState* rState, Vec2d pos)
 
 void render(GameState* gState, RenderState* state)
 {
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Clear
+    {
+        Vec4d backgroundCol = state->backgroundColor;
+        glClearColor(backgroundCol.x, backgroundCol.y, backgroundCol.z, backgroundCol.w);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
 
     glViewport(0, 0, state->resolution.x, state->resolution.y);
 
@@ -361,7 +383,36 @@ void render(GameState* gState, RenderState* state)
     glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);
     Mat3f viewMat;
    
-    state->renderIsometric ? renderIsoGrid(gState, state, &viewMat) : renderGrid(gState, state, &viewMat);
+    if (state->renderIsometric)
+    {
+        if (state->IsoLevelVAO2)
+        {
+            Vec2d offset = Vec2i_to_Vec2d(Vec2i_add(gState->currentLevel->prevRoomCoords, Vec2i_scale(gState->currentLevel->currRoomCoords, -1.0)));
+            printf ("offset %f %f \n", offset.x, offset.y);
+            if (offset.x > 0 || offset.y >  0)
+            {
+
+                glDisable(GL_DEPTH_TEST);
+                 renderIsoGrid(gState, state, state->IsoLevelVAO2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1), -offset.y * (gState->currentLevel->currentRoom->size.y - 1)});
+                glEnable(GL_DEPTH_TEST);
+                viewMat = renderIsoGrid(gState, state, state->IsoLevelVAO, (Vec2d){0,0});
+            }
+            else
+            {
+                viewMat = renderIsoGrid(gState, state, state->IsoLevelVAO, (Vec2d){0,0});
+                glUniform1i(glGetUniformLocation(state->shader, "customDepth"), 0);
+                renderIsoGrid(gState, state, state->IsoLevelVAO2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1), -offset.y * (gState->currentLevel->currentRoom->size.y - 1)});
+ glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);               
+            }
+    
+
+        }
+
+      else  viewMat = renderIsoGrid(gState, state, state->IsoLevelVAO, (Vec2d){0,0});
+
+    }
+    else
+       viewMat = renderGrid(gState, state);
 
     Entity** entities = gState->currentLevel->currentRoom->entities;
 
@@ -377,7 +428,7 @@ void render(GameState* gState, RenderState* state)
                         Vec2d hitboxSize = Vec2d_add((*ent)->hitbox.topRight, Vec2d_scale((*ent)->hitbox.bottomLeft, -1.0f));
             Vec2d hitboxPos = Vec2d_add((*ent)->hitbox.bottomLeft, Vec2d_scale(hitboxSize, 0.5f));
             Vec2d absoluteHitboxPos = Vec2d_add((*ent)->pos, hitboxPos);
-        glUniform1i(glGetUniformLocation(state->shader, "customDepth"),absoluteHitboxPos.x +  absoluteHitboxPos.y );
+        glUniform1i(glGetUniformLocation(state->shader, "customDepth"),absoluteHitboxPos.x +  absoluteHitboxPos.y + 1 );
         }
         int entityTexID;
         if (isProjectile(*ent))
