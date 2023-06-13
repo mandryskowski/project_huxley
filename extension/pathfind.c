@@ -50,12 +50,7 @@ const int dx[10] = {0, -1, -1, -1, 0, 1, 1, 1, 0, -1};
 const int dy[10] = {1, 1, 0, -1, -1, -1, 0, 1, 1, 1};
 
 int _cmp(const void *_this, const void *_other) {
-	double cmp = ((PQElement*)_this)->value - ((PQElement*)_other)->value;
-	if(fabs(cmp) < EPSILON)
-		return 0;
-	if(cmp < 0.0)
-		return -1;
-	return 1;
+    return ((PQElement*)_this)->value > ((PQElement*)_other)->value;
 }
 
 Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
@@ -79,10 +74,13 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
     while(pq->size) {
         PQElement* pqtop = (PQElement*)pqueue_dequeue(pq);
 	    Vec2i currTile = pqtop->tile;
+        if (bfs[currTile.x][currTile.y] < pqtop->value)
+        {
+            continue;
+        }
         for(int dir = 1; dir < 9; dir += 1) { //NSWE
             Vec2i nextTile = Vec2i_add(currTile, (Vec2i){dx[dir], dy[dir]});
-            if(!isOutOfBounds(nextTile, gState->currentLevel->currentRoom)
-                && isWalkable(gState->currentLevel->currentRoom, nextTile)
+            if(isWalkable(gState->currentLevel->currentRoom, nextTile)
                 && !(dir % 2 == 1
                     && (!isWalkable(gState->currentLevel->currentRoom, Vec2i_add(currTile, (Vec2i){dx[dir - 1], dy[dir - 1]}))
                     || !isWalkable(gState->currentLevel->currentRoom, Vec2i_add(currTile, (Vec2i){dx[dir + 1], dy[dir + 1]}))))

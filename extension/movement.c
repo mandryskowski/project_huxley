@@ -16,11 +16,15 @@ void playerMovement(GameState* state, double dt)
 
 void deal_collison_damage(Entity *entity, Entity *other)
 {
+    if (isMine(other))
+    {
+        other->cooldown_left = 0;
+    }
     handle_attack(entity, other, ATTACK_CONTACT);
     handle_attack(other, entity, ATTACK_CONTACT);
 }
 
-Vec2d detectCollisionRect(Rectangle a, Rectangle b, Vec2d velocity)
+Vec2d detectCollisionRect(Rectangle a, Rectangle b)
 {
     double overlapX = a.topRight.x > b.topRight.x ? b.topRight.x - a.bottomLeft.x : a.topRight.x - b.bottomLeft.x;
     double overlapY = a.topRight.y > b.topRight.y ? b.topRight.y - a.bottomLeft.y : a.topRight.y - b.bottomLeft.y;
@@ -30,7 +34,7 @@ Vec2d detectCollisionRect(Rectangle a, Rectangle b, Vec2d velocity)
 
 bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *highestAfterCollision,  Vec2d *newVelocity, Vec2d velocity)
 {
-    Vec2d collisionResult = detectCollisionRect(currHitbox, otherHitbox, velocity);
+    Vec2d collisionResult = detectCollisionRect(currHitbox, otherHitbox);
     
     if (collisionResult.x > 0 && collisionResult.y > 0)
     {
@@ -68,7 +72,8 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
         if (otherPtr == currEntityPtr || isDead(*otherPtr) ||
-        ((isProjectile(*otherPtr) || isProjectile(*currEntityPtr)) && (*otherPtr)->faction == (*currEntityPtr)->faction) || (isProjectile(*otherPtr) && isProjectile(*currEntityPtr)))
+        ((isProjectile(*otherPtr) || isProjectile(*currEntityPtr)) && (*otherPtr)->faction == (*currEntityPtr)->faction)
+        || (isProjectile(*otherPtr) && isProjectile(*currEntityPtr)) || (isMine(*otherPtr) && (*otherPtr)->faction == (*currEntityPtr)->faction) )
         {
             continue;
         }
@@ -122,8 +127,14 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
 //        {
 //            continue;
 //        }
-        
-        if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
+        if (isProjectile(currEntity))
+        {
+            if (getTile(tile, state) != TILE_FLOOR && getTile(tile, state) != TILE_HOLE)
+            {
+                *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
+            }
+        }
+        else if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
         {
             *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
         }
