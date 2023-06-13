@@ -11,21 +11,22 @@
 
 void jump_to_next_room(GameState *state)
 {
+    printf("roomChange!\n");
     Vec2i direction = {0, 0};
     Vec2d playerPos = state->player->entity->pos;
-    if (playerPos.x < 1)
+    if (playerPos.x < 2)
     {
         direction = (Vec2i){-1, 0};
     }
-    if (playerPos.y < 1)
+    if (playerPos.y < 2)
     {
         direction = (Vec2i){0, -1};
     }
-    if (playerPos.x + 1 > state->currentLevel->currentRoom->width)
+    if (playerPos.x + 2 > state->currentLevel->currentRoom->width)
     {
         direction = (Vec2i){1, 0};
     }
-    if (playerPos.y + 1 > state->currentLevel->currentRoom->height)
+    if (playerPos.y + 2 > state->currentLevel->currentRoom->height)
     {
         direction = (Vec2i){0, 1};
     }
@@ -45,11 +46,11 @@ void jump_to_next_room(GameState *state)
     {
         level->currRoomCoords = newRoomCoords;
         *level->currentRoom->entities = NULL;
-        *newRoom->entities = state->player->entity;
         level->currentRoom = newRoom;
-        state->player->entity->pos = (Vec2d){level->currentRoom->height * (1 + direction.x) / 2,
-                                             level->currentRoom->width * (1 + direction.y) / 2};
-        state->renderNewRoom = true;
+        *newRoom->entities = state->player->entity;
+        state->player->entity->room = newRoom;
+        state->player->entity->pos = (Vec2d){level->currentRoom->width * (1 - direction.x) / 2 + direction.x * 1.5,
+                                             level->currentRoom->height * (1 - direction.y) / 2 + direction.y * 1.5};
     }
 }
 
@@ -58,21 +59,24 @@ void create_door(Room *room, int site)
 {
     switch (site) {
         case 0:
-            room->tiles[room->height / 2][0] = (Tile){TILE_DOOR, 9};
-            room->tiles[room->height / 2 + 1][0] = (Tile){TILE_DOOR, 10};
+            room->tiles[0][room->height / 2] = (Tile){TILE_DOOR, 9};
+            room->tiles[0][room->height / 2 + 1] = (Tile){TILE_DOOR, 10};
             break;
         case 1:
-            room->tiles[0][room->width / 2] = (Tile){TILE_DOOR, 10};
-            room->tiles[0][room->width / 2 + 1] = (Tile){TILE_DOOR, 9};
+            printf("%d %d xd\n", room->width, room->height);
+            room->tiles[room->width / 2][0] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->width / 2 + 1][0] = (Tile){TILE_DOOR, 9};
+            break;
         case 2:
-            room->tiles[room->height / 2][room->width - 1] = (Tile){TILE_DOOR, 10};
-            room->tiles[room->height / 2 + 1][room->width - 1] = (Tile){TILE_DOOR, 9};
+            room->tiles[room->width - 1][room->height / 2] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->width - 1][room->height / 2 + 1] = (Tile){TILE_DOOR, 9};
             break;
         case 3:
-            room->tiles[room->height - 1][room->width / 2] = (Tile){TILE_DOOR, 9};
-            room->tiles[room->height - 1][room->width / 2 + 1] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->width / 2][room->height - 1] = (Tile){TILE_DOOR, 9};
+            room->tiles[room->width / 2 + 1][room->height - 1] = (Tile){TILE_DOOR, 10};
+            break;
         default:
-            perror("Error in create_door");
+            perror("Error in create_door xd");
             exit(0);
     }
 }
@@ -107,13 +111,15 @@ Level *construct_level(Player *player, int room_number)
         shuffle(to_add, to_add_end - to_add, sizeof(Vec2i));
         if (i)
         {
+            printf("%d %d rooms\n", to_add->x, to_add->y);
             system("./predefinedRooms/room_generator");
             level->map[to_add->x][to_add->y] = construct_room("predefinedRooms/new_room", NORMAL_ROOM);
         }
         for (int j = 0; j < 4; j++)
         {
             Vec2i new_coord = Vec2i_add(*to_add, dirs[j]);
-            if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width)
+            if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width
+                || visited[new_coord.x][new_coord.y])
             {
                 continue;
             }
@@ -139,11 +145,13 @@ Level *construct_level(Player *player, int room_number)
             {
                 for (int k = 0; k < 4; k++)
                 {
-                    Vec2i new_coord = Vec2i_add(*to_add, dirs[k]);
-                    if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width)
+                    Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);
+                    if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width ||
+                        !level->map[new_coord.x][new_coord.y])
                     {
                         continue;
                     }
+                    printf("%d %d (%d, %d)\n", i, j, dirs[k].x, dirs[k].y);
                     create_door(level->map[i][j], k);
                 }
             }
@@ -151,6 +159,8 @@ Level *construct_level(Player *player, int room_number)
     }
 
     free(to_add_cpy);
+
+    printf("\n");
 
     return level;
 }

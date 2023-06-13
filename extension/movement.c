@@ -57,7 +57,7 @@ bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
     return false;
 }
 
-double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles, GameState *state)
+double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles, GameState *state, bool isclear)
 {
     double highestAfterCollision = 0;
     Entity *currEntity = *currEntityPtr;
@@ -95,6 +95,10 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
 
         if (collides)
         {
+            if (isclear && currEntityPtr == entity && getTile(Vec2d_to_Vec2i(Vec2d_scale(Vec2d_add(otherHitbox.bottomLeft, otherHitbox.topRight), 0.5)), state) == TILE_DOOR)
+            {
+                state->renderNewRoom = true;
+            }
             if (isProjectile(currEntity))
             {
                 killEntity(currEntity);
@@ -108,16 +112,16 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     return highestAfterCollision;
 }
 
-void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state, Entity *currEntity, bool is_clear)
+void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state, Entity *currEntity)
 {
     for (int i = cBounds.x; i <= cBounds.y; i++)
     {
         Vec2i tile = isX ? (Vec2i){valBound, i} : (Vec2i){i, valBound};
 
-        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
-        {
-            continue;
-        }
+//        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
+//        {
+//            continue;
+//        }
         
         if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
         {
@@ -126,7 +130,7 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
     }
 }
 
-void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameState *state, bool is_clear)
+void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameState *state)
 {
     Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntity->pos);
     Vec2i x_bounds = currEntity->velocity.x >= 0 ? (Vec2i){currHitbox.bottomLeft.x,  currHitbox.topRight.x + 1}
@@ -136,20 +140,20 @@ void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameSt
 
     if (currEntity->velocity.x > 0)
     {
-        add_wall(y_bounds, currHitbox.topRight.x + 1, true, &obstaclesEnd, state, currEntity, is_clear);
+        add_wall(y_bounds, currHitbox.topRight.x + 1, true, &obstaclesEnd, state, currEntity);
     }
     else
     {
-        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity, is_clear);
+        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity);
     }
 
     if (currEntity->velocity.y > 0)
     {
-        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity, is_clear);
+        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity);
     }
     else
     {
-        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity, is_clear);
+        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity);
     }
 }
 
@@ -160,14 +164,14 @@ void move(GameState* state, Entity** entity, double dt)
     for (Entity **currEntity = entity; *currEntity; currEntity++)
     {
         Rectangle *obstacles = calloc(50, sizeof(Rectangle));
-        add_potential_obstacles(obstacles, *currEntity, state, is_clear);
+        add_potential_obstacles(obstacles, *currEntity, state);
         
         for (int i = 0; i < NUM_OF_STEPS; i++)
         {
             double timePerStep = dt / NUM_OF_STEPS;
             while (timePerStep && !Vec2d_zero((*currEntity)->velocity) && !isDead(*currEntity))
             {
-                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles, state);
+                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles, state, is_clear);
             }
         }
         free(obstacles);
