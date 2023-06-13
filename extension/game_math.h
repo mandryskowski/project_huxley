@@ -53,4 +53,7 @@ bool Vec2d_equals(Vec2d, Vec2d);
 Vec2i Vec2d_to_Vec2i(Vec2d);
 Vec2d Vec2i_to_Vec2d(Vec2i);
 
+double Vec2d_metric_distance(Vec2d lhs, Vec2d rhs); 
+Vec2i Vec2i_middle(Vec2i lhs, Vec2i rhs);
+
 #endif // GAME_MATH_H
