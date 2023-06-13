@@ -49,14 +49,14 @@ void handleEvents(GameState* state)
     updateVelocity(state, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_RIGHT, GLFW_KEY_LEFT, state->player->entity->attack_SPD,
                    &state->player->entity->attack_velocity, 0);
 
-    Vec2d vel_norm = Vec2d_normalize(state->player->entity->velocity);
-    Vec2d vel_atk_norm = Vec2d_normalize(state->player->entity->attack_velocity);
+    Vec2d vel_norm = state->player->entity->velocity;
+    Vec2d vel_atk_norm = state->player->entity->attack_velocity;
 
     if (!Vec2d_zero(vel_atk_norm))
     {
-        state->player->entity->attack_velocity = Vec2d_scale(Vec2d_add(
+        state->player->entity->attack_velocity = Vec2d_scale(Vec2d_normalize(Vec2d_add(
                 Vec2d_scale(vel_norm, state->player->movement_swing),
-                Vec2d_scale(vel_atk_norm, 1 - state->player->movement_swing)), state->player->entity->attack_SPD);
+                Vec2d_scale(vel_atk_norm, 1 - state->player->movement_swing))), state->player->entity->attack_SPD);
     }
 }
 
@@ -159,6 +159,11 @@ void gameLoop(GameState* gState)
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
     RenderState rState = RenderState_construct();
+
+    {
+        const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        rState.resolution = (Vec2i) {mode->width, mode->height};
+    }
 
     Player *player;
     player = Entity_construct_player();
