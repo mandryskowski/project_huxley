@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "../room.h"
 #include "../entity.h"
+#include "../movement.h"
 #include "../game_math.h"
 
 void generate_room(int seed)
@@ -37,7 +38,7 @@ void generate_room(int seed)
         for (int j = 1; j < width - 1; j++)
         {
             int prob = rand() % 100;
-            if (prob < 93)
+            if (prob < 100)
             {
                 tiles[i][j] = TILE_FLOOR;
             }
@@ -64,8 +65,8 @@ void generate_room(int seed)
                 monsters[i][j] = NOT_MONSTER;
                 continue;
             }
-            int prob = rand() % 300;
-            if (prob < 1)
+            int prob = rand() % 600;
+            if (prob < 0)
             {
                 monsters[i][j] = ZOMBIE;
             }
@@ -77,13 +78,17 @@ void generate_room(int seed)
             {
                 monsters[i][j] = FLYING_SHOOTER;
             }
+            else if (prob < 0)
+            {
+                monsters[i][j] = BOMBER;
+            }
             else
             {
                 monsters[i][j] = NOT_MONSTER;
             }
         }
     }
-    FILE *file = fopen("predefinedRooms/new_room", "w");
+    FILE *file = fopen("predefinedRooms/room_generator", "w");
     fprintf(file, "%d %d\n", height, width);
     for (int i = 0; i < height; i++)
     {

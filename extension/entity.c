@@ -1,7 +1,9 @@
 #include "entity.h"
+#include "movement.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 bool isProjectile(Entity *entity)
 {
@@ -74,6 +76,9 @@ bool mine_attack(Entity *attacker, Entity *victim, AttackType type)
         case ATTACK_CONTACT:
             killEntity(attacker);
             return true;
+        case SPAWN_ENTITY:
+            killEntity(attacker);
+            return true;
         default:
             return false;
     }
@@ -81,19 +86,12 @@ bool mine_attack(Entity *attacker, Entity *victim, AttackType type)
 
 Entity construct_projectile(Entity *creator)
 {
-    return (Entity) {.ATK = 10, .canFly = false,
+    return (Entity) {.ATK = creator->ATK, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
             .HP = INT_MAX, .maxHP = INT_MAX,
             .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room};
 }
 
-Entity construct_mine(Entity *creator)
-{
-    return (Entity) {.ATK = 10, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
-            .HP = INT_MAX, .maxHP = INT_MAX,
-            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room};
-}
 
 void shooter_spawn_attack(Entity *attacker)
 {
@@ -113,11 +111,32 @@ bool shooter_attack(Entity *attacker, Entity *victim, AttackType type)
     }
 }
 
+void mine_death(Entity *attacker)
+{
+    Rectangle mine_hitbox = (Rectangle){{attacker->pos.x - 1, attacker->pos.y - 1}, {attacker->pos.x + 2, attacker->pos.y + 2}};
+    for (Entity **entity = attacker->room->entities; *entity; entity++)
+    {
+        Vec2d colResult = detectCollisionRect(mine_hitbox, rectangle_Vec2d((*entity)->hitbox, (*entity)->pos));
+        if (colResult.x > 0 && colResult.y > 0)
+        {
+            (*entity)->HP -= attacker->ATK;
+        }
+    }
+}
+
+Entity construct_mine(Entity *creator)
+{
+    return (Entity) {.ATK = 90, .canFly = false,
+            .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
+            .HP = INT_MAX, .maxHP = INT_MAX, .death_func = mine_death,
+            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room, .cooldown_left = 300};
+}
+
 void spawn_mine(Entity *attacker)
 {
-    Entity *projectile = malloc(sizeof(Entity));
-    *projectile = construct_projectile(attacker);
-    attacker->room->entities[attacker->room->entity_cnt++] = projectile;
+    Entity *mine = malloc(sizeof(Entity));
+    *mine = construct_mine(attacker);
+    attacker->room->entities[attacker->room->entity_cnt++] = mine;
 }
 
 bool bomber_attack(Entity *attacker, Entity *victim, AttackType type)
@@ -129,6 +148,14 @@ bool bomber_attack(Entity *attacker, Entity *victim, AttackType type)
         default:
             return false;
     }
+}
+
+void construct_bomber(Entity *monster)
+{
+    *monster =  (Entity) {.ATK = 0, .canFly = false,
+            .hitbox = (Rectangle){(Vec2d){-0.2, -0.2}, (Vec2d){0.2, 0.2}},
+            .HP = 1, .maxHP = 1,
+            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0};
 }
 
 void construct_zombie(Entity *monster)
@@ -184,6 +211,9 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
         case FLYING_SHOOTER:
             construct_flying_shooter(monster);
             break;
+        case BOMBER:
+            construct_bomber(monster);
+            break;
         default:
             perror("not a monster mf\n");
             exit(0);
@@ -193,5 +223,10 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
     monster->pos = pos;
 
     return monster;
+}
+
+bool isMine(Entity *entity)
+{
+    return fabs(entity->SPD) < EPSILON;
 }
 
