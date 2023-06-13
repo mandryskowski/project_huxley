@@ -4,18 +4,22 @@
 #include "game_math.h"
 #include "state.h"
 #include "entity.h"
+#include "level.h"
 
 TileType getTile(Vec2i vec, GameState *state)
 {
-    return state->currentRoom->tiles[vec.x][vec.y].type;
+    return state->currentLevel->currentRoom->tiles[vec.x][vec.y].type;
 }
 
-Room *Room_construct(uint width, uint height, FILE *file, Player *player)
+Room *construct_room(char *filename , RoomType type)
 {
+    FILE *file = fopen(filename, "r");
+    int height, width;
+    fscanf(file, "%d %d", &width, &height);
+
     Room *room = malloc(sizeof(Room));
 
-    room->width = width;
-    room->height = height;
+    room->size = (Vec2i){width, height};
     room->entity_cnt = 1;
     room->tiles = malloc(width * sizeof(Tile*));
 
@@ -45,30 +49,19 @@ Room *Room_construct(uint width, uint height, FILE *file, Player *player)
         }
     }
 
-    for (int x = 1; x < width - 1; x++)
+    fclose(file);
+    return room;
+}
+
+bool isClear(Room *room)
+{
+    for (Entity **entity = room->entities; *entity; entity++)
     {
-        for (int y = 1; y < height - 1; y++)
+        if ((*entity)->faction == ENEMY)
         {
-            bool clear = true;
-            for (int k = -1; k < 2; k++)
-            {
-                for (int l = -1; l < 2; l++)
-                {
-                    if (room->tiles[x + k][y + l].type != TILE_FLOOR)
-                    {
-                        clear = false;
-                    }
-                }
-            }
-            if (clear)
-            {
-                player->entity->pos = (Vec2d){x + 0.5, y + 0.5};
-                player->entity->room = room;
-                *room->entities = player->entity;
-            }
+            return false;
         }
     }
 
-
-    return room;
+    return true;
 }
