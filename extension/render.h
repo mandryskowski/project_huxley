@@ -8,7 +8,7 @@ typedef unsigned int uint;
 typedef struct RenderState
 {
     uint LevelVAO;
-    uint IsoLevelVAO;
+    uint IsoLevelVAO, IsoLevelVAO2;
     uint QuadVAO;
     int shader;
     uint tileAtlas, characterAtlas, isoTileAtlas, isoCharacterAtlas;

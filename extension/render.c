@@ -326,7 +326,7 @@ void renderGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
 
 void renderIsoGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
 {
-        Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * (state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
+        Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * ((double)state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
     Vec2d lolOffset = (Vec2d){0,0};// Vec2d_add(Vec2d_scale(gState->player->cameraSize, -0.19), (Vec2d){5.94, 5.94});
     Vec2d cameraCenterGrid = getIsoPos(Vec2d_add((Vec2d){0,0},Vec2d_add(gState->player->entity->pos, Vec2d_rotate(Vec2d_scale(gState->player->cameraSize, 0), 0))), gState->currentLevel->currentRoom->size);
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (0.19 * gState->player->cameraSize.x / gState->currentRoom->size.y),  -cameraCenterGrid.y* (0.19 * gState->player->cameraSize.y / gState->currentRoom->size.y)}, (Vec2d){lolOffset.x / gState->currentRoom->size.y, lolOffset.y / gState->currentRoom->size.y});
@@ -377,7 +377,7 @@ void render(GameState* gState, RenderState* state)
                         Vec2d hitboxSize = Vec2d_add((*ent)->hitbox.topRight, Vec2d_scale((*ent)->hitbox.bottomLeft, -1.0f));
             Vec2d hitboxPos = Vec2d_add((*ent)->hitbox.bottomLeft, Vec2d_scale(hitboxSize, 0.5f));
             Vec2d absoluteHitboxPos = Vec2d_add((*ent)->pos, hitboxPos);
-        glUniform1i(glGetUniformLocation(state->shader, "customDepth"),absoluteHitboxPos.x +  absoluteHitboxPos.y  + 1 );
+        glUniform1i(glGetUniformLocation(state->shader, "customDepth"),absoluteHitboxPos.x +  absoluteHitboxPos.y );
         }
         int entityTexID;
         if (isProjectile(*ent))
