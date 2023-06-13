@@ -9,13 +9,21 @@
 #include "movement.h"
 #include "gui.h"
 #include "pathfind.h"
+#include "util.h"
+#include "level.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 void errorCallback(int lol, const char* str)
 {
-    printf("Blad %d: %s \n", lol, str);
+    printf("Error %d: %s \n", lol, str);
+}
+
+void framebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+    RenderState* rState = glfwGetWindowUserPointer(window);
+    rState->resolution = (Vec2i){width, height};
 }
 
 void updateVelocity(GameState* state, int up, int down, int right, int left, double max_spd, Vec2d *velocity, double acceleration)
@@ -49,30 +57,20 @@ void handleEvents(GameState* state)
     updateVelocity(state, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_RIGHT, GLFW_KEY_LEFT, state->player->entity->attack_SPD,
                    &state->player->entity->attack_velocity, 0);
 
-    Vec2d vel_norm = Vec2d_normalize(state->player->entity->velocity);
-    Vec2d vel_atk_norm = Vec2d_normalize(state->player->entity->attack_velocity);
-
-    if (!Vec2d_zero(vel_atk_norm))
+    if (!Vec2d_zero(state->player->entity->attack_velocity))
     {
-        state->player->entity->attack_velocity = Vec2d_scale(Vec2d_add(
-                Vec2d_scale(vel_norm, state->player->movement_swing),
-                Vec2d_scale(vel_atk_norm, 1 - state->player->movement_swing)), state->player->entity->attack_SPD);
+        state->player->entity->attack_velocity = Vec2d_scale(Vec2d_normalize(Vec2d_add(
+                Vec2d_scale(state->player->entity->velocity , state->player->movement_swing),
+                Vec2d_scale(state->player->entity->attack_velocity, 1 - state->player->movement_swing))), state->player->entity->attack_SPD);
     }
 }
 
 void update_cooldowns(GameState* state)
 {
-    for (Entity **entity = state->currentRoom->entities; *entity; entity++)
+    for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
     {
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
     }
-}
-
-void swap(void **this, void **other)
-{
-    void *helper = *this;
-    *this = *other;
-    *other = helper;
 }
 
 void erase_dead(Room *room)
@@ -94,7 +92,8 @@ void erase_dead(Room *room)
 
 void update(GameState* state, double dt)
 {
-    Entity** arr = state->currentRoom->entities;
+    state->renderNewRoom = false;
+    Entity** arr = state->currentLevel->currentRoom->entities;
 
     Vec2d* velocities = path((**arr).pos, arr + 1, state);
 
@@ -112,10 +111,18 @@ void update(GameState* state, double dt)
     if (!Vec2d_zero(state->player->entity->attack_velocity)) {
         handle_attack(state->player->entity, NULL, SPAWN_PROJECTILE);
     }
+    for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
+    {
+        handle_attack(*entity, NULL, SPAWN_PROJECTILE);
+    }
 
     move(state, arr, dt);
     update_cooldowns(state);
-    erase_dead(state->currentRoom);
+    erase_dead(state->currentLevel->currentRoom);
+    if (state->renderNewRoom)
+    {
+        jump_to_next_room(state);
+    }
 }
 
 void initGame(GameState* state)
@@ -160,19 +167,18 @@ void gameLoop(GameState* gState)
     double lastUpdateTime = glfwGetTime();
     RenderState rState = RenderState_construct();
 
+    {
+        glfwGetFramebufferSize(gState->window, &rState.resolution.x, &rState.resolution.y);
+    }
+
+    glfwSetWindowUserPointer(gState->window, &rState);
+    glfwSetWindowSizeCallback(gState->window, framebufferSizeCallback);
+
     Player *player;
     player = Entity_construct_player();
-
-    FILE *file = fopen("predefinedRooms/new_room", "r");
-    int height, width;
-    fscanf(file, "%d %d", &width, &height);
-
-    Room *room = Room_construct(width, height, file, player);
-
-    gState->currentRoom = room;
     gState->player = player;
 
-    fclose(file);
+    gState->currentLevel = construct_level(player, 6);
 
     initRenderState(gState, &rState);
 
@@ -183,12 +189,18 @@ void gameLoop(GameState* gState)
     while (!glfwWindowShouldClose(gState->window))
     {
         glfwPollEvents();
+
         double deltaTime = glfwGetTime() - lastUpdateTime;
         if (deltaTime >= timestep)
         {
             handleEvents(gState);
             update(gState, deltaTime);
             lastUpdateTime = glfwGetTime();
+            if (gState->renderNewRoom)
+            {
+                refreshRoom(gState, &rState);
+                //printf("xdd\n");
+            }
         }
         gui_update(gState, &rState);
 

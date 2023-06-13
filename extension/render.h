@@ -8,7 +8,7 @@ typedef unsigned int uint;
 typedef struct RenderState
 {
     uint LevelVAO;
-    uint IsoLevelVAO;
+    uint IsoLevelVAO, IsoLevelVAO2;
     uint QuadVAO;
     int shader;
     uint tileAtlas, characterAtlas, isoTileAtlas, isoCharacterAtlas;
@@ -24,6 +24,7 @@ typedef struct RenderState
 RenderState RenderState_construct();
 
 void initRenderState(GameState*, RenderState*);
+void refreshRoom(GameState*, RenderState*);
 
 void render(GameState*, RenderState*);
 void renderIsometric(GameState*, RenderState*);

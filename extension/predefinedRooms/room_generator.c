@@ -74,7 +74,7 @@ Room *generate_room(int seed, Mode mode)
 
     if (seed == -1)
     {
-        srand(time(0));
+        srand48(clock());
     }
     else
     {
@@ -99,19 +99,60 @@ Room *generate_room(int seed, Mode mode)
     room->height = height;
     room->width = width;
 
-    //Putting down the elements.
-    put_tiles(room, mode);
-
-    return room;
-}
-
-void room_to_file(Room* room, MonsterType** monsters)
-{
-    
-    //Generating output file.
+    for (int i = 1; i < height - 1; i++)
+    {
+        for (int j = 1; j < width - 1; j++)
+        {
+            int prob = rand() % 100;
+            if (prob < 90)
+            {
+                tiles[i][j] = TILE_FLOOR;
+            }
+            else if (prob < 94)
+            {
+                tiles[i][j] = TILE_HOLE;
+            }
+            else if (prob < 97)
+            {
+                tiles[i][j] = TILE_BARRIER;
+            }
+            else
+            {
+                tiles[i][j] = TILE_WALL;
+            }
+        }
+    }
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            if (tiles[i][j] != TILE_FLOOR)
+            {
+                monsters[i][j] = NOT_MONSTER;
+                continue;
+            }
+            int prob = rand() % 300;
+            if (prob < 0)
+            {
+                monsters[i][j] = ZOMBIE;
+            }
+            else if (prob < 0)
+            {
+                monsters[i][j] = SHOOTER;
+            }
+            else if (prob < 0)
+            {
+                monsters[i][j] = FLYING_SHOOTER;
+            }
+            else
+            {
+                monsters[i][j] = NOT_MONSTER;
+            }
+        }
+    }
     FILE *file = fopen("predefinedRooms/new_room", "w");
-    fprintf(file, "%d %d\n", room->height, room->width);
-    for (int i = 0; i < room->height; i++)
+    fprintf(file, "%d %d\n", height, width);
+    for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < room->width; j++)
         {
