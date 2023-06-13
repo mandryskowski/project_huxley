@@ -83,31 +83,36 @@ void erase_dead(Room *room)
     }
 }
 
+static int frame_cnt = 0;
 
 void update(GameState* state, double dt)
 {
+    frame_cnt++;
     state->renderNewRoom = false;
     Entity** arr = state->currentLevel->currentRoom->entities;
 
-    Vec2d* velocities = path((**arr).pos, arr + 1, state);
 
-    int index = 0;
-    for(Entity** other = arr+1; *other != NULL; other++)
+    if (frame_cnt % 1 == 0)
     {
-        if (isProjectile(*other))
+        int index = 0;
+        Vec2d* velocities = path((**arr).pos, arr + 1, state);
+        for(Entity** other = arr+1; *other != NULL; other++)
         {
-            continue;
+            if (isProjectile(*other))
+            {
+                continue;
+            }
+            (*other)->velocity = Vec2d_scale(*(velocities+index), (*other)->SPD);
+            index++;
         }
-        (*other)->velocity = Vec2d_scale(*(velocities+index), (*other)->SPD);
-        index++;
     }
 
     if (!Vec2d_zero(state->player->entity->attack_velocity)) {
-        handle_attack(state->player->entity, NULL, SPAWN_PROJECTILE);
+        handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
     }
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        handle_attack(*entity, NULL, SPAWN_PROJECTILE);
+        handle_attack(*entity, NULL, SPAWN_ENTITY);
     }
 
     move(state, arr, dt);
