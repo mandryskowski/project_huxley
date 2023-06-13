@@ -4,9 +4,10 @@
 #include "../room.h"
 #include "../entity.h"
 #include "../game_math.h"
+#include "structure_builder.h"
 
 typedef enum {EASY, MEDIUM, HARD, INSANE} Mode;
-typedef enum {Horizontal_LINE,Vertical_LINE,L_SHAPE, U_SHAPE, T_SHAPE} Structure;
+
 #define AVG(a,b) ((a+b)/2.0)
 
 double position_chance(Vec2i current_i, int height, int width, Mode mode)
@@ -71,6 +72,46 @@ void put_monsters(MonsterType** monsters, TileType** tiles, int height, int widt
 
 void put_tiles(TileType** tiles,int height, int width, Mode mode)
 {
+    
+
+    // for (int i = 1; i < height - 1; i++)
+    // {
+    //     for (int j = 1; j < width - 1; j++)
+    //     {
+    //         int prob = rand() % 100;
+    //         if (prob < 93)
+    //         {
+    //             tiles[i][j] = TILE_FLOOR;
+    //         }
+    //         else if (prob < 94)
+    //         {
+    //             tiles[i][j] = TILE_HOLE;
+    //         }
+    //         else if (prob < 97)
+    //         {
+    //             tiles[i][j] = TILE_BARRIER;
+    //         }
+    //         else
+    //         {
+    //             tiles[i][j] = TILE_WALL;
+    //         }
+    //     }
+    // }
+
+    //VISIBLE TILES 
+    Vec2i topLeft = (Vec2i) {1, height - 1};
+    Vec2i topRight = (Vec2i) {width - 1, height - 1};
+    Vec2i bottomRight = (Vec2i) {width - 1, 1};
+    Vec2i bottomLeft = (Vec2i) {1, 1};
+    Vec2i middle = Vec2i_middle(topLeft, bottomRight);
+
+    //SEGMENTATION FAULT MEANS THERE IS NOT ENOUGH ROOM TO SPAWN THE PLAYER
+    patternBuilder(tiles, CHECKERED, topLeft, middle, TILE_BARRIER);
+    patternBuilder(tiles, CHECKERED, middle, topRight, TILE_BARRIER);
+    patternBuilder(tiles, CHECKERED, middle, bottomLeft,TILE_BARRIER);
+    presetStructures(tiles, U_SHAPE, middle, bottomRight, TILE_BARRIER, 30);
+
+    //ADDING THE OUTLINE
     for (int i = 0; i < height; i++)
     {
         tiles[i][0] = TILE_WALL;
@@ -82,30 +123,7 @@ void put_tiles(TileType** tiles,int height, int width, Mode mode)
         tiles[height - 1][i] = TILE_WALL;
     }
 
-    for (int i = 1; i < height - 1; i++)
-    {
-        for (int j = 1; j < width - 1; j++)
-        {
-            int prob = rand() % 100;
-            if (prob < 93)
-            {
-                tiles[i][j] = TILE_FLOOR;
-            }
-            else if (prob < 94)
-            {
-                tiles[i][j] = TILE_HOLE;
-            }
-            else if (prob < 97)
-            {
-                tiles[i][j] = TILE_BARRIER;
-            }
-            else
-            {
-                tiles[i][j] = TILE_WALL;
-            }
-        }
-    }
-
+    //ADDING THE DOORS
     tiles[0][width / 2 - 1] = TILE_DOOR;
     tiles[0][width / 2] = TILE_DOOR;
     tiles[height / 2 - 1][0] = TILE_DOOR;
@@ -197,8 +215,6 @@ void generate_room(int seed)
 
     fclose(file);
 }
-
-//
 
 int main()
 {
