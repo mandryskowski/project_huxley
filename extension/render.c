@@ -368,7 +368,7 @@ void render(GameState* gState, RenderState* state)
     for(Entity** ent = entities; *ent != NULL; ent++)
     {
         Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(getIsoOrGridPos(gState, state, (*ent)->pos), (Vec2d){1.0f, 1.0f}), viewMat);
-        glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), Vec2d_rotate((*ent)->velocity, 45.0).x < 0.0);
+        glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), Vec2d_rotate((*ent)->velocity, 45.0).x < EPSILON);
 
         Vec2d lb = Vec2d_add((*ent)->pos, Vec2d_scale((*ent)->hitbox.bottomLeft, 1));
         Vec2d rb = Vec2d_add((*ent)->pos, Vec2d_scale((Vec2d){(*ent)->hitbox.topRight.x, (*ent)->hitbox.bottomLeft.y}, 1));
