@@ -71,7 +71,7 @@ bool projectile_attack(Entity *attacker, Entity *victim, AttackType type)
 Entity construct_projectile(Entity *creator)
 {
     return (Entity) {.ATK = 10, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.1f, -0.1f}, (Vec2d){0.1f, 0.1f}},
+            .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
             .HP = INT_MAX, .maxHP = INT_MAX,
             .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room};
 }
@@ -97,25 +97,25 @@ bool shooter_attack(Entity *attacker, Entity *victim, AttackType type)
 void construct_zombie(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 3, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
+            .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 100, .maxHP = 100,
-            .SPD = 2, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0};
 }
 
 void construct_shooter(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 1, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
+            .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 2, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}};
 }
 
 void construct_flying_shooter(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 1, .canFly = true,
-            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
+            .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 3, .velocity = (Vec2d){0.0f, 0.0f}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}};
+            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}};
 }
 
 Player *Entity_construct_player()
@@ -124,8 +124,8 @@ Player *Entity_construct_player()
     Entity *entity = calloc(sizeof(Entity), 1);
 
     *entity = (Entity) {.ATK = 100, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
-            .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0f, 0.0f},
+            .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
+            .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0},
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30};
     *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8};
 
