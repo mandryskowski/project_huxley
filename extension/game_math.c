@@ -135,3 +135,8 @@ double Vec2d_metric_distance(Vec2d lhs, Vec2d rhs)
 {
     return sqrt((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y));
 }
+
+Vec2i Vec2i_middle(Vec2i lhs, Vec2i rhs)
+{
+    return (Vec2i) {(lhs.x + rhs.x) / 2, (lhs.y + rhs.y) / 2};
+}
