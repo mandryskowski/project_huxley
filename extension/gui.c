@@ -34,14 +34,14 @@ void gui_render() {
     ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
 }
 
-void sliderDouble(char* label, double* ptr, double min, double max)
+bool sliderDouble(char* label, double* ptr, double min, double max)
 {
-    igSliderScalar(label, ImGuiDataType_Double, ptr, &min, &max, NULL, 0);
+    return igSliderScalar(label, ImGuiDataType_Double, ptr, &min, &max, NULL, 0);
 }
 
-void sliderDoubleN(char* label, double* ptr, uint n, double min, double max)
+bool sliderDoubleN(char* label, double* ptr, uint n, double min, double max)
 {
-    igSliderScalarN(label, ImGuiDataType_Double, ptr, n, &min, &max, NULL, 0);
+    return igSliderScalarN(label, ImGuiDataType_Double, ptr, n, &min, &max, NULL, 0);
 }
 
 void gui_update(GameState* gState, RenderState* rState) {
@@ -50,16 +50,33 @@ void gui_update(GameState* gState, RenderState* rState) {
     igNewFrame();
 
     igBegin("Game debug", NULL, 0);
-    igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);
-    igCheckbox("Isometric render", &rState->renderIsometric);
-    
-    igSliderInt2("Resolution", &rState->resolution, 1, 2048, NULL, 0);
 
 
-    sliderDouble("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f);
-    sliderDouble("Player movement swing", &gState->player->movement_swing, 0.0f, 1.0f);
+
+    if (sliderDouble("1:1 Camera size", &gState->player->cameraSize.x, 1.0, 32.0))
+    {
+        gState->player->cameraSize.y = gState->player->cameraSize.x;
+    }
+    sliderDoubleN("Camera size", &gState->player->cameraSize, 2, 1.0, 32.0);
+    if (igButton("1:1 camera to room size", (ImVec2){0, 0}))
+    {
+        double size = (double)min(gState->currentRoom->size.x, gState->currentRoom->size.y);
+        gState->player->cameraSize = (Vec2d){size, size};
+    }
+    igSameLine(0, 16.0);
+    if (igButton("Stretch camera to room size", (ImVec2){0, 0}))
+    {
+        gState->player->cameraSize = Vec2i_to_Vec2d(gState->currentRoom->size);
+    }
     // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
-    igCheckbox("VSync?", &rState->VSync);
+
+    if (igButton("Kill all non-player entities", (ImVec2){0, 0}))
+    {
+        for (int i = 1; i < gState->currentRoom->entity_cnt; i++)
+        {
+            gState->currentRoom->entities[i]->HP = 0;
+        }
+    }
     igShowMetricsWindow(NULL);
     if (igTreeNode_Str("Entity tree"))
     {
@@ -85,7 +102,9 @@ void gui_update(GameState* gState, RenderState* rState) {
                     sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
                     igCheckbox("Can fly?", &(*arr)->canFly);
                     igSliderInt("HP", &(*arr)->HP, 0, 100, NULL, 0);
-                    igSliderInt("ATK", &(*arr)->ATK, 0, 100, NULL, 0);
+                    sliderDouble("ATK", &(*arr)->ATK, 0, 100);
+                    sliderDouble("ATK speed", &(*arr)->attack_SPD, 0, 100);
+                    igSliderInt("ATK cooldown", &(*arr)->attack_cooldown, 0, 100, NULL, 0);
 
                     igTreePop();
                 }
@@ -97,5 +116,15 @@ void gui_update(GameState* gState, RenderState* rState) {
         igTreePop();
     }
 
+    igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);
+    igCheckbox("Isometric render", &rState->renderIsometric);
+    
+    igSliderInt2("Resolution", &rState->resolution, 1, 2048, NULL, 0);
+
+
+    sliderDouble("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f);
+    sliderDouble("Player movement swing", &gState->player->movement_swing, 0.0f, 1.0f);
+    igCheckbox("VSync?", &rState->VSync);
+    
     igEnd();
 }

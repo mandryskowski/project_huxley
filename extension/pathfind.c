@@ -8,8 +8,8 @@
 #include "pathfind.h"
 
 bool isOutOfBounds(Vec2i a, Room* room) {
-    return !(0 <= a.x && a.x < room->width
-          && 0 <= a.y && a.y < room->height);
+    return !(0 <= a.x && a.x < room->size.x
+          && 0 <= a.y && a.y < room->size.y);
 }
 
 bool isWalkable(Room* room, Vec2i tile) {
@@ -23,14 +23,14 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
 
     Vec2i startTile = Vec2d_to_Vec2i(start);
 
-    Vec2i* queue = calloc(gState->currentRoom->width * gState->currentRoom->height, sizeof(Vec2i));
+    Vec2i* queue = calloc(gState->currentRoom->size.x * gState->currentRoom->size.y, sizeof(Vec2i));
     int qFront = 0, qEnd = 0;
     queue[0] = startTile;
-    int** bfs = calloc(gState->currentRoom->width, sizeof(int*));
-    for(int i = 0; i < gState->currentRoom->width; i++) {
-        bfs[i] = calloc(gState->currentRoom->height, sizeof(int));
+    int** bfs = calloc(gState->currentRoom->size.x, sizeof(int*));
+    for(int i = 0; i < gState->currentRoom->size.x; i++) {
+        bfs[i] = calloc(gState->currentRoom->size.y, sizeof(int));
     }
-    int MAX_SIZE = gState->currentRoom->width * gState->currentRoom->height;
+    int MAX_SIZE = gState->currentRoom->size.x * gState->currentRoom->size.y;
     bfs[startTile.x][startTile.y] = MAX_SIZE;
 
     while(qFront <= qEnd) {
@@ -101,7 +101,7 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
         entityPos++;
     }
 
-    for(int i = 0; i < gState->currentRoom->width; i++) {
+    for(int i = 0; i < gState->currentRoom->size.x; i++) {
        free(bfs[i]);
     }
     free(bfs);

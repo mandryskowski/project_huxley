@@ -14,8 +14,7 @@ Room *Room_construct(uint width, uint height, FILE *file, Player *player)
 {
     Room *room = malloc(sizeof(Room));
 
-    room->width = width;
-    room->height = height;
+    room->size = (Vec2i){width, height};
     room->entity_cnt = 1;
     room->tiles = malloc(width * sizeof(Tile*));
 
