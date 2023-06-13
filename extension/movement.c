@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "level.h"
 
 void playerMovement(GameState* state, double dt)
 {
@@ -56,7 +57,7 @@ bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
     return false;
 }
 
-double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles)
+double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles, GameState *state, bool isclear)
 {
     double highestAfterCollision = 0;
     Entity *currEntity = *currEntityPtr;
@@ -78,15 +79,6 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
                                           &newVelocity, currEntity->velocity);
         if (collides)
         {
-//            Entity  **xd = entity;
-//            while (*xd)
-//            {
-//                printf("%p\n", (*xd)->attack_func);
-//                (*xd)->attack_func(*xd, NULL, ATTACK_CONTACT);
-//                xd++;
-//            }
-//            printf("%p\n", zombie_attack);
-//            exit(0);
             deal_collison_damage(currEntity, other);
             if (isDead(*currEntityPtr))
             {
@@ -101,10 +93,17 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
         bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
                                           &newVelocity, currEntity->velocity);
 
-        if (collides && isProjectile(currEntity))
+        if (collides)
         {
-            killEntity(currEntity);
-            return  0; // Entity is dead
+            if (isclear && currEntityPtr == entity && getTile(Vec2d_to_Vec2i(Vec2d_scale(Vec2d_add(otherHitbox.bottomLeft, otherHitbox.topRight), 0.5)), state) == TILE_DOOR)
+            {
+                state->renderNewRoom = true;
+            }
+            if (isProjectile(currEntity))
+            {
+                killEntity(currEntity);
+                return  0; // Entity is dead
+            }
         }
     }
 
@@ -118,6 +117,11 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
     for (int i = cBounds.x; i <= cBounds.y; i++)
     {
         Vec2i tile = isX ? (Vec2i){valBound, i} : (Vec2i){i, valBound};
+
+//        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
+//        {
+//            continue;
+//        }
         
         if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
         {
@@ -156,6 +160,7 @@ void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameSt
 void move(GameState* state, Entity** entity, double dt)
 {
     const int NUM_OF_STEPS = 6;
+    bool is_clear = isClear(state->currentLevel->currentRoom);
     for (Entity **currEntity = entity; *currEntity; currEntity++)
     {
         Rectangle *obstacles = calloc(50, sizeof(Rectangle));
@@ -166,7 +171,7 @@ void move(GameState* state, Entity** entity, double dt)
             double timePerStep = dt / NUM_OF_STEPS;
             while (timePerStep && !Vec2d_zero((*currEntity)->velocity) && !isDead(*currEntity))
             {
-                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles);
+                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles, state, is_clear);
             }
         }
         free(obstacles);

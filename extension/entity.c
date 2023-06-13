@@ -73,7 +73,7 @@ Entity construct_projectile(Entity *creator)
     return (Entity) {.ATK = 10, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.1f, -0.1f}, (Vec2d){0.1f, 0.1f}},
             .HP = INT_MAX, .maxHP = INT_MAX,
-            .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction};
+            .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room};
 }
 
 void shooter_spawn_attack(Entity *attacker)
@@ -123,7 +123,7 @@ Player *Entity_construct_player()
     Player *player = calloc(sizeof(Player), 1);
     Entity *entity = calloc(sizeof(Entity), 1);
 
-    *entity = (Entity) {.ATK = 1, .canFly = false,
+    *entity = (Entity) {.ATK = 100, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4f, -0.4f}, (Vec2d){0.4f, 0.4f}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0f, 0.0f},
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30};
