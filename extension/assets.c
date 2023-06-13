@@ -1,8 +1,32 @@
 #include "assets.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
-
+#include "game_math.h"
 #include "glad/glad.h"
+
+unsigned char** cutImages(unsigned char* uncutPtr, Vec2i atlasCounts, Vec2i tileSize, int channels)
+{
+    const int nrImages = atlasCounts.x * atlasCounts.y;
+    unsigned char** images = calloc(nrImages, sizeof (unsigned char*));
+    for (int i = 0; i < nrImages; i++)
+    {
+        images[i] = malloc(tileSize.x * tileSize.y * channels);
+    }
+    for (int y = 0; y < atlasCounts.y; y++)
+    {
+        for (int line = 0; line < tileSize.y; line++)
+        {
+            for (int x = 0; x < atlasCounts.x; x++)
+            {
+                memcpy(images[x + y * atlasCounts.x] + line * tileSize.x * channels,
+                        uncutPtr,
+                        tileSize.x * channels);
+                uncutPtr += tileSize.x * channels;
+            }
+        }
+    }
+    return images;
+}
 
 uint loadAtlas(char* filename, int width, int height)
 {
@@ -20,13 +44,18 @@ uint loadAtlas(char* filename, int width, int height)
     int tileWidth = imgWidth / width;
     int tileHeight = imgHeight / height;
 
+    unsigned char** tiles = cutImages(data, (Vec2i){width, height}, (Vec2i){tileWidth, tileHeight}, imgChannels);
+
     uint atlasTex;
     glGenTextures(1, &atlasTex);
     glBindTexture(GL_TEXTURE_2D_ARRAY, atlasTex);
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, tileWidth, tileWidth, nrTiles, 0, (imgChannels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, tileWidth, tileHeight, width * height, (imgChannels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
-
+    for (int i = 0; i < nrTiles; i++)
+    {
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, tileWidth, tileHeight, 1, (imgChannels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, tiles[i]);
+        free(tiles[i]);
+    }
     // Texture parameters
     glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
@@ -35,6 +64,7 @@ uint loadAtlas(char* filename, int width, int height)
     //glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 7);
 
     stbi_image_free(data);
+    free(tiles);
 
     return atlasTex;
 }

@@ -24,6 +24,7 @@ typedef struct RenderState
 RenderState RenderState_construct();
 
 void initRenderState(GameState*, RenderState*);
+void refreshRoom(GameState*, RenderState*);
 
 void render(GameState*, RenderState*);
 void renderIsometric(GameState*, RenderState*);
