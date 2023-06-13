@@ -68,12 +68,31 @@ bool projectile_attack(Entity *attacker, Entity *victim, AttackType type)
     }
 }
 
+bool mine_attack(Entity *attacker, Entity *victim, AttackType type)
+{
+    switch (type) {
+        case ATTACK_CONTACT:
+            killEntity(attacker);
+            return true;
+        default:
+            return false;
+    }
+}
+
 Entity construct_projectile(Entity *creator)
 {
     return (Entity) {.ATK = 10, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
             .HP = INT_MAX, .maxHP = INT_MAX,
             .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room};
+}
+
+Entity construct_mine(Entity *creator)
+{
+    return (Entity) {.ATK = 10, .canFly = false,
+            .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
+            .HP = INT_MAX, .maxHP = INT_MAX,
+            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room};
 }
 
 void shooter_spawn_attack(Entity *attacker)
@@ -86,8 +105,26 @@ void shooter_spawn_attack(Entity *attacker)
 bool shooter_attack(Entity *attacker, Entity *victim, AttackType type)
 {
     switch (type) {
-        case SPAWN_PROJECTILE:
+        case SPAWN_ENTITY:
             shooter_spawn_attack(attacker);
+            return true;
+        default:
+            return false;
+    }
+}
+
+void spawn_mine(Entity *attacker)
+{
+    Entity *projectile = malloc(sizeof(Entity));
+    *projectile = construct_projectile(attacker);
+    attacker->room->entities[attacker->room->entity_cnt++] = projectile;
+}
+
+bool bomber_attack(Entity *attacker, Entity *victim, AttackType type)
+{
+    switch (type) {
+        case SPAWN_ENTITY:
+            spawn_mine(attacker);
             return true;
         default:
             return false;
