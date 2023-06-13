@@ -8,7 +8,7 @@
 typedef struct Entity Entity;
 
 typedef enum {
-    ATTACK_CONTACT, SPAWN_PROJECTILE
+    ATTACK_CONTACT, SPAWN_ENTITY
 } AttackType;
 
 typedef enum {
