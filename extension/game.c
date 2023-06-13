@@ -51,14 +51,11 @@ void handleEvents(GameState* state)
     updateVelocity(state, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_RIGHT, GLFW_KEY_LEFT, state->player->entity->attack_SPD,
                    &state->player->entity->attack_velocity, 0);
 
-    Vec2d vel_norm = Vec2d_normalize(state->player->entity->velocity);
-    Vec2d vel_atk_norm = Vec2d_normalize(state->player->entity->attack_velocity);
-
-    if (!Vec2d_zero(vel_atk_norm))
+    if (!Vec2d_zero(state->player->entity->attack_velocity))
     {
-        state->player->entity->attack_velocity = Vec2d_scale(Vec2d_add(
-                Vec2d_scale(vel_norm, state->player->movement_swing),
-                Vec2d_scale(vel_atk_norm, 1 - state->player->movement_swing)), state->player->entity->attack_SPD);
+        state->player->entity->attack_velocity = Vec2d_scale(Vec2d_normalize(Vec2d_add(
+                Vec2d_scale(state->player->entity->velocity , state->player->movement_swing),
+                Vec2d_scale(state->player->entity->attack_velocity, 1 - state->player->movement_swing))), state->player->entity->attack_SPD);
     }
 }
 
@@ -116,13 +113,9 @@ void update(GameState* state, double dt)
     move(state, arr, dt);
     update_cooldowns(state);
     erase_dead(state->currentLevel->currentRoom);
-    if (getTile(Vec2d_to_Vec2i(state->player->entity->pos), state) == TILE_DOOR)
-    {
-        jump_to_next_room(state);
-    }
     if (state->renderNewRoom)
     {
-        printf("xdd\n");
+        jump_to_next_room(state);
     }
 }
 
@@ -189,6 +182,11 @@ void gameLoop(GameState* gState)
             handleEvents(gState);
             update(gState, deltaTime);
             lastUpdateTime = glfwGetTime();
+            if (gState->renderNewRoom)
+            {
+                refreshRoom(gState, &rState);
+                //printf("xdd\n");
+            }
         }
         gui_update(gState, &rState);
 

@@ -9,7 +9,7 @@ void generate_room(int seed)
 {
     if (seed == -1)
     {
-        srand(time(0));
+        srand48(clock());
     }
     else
     {
@@ -37,7 +37,7 @@ void generate_room(int seed)
         for (int j = 1; j < width - 1; j++)
         {
             int prob = rand() % 100;
-            if (prob < 100)
+            if (prob < 90)
             {
                 tiles[i][j] = TILE_FLOOR;
             }
@@ -83,10 +83,6 @@ void generate_room(int seed)
             }
         }
     }
-    tiles[0][width / 2 - 1] = TILE_DOOR;
-    tiles[0][width / 2] = TILE_DOOR;
-    tiles[height / 2 - 1][0] = TILE_DOOR;
-    tiles[height / 2][0] = TILE_DOOR;
     FILE *file = fopen("predefinedRooms/new_room", "w");
     fprintf(file, "%d %d\n", height, width);
     for (int i = 0; i < height; i++)
