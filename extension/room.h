@@ -2,11 +2,11 @@
 #define ROOM_H
 
 #include <stdio.h>
+#include "game_math.h"
 #include <stdbool.h>
 
 typedef struct Player Player;
 typedef struct Entity Entity;
-typedef struct Vec2i Vec2i;
 typedef struct GameState GameState;
 typedef unsigned int uint;
 typedef enum
@@ -35,7 +35,7 @@ typedef struct Tile
 typedef struct Room
 {
     Tile** tiles;
-    uint width, height; // in tiles
+    Vec2i size;
     Entity** entities;
     int entity_cnt;
     RoomType type;

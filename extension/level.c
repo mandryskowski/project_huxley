@@ -22,11 +22,11 @@ void jump_to_next_room(GameState *state)
     {
         direction = (Vec2i){0, -1};
     }
-    if (playerPos.x + 2 > state->currentLevel->currentRoom->width)
+    if (playerPos.x + 2 > state->currentLevel->currentRoom->size.x)
     {
         direction = (Vec2i){1, 0};
     }
-    if (playerPos.y + 2 > state->currentLevel->currentRoom->height)
+    if (playerPos.y + 2 > state->currentLevel->currentRoom->size.y)
     {
         direction = (Vec2i){0, 1};
     }
@@ -49,8 +49,8 @@ void jump_to_next_room(GameState *state)
         level->currentRoom = newRoom;
         *newRoom->entities = state->player->entity;
         state->player->entity->room = newRoom;
-        state->player->entity->pos = (Vec2d){level->currentRoom->width * (1 - direction.x) / 2 + direction.x * 1.5,
-                                             level->currentRoom->height * (1 - direction.y) / 2 + direction.y * 1.5};
+        state->player->entity->pos = (Vec2d){level->currentRoom->size.x * (1 - direction.x) / 2 + direction.x * 1.5,
+                                             level->currentRoom->size.y * (1 - direction.y) / 2 + direction.y * 1.5};
     }
 }
 
@@ -59,21 +59,21 @@ void create_door(Room *room, int site)
 {
     switch (site) {
         case 0:
-            room->tiles[0][room->height / 2] = (Tile){TILE_DOOR, 9};
-            room->tiles[0][room->height / 2 + 1] = (Tile){TILE_DOOR, 10};
+            room->tiles[0][room->size.y / 2] = (Tile){TILE_DOOR, 9};
+            room->tiles[0][room->size.y / 2 + 1] = (Tile){TILE_DOOR, 10};
             break;
         case 1:
-            printf("%d %d xd\n", room->width, room->height);
-            room->tiles[room->width / 2][0] = (Tile){TILE_DOOR, 10};
-            room->tiles[room->width / 2 + 1][0] = (Tile){TILE_DOOR, 9};
+            printf("%d %d xd\n", room->size.x, room->size.y);
+            room->tiles[room->size.x / 2][0] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->size.x / 2 + 1][0] = (Tile){TILE_DOOR, 9};
             break;
         case 2:
-            room->tiles[room->width - 1][room->height / 2] = (Tile){TILE_DOOR, 10};
-            room->tiles[room->width - 1][room->height / 2 + 1] = (Tile){TILE_DOOR, 9};
+            room->tiles[room->size.x - 1][room->size.y / 2] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->size.x - 1][room->size.y / 2 + 1] = (Tile){TILE_DOOR, 9};
             break;
         case 3:
-            room->tiles[room->width / 2][room->height - 1] = (Tile){TILE_DOOR, 9};
-            room->tiles[room->width / 2 + 1][room->height - 1] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->size.x / 2][room->size.y - 1] = (Tile){TILE_DOOR, 9};
+            room->tiles[room->size.x / 2 + 1][room->size.y - 1] = (Tile){TILE_DOOR, 10};
             break;
         default:
             perror("Error in create_door xd");
