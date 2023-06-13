@@ -3,11 +3,10 @@
 #include <stdio.h>
 #include <math.h>
 #include "../room.h"
-#include "../entity.h"
 #include "../game_math.h"
 #include "structure_builder.h"
 
-void patternBuilder(TileType** tiles,Pattern pattern, Vec2i topLeft, Vec2i bottomRight, TileType type)
+void patternBuilder(Room *room, Pattern pattern, Vec2i topLeft, Vec2i bottomRight, TileType type)
 {
     int xMin = min(topLeft.x, bottomRight.x); 
     int xMax = max(topLeft.x, bottomRight.x);
@@ -21,7 +20,7 @@ void patternBuilder(TileType** tiles,Pattern pattern, Vec2i topLeft, Vec2i botto
         {
             for(int j = yMin; j <= yMax; j++)
             {
-                tiles[i][j] = type;
+                room->tiles[i][j].type = type;
             }
         }
     }
@@ -32,23 +31,23 @@ void patternBuilder(TileType** tiles,Pattern pattern, Vec2i topLeft, Vec2i botto
         {
             for(int j = yMin; j <= yMax; j += 2)
             {
-                tiles[i][j] = type;
+                room->tiles[i][j].type = type;
             }
         }
     }
 }
 
-void putLshape(TileType** tiles, Vec2i topLeft, Vec2i bottomRight, TileType type) 
+void putLshape(Room *room, Vec2i topLeft, Vec2i bottomRight, TileType type) 
 {
     Vec2i bottomLeft;
     bottomLeft.x = topLeft.x;
     bottomLeft.y = bottomRight.y;
 
-    patternBuilder(tiles, FILL, topLeft, bottomLeft, type);
-    patternBuilder(tiles, FILL, bottomLeft, bottomRight, type);
+    patternBuilder(room, FILL, topLeft, bottomLeft, type);
+    patternBuilder(room, FILL, bottomLeft, bottomRight, type);
 }
 
-void putUshape(TileType** tiles, Vec2i topLeft, Vec2i bottomRight, TileType type) 
+void putUshape(Room *room, Vec2i topLeft, Vec2i bottomRight, TileType type) 
 {
     Vec2i bottomLeft;
     bottomLeft.x = topLeft.x;
@@ -58,12 +57,12 @@ void putUshape(TileType** tiles, Vec2i topLeft, Vec2i bottomRight, TileType type
     topRight.x = bottomRight.x;
     topRight.y = topLeft.y;
 
-    patternBuilder(tiles, FILL, topLeft, bottomLeft, type);
-    patternBuilder(tiles, FILL, bottomLeft, bottomRight, type);
-    patternBuilder(tiles, FILL, bottomRight, topRight, type);
+    patternBuilder(room, FILL, topLeft, bottomLeft, type);
+    patternBuilder(room, FILL, bottomLeft, bottomRight, type);
+    patternBuilder(room, FILL, bottomRight, topRight, type);
 }
 
-void putTshape(TileType** tiles, Vec2i topLeft, Vec2i bottomRight, TileType type) 
+void putTshape(Room *room, Vec2i topLeft, Vec2i bottomRight, TileType type) 
 {
     Vec2i bottomLeft;
     bottomLeft.x = topLeft.x;
@@ -76,11 +75,11 @@ void putTshape(TileType** tiles, Vec2i topLeft, Vec2i bottomRight, TileType type
     Vec2i topMid = Vec2i_middle(topLeft, topRight);
     Vec2i bottomMid = Vec2i_middle(bottomLeft, bottomRight);
 
-    patternBuilder(tiles, FILL, topLeft, topRight, type);
-    patternBuilder(tiles, FILL, topMid, bottomMid, type);
+    patternBuilder(room, FILL, topLeft, topRight, type);
+    patternBuilder(room, FILL, topMid, bottomMid, type);
 }
 
-void presetStructures(TileType** tiles, Structure structure, Vec2i topLeft, Vec2i bottomRight, TileType type, int angle)
+void presetStructures(Room *room, Structure structure, Vec2i topLeft, Vec2i bottomRight, TileType type, int angle)
 {
     int swapper;
     if(angle % 360 >= 90)
@@ -105,13 +104,13 @@ void presetStructures(TileType** tiles, Structure structure, Vec2i topLeft, Vec2
     switch(structure) 
     {
         case L_SHAPE:
-            putLshape(tiles, topLeft, bottomRight, type);
+            putLshape(room, topLeft, bottomRight, type);
             break;
         case U_SHAPE:
-            putUshape(tiles, topLeft, bottomRight, type);
+            putUshape(room, topLeft, bottomRight, type);
             break;
         case T_SHAPE:
-            putTshape(tiles, topLeft, bottomRight, type);
+            putTshape(room, topLeft, bottomRight, type);
             break;        
     }
 }
