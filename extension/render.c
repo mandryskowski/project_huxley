@@ -326,7 +326,7 @@ void renderGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
 
 void renderIsoGrid(GameState* gState, RenderState* state, Mat3f* viewMat)
 {
-        Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * 2.0 / ((gState->player->cameraSize.y))};
+        Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * (state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
     Vec2d lolOffset = (Vec2d){0,0};// Vec2d_add(Vec2d_scale(gState->player->cameraSize, -0.19), (Vec2d){5.94, 5.94});
     Vec2d cameraCenterGrid = getIsoPos(Vec2d_add((Vec2d){0,0},Vec2d_add(gState->player->entity->pos, Vec2d_rotate(Vec2d_scale(gState->player->cameraSize, 0), 0))), gState->currentLevel->currentRoom->size);
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (0.19 * gState->player->cameraSize.x / gState->currentRoom->size.y),  -cameraCenterGrid.y* (0.19 * gState->player->cameraSize.y / gState->currentRoom->size.y)}, (Vec2d){lolOffset.x / gState->currentRoom->size.y, lolOffset.y / gState->currentRoom->size.y});
@@ -368,7 +368,7 @@ void render(GameState* gState, RenderState* state)
     for(Entity** ent = entities; *ent != NULL; ent++)
     {
         Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(getIsoOrGridPos(gState, state, (*ent)->pos), (Vec2d){1.0f, 1.0f}), viewMat);
-        glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), Vec2d_rotate((*ent)->velocity, 45.0).x < 0.0);
+        glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), Vec2d_rotate((*ent)->velocity, 45.0).x < EPSILON);
 
         Vec2d lb = Vec2d_add((*ent)->pos, Vec2d_scale((*ent)->hitbox.bottomLeft, 1));
         Vec2d rb = Vec2d_add((*ent)->pos, Vec2d_scale((Vec2d){(*ent)->hitbox.topRight.x, (*ent)->hitbox.bottomLeft.y}, 1));
