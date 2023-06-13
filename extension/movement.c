@@ -68,7 +68,7 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
         if (otherPtr == currEntityPtr || isDead(*otherPtr) ||
-        ((isProjectile(*otherPtr) || isProjectile(*currEntityPtr)) && (*otherPtr)->faction == (*currEntityPtr)->faction))
+        ((isProjectile(*otherPtr) || isProjectile(*currEntityPtr)) && (*otherPtr)->faction == (*currEntityPtr)->faction) || (isProjectile(*otherPtr) && isProjectile(*currEntityPtr)))
         {
             continue;
         }

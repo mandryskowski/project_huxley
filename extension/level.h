@@ -10,7 +10,7 @@ typedef struct Level
 {
     Room ***map;
     Room *currentRoom;
-    Vec2i currRoomCoords;
+    Vec2i currRoomCoords, prevRoomCoords;
 } Level;
 
 void jump_to_next_room(GameState *state);

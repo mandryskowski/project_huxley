@@ -131,16 +131,16 @@ Room *generate_room(int seed, Mode mode)
                 monsters[i][j] = NOT_MONSTER;
                 continue;
             }
-            int prob = rand() % 300;
-            if (prob < 0)
+            int prob = rand() % 500;
+            if (prob < 2)
             {
                 monsters[i][j] = ZOMBIE;
             }
-            else if (prob < 0)
+            else if (prob < 3)
             {
                 monsters[i][j] = SHOOTER;
             }
-            else if (prob < 0)
+            else if (prob < 4)
             {
                 monsters[i][j] = FLYING_SHOOTER;
             }
@@ -200,8 +200,13 @@ Room *generate_room(int seed, Mode mode)
 
 int main()
 {
+<<<<<<< Updated upstream
     Room *room = generate_room(-1, EASY);
     MonsterType** monsters = spawn_monsters(room, EASY);
     room_to_file(room, monsters);
     printf("new room generated\n");
 }
+=======
+    generate_room(-1);
+}
+>>>>>>> Stashed changes
