@@ -161,6 +161,11 @@ void gameLoop(GameState* gState)
     double lastUpdateTime = glfwGetTime();
     RenderState rState = RenderState_construct();
 
+    {
+        const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        rState.resolution = (Vec2i) {mode->width, mode->height};
+    }
+
     Player *player;
     player = Entity_construct_player();
     gState->player = player;

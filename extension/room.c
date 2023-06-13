@@ -19,9 +19,7 @@ Room *construct_room(char *filename , RoomType type)
 
     Room *room = malloc(sizeof(Room));
 
-    room->type = type;
-    room->width = width;
-    room->height = height;
+    room->size = (Vec2i){width, height};
     room->entity_cnt = 1;
     room->tiles = malloc(width * sizeof(Tile*));
 

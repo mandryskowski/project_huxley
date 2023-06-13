@@ -47,6 +47,7 @@ typedef struct Player
     Entity *entity;
     double acceleration_const; // between 0 and 1
     double movement_swing; // between 0 and 1
+    Vec2d cameraSize; // number of tiles visible on the x and y isometric diagonal centred around the player.
 } Player;
 
 Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
