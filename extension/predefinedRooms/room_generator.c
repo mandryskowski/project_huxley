@@ -8,7 +8,7 @@
 #include "structure_builder.h"
 #include "generator_attributes.h"
 #include "../haskell.h"
-//#include "monster_spawner.h"
+#include "monster_spawner.h"
 
 void put_tiles(Room* room, Mode mode)
 {
@@ -61,11 +61,6 @@ void put_tiles(Room* room, Mode mode)
         room->tiles[height - 1][i].type = TILE_WALL;
     }
 
-    //ADDING THE DOORS
-    room->tiles[0][width / 2 - 1].type = TILE_DOOR;
-    room->tiles[0][width / 2].type = TILE_DOOR;
-    room->tiles[height / 2 - 1][0].type = TILE_DOOR;
-    room->tiles[height / 2][0].type = TILE_DOOR;
 }
 
 Room *generate_room(int seed, Mode mode)
@@ -142,9 +137,9 @@ void room_to_file(Room* room, MonsterType** monsters)
     //Freeing tile space.
     for(int i = 0; i < height; i++)
     {
-        free(tiles[i]);
+        free(room->tiles[i]);
     }
-    free(tiles);
+    free(room->tiles);
 
     //Freeing monsters space.
     for(int i = 0; i < height; i++)
