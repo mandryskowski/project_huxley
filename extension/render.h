@@ -2,19 +2,22 @@
 #define RENDER_H
 #include "state.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include "game_math.h"
 typedef unsigned int uint;
 
-struct Animation
+typedef struct Mesh
 {
-    int startTexID, endTexID;
-};
+    uint VAO;
+    uint VBO;
+    size_t vertexCount;
+} Mesh;
 
 typedef struct RenderState
 {
-    uint LevelVAO;
-    uint IsoLevelVAO, IsoLevelVAO2;
-    uint QuadVAO;
+    Mesh legacyGridMesh;
+    Mesh isoMesh, isoMesh2;
+    Mesh quadMesh;
     int shader;
     uint tileAtlas, characterAtlas, isoTileAtlas, isoCharacterAtlas;
 
