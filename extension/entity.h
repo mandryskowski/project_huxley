@@ -44,13 +44,27 @@ typedef struct Entity
     Room *room;
 } Entity;
 
+typedef struct Dialogue
+{
+    char* title;
+    char** dialogueLines;
+    int dialogueSize;
+    int dialogueIndex;
+    double skipCooldown;
+    bool isSkippable;
+} Dialogue;
+
 typedef struct Player
 {
     Entity *entity;
     double acceleration_const; // between 0 and 1
     double movement_swing; // between 0 and 1
     Vec2d cameraSize; // number of tiles visible on the x and y isometric diagonal centred around the player.
+    
+    bool isInDialogue;
+    double lastSkip;
 } Player;
+
 
 Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
 Player *Entity_construct_player();
@@ -66,5 +80,7 @@ bool isDead(Entity *);
 void killEntity(Entity *);
 
 void handle_attack(Entity *, Entity *, AttackType);
+
+Dialogue* newDialogue(void);
 
 #endif // ENTITY_H

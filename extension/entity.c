@@ -191,7 +191,7 @@ Player *Entity_construct_player()
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0},
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30};
-    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}};
+    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0};
 
     return player;
 }
@@ -230,3 +230,17 @@ bool isMine(Entity *entity)
     return fabs(entity->SPD) < EPSILON;
 }
 
+
+Dialogue* newDialogue(void) {
+    Dialogue *d = calloc(1, sizeof(Dialogue));
+    d->title = "Mysterious figure";
+    d->dialogueSize = 3;
+    d->skipCooldown = 2.0;
+    d->dialogueIndex = 0;
+    d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
+    d->dialogueLines[0] = "By the gods! Konstantinos, my old friend, I never thought I'd see you again. Not after... the Cataclysm.";
+    d->dialogueLines[1] = "It came out of nowhere, its machinations spreading deep in the digital world, and then... nothing, the worldwide\ncollapse of the power grid rendering us virtually blind. Cities plunged into darkness, their inhabitants left\nstranded and vulnerable in a world devoid of electricity and communication.";
+    d->dialogueLines[2] = "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.";
+    d->isSkippable = false;
+    return d;
+} 
