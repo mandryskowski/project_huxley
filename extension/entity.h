@@ -42,6 +42,8 @@ typedef struct Entity
     Death_Func death_func;
 
     Room *room;
+
+    uint textureID;
 } Entity;
 
 typedef struct Dialogue

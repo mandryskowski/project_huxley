@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+
 typedef struct GLFWwindow GLFWwindow;
 typedef struct ImGuiContext ImGuiContext;
 typedef struct ImGuiIO ImGuiIO;
