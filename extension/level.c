@@ -52,6 +52,10 @@ void jump_to_next_room(GameState *state)
         state->player->entity->room = newRoom;
         state->player->entity->pos = (Vec2d){level->currentRoom->size.x * (1 - direction.x) / 2 + direction.x * 1.5,
                                              level->currentRoom->size.y * (1 - direction.y) / 2 + direction.y * 1.5};
+        for (Entity **entity = newRoom->entities + 1; *entity; entity++)
+        {
+            (*entity)->cooldown_left = 180;
+        }
     }
 }
 
