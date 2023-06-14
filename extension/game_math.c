@@ -67,7 +67,9 @@ Vec2i Vec2i_scale(Vec2i vec, float scalar)
 Vec2d Vec2d_rotate(Vec2d vec, double angle)
 {
     angle = PI * angle / 180;
-    return (Vec2d){vec.x * cos(angle) - vec.y * sin(angle), vec.x * sin(angle) + vec.y * cos(angle)};
+    double x = vec.x * cos(angle) - vec.y * sin(angle);
+    double y = vec.x * sin(angle) + vec.y * cos(angle);
+    return (Vec2d){x, y};
 }
 
 Vec2d Vec2d_normalize(Vec2d vec)
