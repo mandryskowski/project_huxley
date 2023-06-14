@@ -40,17 +40,15 @@ void put_tiles(Room* room, Mode mode)
     // }
 
     //VISIBLE TILES 
-    Vec2i topLeft = (Vec2i) {1, height - 1};
-    Vec2i topRight = (Vec2i) {width - 1, height - 1};
-    Vec2i bottomRight = (Vec2i) {width - 1, 1};
-    Vec2i bottomLeft = (Vec2i) {1, 1};
+    Vec2i topLeft = (Vec2i) {5, height - 5};
+    Vec2i topRight = (Vec2i) {width - 2, height - 2};
+    Vec2i bottomRight = (Vec2i) {width - 5, 5};
+    Vec2i bottomLeft = (Vec2i) {2, 2};
     Vec2i middle = Vec2i_middle(topLeft, bottomRight);
 
     //SEGMENTATION FAULT MEANS THERE IS NOT ENOUGH ROOM TO SPAWN THE PLAYER
-    //patternBuilder(room, CHECKERED, topLeft, middle, TILE_BARRIER);
-    //patternBuilder(room, CHECKERED, middle, topRight, TILE_BARRIER);
-    //patternBuilder(room, CHECKERED, middle, bottomLeft,TILE_BARRIER);
-
+    patternBuilder(room, CHECKERED, topLeft, bottomRight, TILE_WALL);
+ 
     //ADDING THE OUTLINE
     for (int i = 0; i < height; i++)
     {
@@ -102,67 +100,21 @@ Room *generate_room(int seed, Mode mode)
     room->size.y = height;
     room->size.x = width;
 
-    for (int i = 1; i < height - 1; i++)
-    {
-        for (int j = 1; j < width - 1; j++)
-        {
-            int prob = rand() % 100;
-            if (prob < 100)
-            {
-                tiles[i][j].type = TILE_FLOOR;
-            }
-            else if (prob < 94)
-            {
-                tiles[i][j].type = TILE_HOLE;
-            }
-            else if (prob < 97)
-            {
-                tiles[i][j].type = TILE_BARRIER;
-            }
-            else
-            {
-                tiles[i][j].type = TILE_WALL;
-            }
-        }
-    }
-    for (int i = 0; i < height; i++)
-    {
-        monsters[i] = calloc(width, sizeof(MonsterType));
-        for (int j = 0; j < width; j++)
-        {
-            if (tiles[i][j].type != TILE_FLOOR)
-            {
-                monsters[i][j]= NOT_MONSTER;
-                continue;
-            }
-            int prob = rand() % 600;
-            if (prob < 0)
-            {
-                monsters[i][j] = ZOMBIE;
-            }
-            else if (prob < 3)
-            {
-                monsters[i][j] = SHOOTER;
-            }
-            else if (prob < 4)
-            {
-                monsters[i][j] = FLYING_SHOOTER;
-            }
-            else if (prob < 0)
-            {
-                monsters[i][j] = BOMBER;
-            }
-            else
-            {
-                monsters[i][j] = NOT_MONSTER;
-            }
-        }
-    }
+    put_tiles(room, mode);
+
+    return room;
+}
+
+void room_to_file(Room* room, MonsterType** monsters)
+{
+    int width = room->size.x;
+    int height = room->size.y; 
+
     FILE *file = fopen("predefinedRooms/new_room", "w");
     fprintf(file, "%d %d\n", height, width);
     for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < room->size.x; j++)
+        for (int j = 0; j < width; j++)
         {
             if (j)
             {
@@ -173,9 +125,9 @@ Room *generate_room(int seed, Mode mode)
         fprintf(file, "\n");
     }
 
-    for (int i = 0; i < room->size.y; i++)
+    for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < room->size.x; j++)
+        for (int j = 0; j < width; j++)
         {
             if (j)
             {
@@ -188,14 +140,14 @@ Room *generate_room(int seed, Mode mode)
 
     //Tile** tiles = room->tiles;
     //Freeing tile space.
-    for(int i = 0; i < room->size.y; i++)
+    for(int i = 0; i < height; i++)
     {
         free(tiles[i]);
     }
     free(tiles);
 
     //Freeing monsters space.
-    for(int i = 0; i < room->size.y; i++)
+    for(int i = 0; i < height; i++)
     {
         free(monsters[i]);
     }
@@ -208,8 +160,8 @@ Room *generate_room(int seed, Mode mode)
 
 int main()
 {
-    Room *room = generate_room(-1, EASY);
-    //MonsterType** monsters = spawn_monsters(room, EASY);
-    //room_to_file(room, monsters);
+    Room *room = generate_room(-1, INSANE);
+    MonsterType** monsters = spawn_monsters(room, INSANE);
+    room_to_file(room, monsters);
     printf("new room generated\n");
 }
