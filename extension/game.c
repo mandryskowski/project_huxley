@@ -122,7 +122,7 @@ void update(GameState* state, double dt)
     }
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        handle_attack(*entity, NULL, SPAWN_ENTITY);
+        handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
     }
 
     move(state, arr, dt);
@@ -194,6 +194,11 @@ void gameLoop(GameState* gState)
     glEnable(GL_MULTISAMPLE); 
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(rState.shader, "atlas"), 0);
+
+    for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
+    {
+        (*entity)->cooldown_left = 180;
+    }
 
     while (!glfwWindowShouldClose(gState->window))
     {

@@ -7,7 +7,8 @@
 #include "../game_math.h"
 #include "structure_builder.h"
 #include "generator_attributes.h"
-#include "monster_spawner.h"
+#include "../haskell.h"
+//#include "monster_spawner.h"
 
 void put_tiles(Room* room, Mode mode)
 {
@@ -89,6 +90,7 @@ Room *generate_room(int seed, Mode mode)
 
     //Allocating tile mem.
     Tile** tiles = calloc(height, sizeof(Tile*));
+    MonsterType **monsters = calloc(height, sizeof(MonsterType *));
     for(int i=0;i<height;i++)
     {
         tiles[i] = calloc(width, sizeof(Tile));
@@ -125,6 +127,7 @@ Room *generate_room(int seed, Mode mode)
     }
     for (int i = 0; i < height; i++)
     {
+        monsters[i] = calloc(width, sizeof(MonsterType));
         for (int j = 0; j < width; j++)
         {
             if (tiles[i][j].type != TILE_FLOOR)
@@ -155,7 +158,7 @@ Room *generate_room(int seed, Mode mode)
             }
         }
     }
-    FILE *file = fopen("predefinedRooms/room_generator", "w");
+    FILE *file = fopen("predefinedRooms/new_room", "w");
     fprintf(file, "%d %d\n", height, width);
     for (int i = 0; i < height; i++)
     {
@@ -183,7 +186,7 @@ Room *generate_room(int seed, Mode mode)
         fprintf(file, "\n");
     }
 
-    Tile** tiles = room->tiles;
+    //Tile** tiles = room->tiles;
     //Freeing tile space.
     for(int i = 0; i < room->size.y; i++)
     {
@@ -206,7 +209,7 @@ Room *generate_room(int seed, Mode mode)
 int main()
 {
     Room *room = generate_room(-1, EASY);
-    MonsterType** monsters = spawn_monsters(room, EASY);
-    room_to_file(room, monsters);
+    //MonsterType** monsters = spawn_monsters(room, EASY);
+    //room_to_file(room, monsters);
     printf("new room generated\n");
 }

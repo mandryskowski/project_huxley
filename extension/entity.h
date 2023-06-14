@@ -67,4 +67,6 @@ void killEntity(Entity *);
 
 void handle_attack(Entity *, Entity *, AttackType);
 
+void shooter_spawn_attack(Entity *attacker);
+
 #endif // ENTITY_H
