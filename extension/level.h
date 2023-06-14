@@ -9,7 +9,7 @@ typedef struct GameState GameState;
 typedef struct Level
 {
     Room ***map;
-    Room *currentRoom;
+    Room *currentRoom, *prevRoom;
     Vec2i currRoomCoords, prevRoomCoords;
 } Level;
 
