@@ -132,7 +132,7 @@ Mesh initGridMesh(GameState* gameState, Vertex* verts, uint width, uint height)
 { 
     Vec2d offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
                        {0.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}}; // top left triangle
-    Mesh outMesh;
+    Mesh outMesh = Mesh_construct();
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
@@ -262,6 +262,7 @@ void debugShader(GLint shader)
 void passMeshToGPU(Mesh* mesh, void* data)
 {
     size_t size = mesh->vertexCount * sizeof(Vertex);
+
     glGenBuffers(1, &mesh->VBO);
     glGenVertexArrays(1, &mesh->VAO);
     glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO);
@@ -283,14 +284,13 @@ void refreshRoom(GameState* gState, RenderState* rState)
 {
     // Grid
     {
-        Vertex gridVerts[gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6];
-        rState->legacyGridMesh = initGridMesh(gState, gridVerts, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
-
-        if (rState->isoMesh.vertexCount != 0)
+        if (rState->legacyGridMesh.vertexCount != 0)
         {
             glDeleteBuffers(1, &rState->legacyGridMesh.VBO);
             glDeleteVertexArrays(1, &rState->legacyGridMesh.VAO);
         }
+        Vertex gridVerts[gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6];
+        rState->legacyGridMesh = initGridMesh(gState, gridVerts, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
         passMeshToGPU(&rState->legacyGridMesh, gridVerts);
     }
 
