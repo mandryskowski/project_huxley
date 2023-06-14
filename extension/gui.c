@@ -1,7 +1,9 @@
 #include "gui.h"
+#include "glfw/glfw3.h"
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 1
 #define CIMGUI_USE_GLFW 1
 #define CIMGUI_USE_OPENGL3
+#include "glfw/glfw3.h"
 #include "cimgui/cimgui.h"
 #include "cimgui/cimgui_impl.h"
 #include "state.h"
@@ -45,14 +47,31 @@ bool sliderDoubleN(char* label, double* ptr, uint n, double min, double max)
     return igSliderScalarN(label, ImGuiDataType_Double, ptr, n, &min, &max, NULL, 0);
 }
 
-void gui_update(GameState* gState, RenderState* rState) {
+void gui_update(GameState* gState, RenderState* rState)
+{
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
 
+    if (gState->player->entity->HP <= 0)
+    {
+        igBegin("ur dead loser", NULL, 0);
+        igEnd();
+    }
+
+    if(gState->player->isInDialogue)
+    {
+        //igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_FirstUseEver, (ImVec2){100, 100});
+        igBegin(gState->guiState->dialogue->title, NULL, 0);
+        igText(gState->guiState->dialogue->dialogueLines[gState->guiState->dialogue->dialogueIndex], NULL, 0);
+        if(gState->guiState->dialogue->isSkippable)
+        {
+           igText("\nPress \"E\" to continue...", NULL, 0);
+        }
+        igEnd();
+    }
+
     igBegin("Game debug", NULL, 0);
-
-
 
     if (sliderDouble("1:1 Camera size", &gState->player->cameraSize.x, 1.0, 32.0))
     {
@@ -98,14 +117,16 @@ void gui_update(GameState* gState, RenderState* rState) {
                 sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
                 sliderDoubleN("attack_Velocity", &(*arr)->attack_velocity, 2, 0.0, 5.0);
 
+                igSetNextItemOpen(true, ImGuiCond_Once);
                 if (igTreeNode_Str("Stats"))
                 {
                     sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
                     igCheckbox("Can fly?", &(*arr)->canFly);
                     igSliderInt("HP", &(*arr)->HP, 0, 100, NULL, 0);
-                    sliderDouble("ATK", &(*arr)->ATK, 0, 100);
+                    igSliderInt("ATK", &(*arr)->ATK, 0, 100, NULL, 0);
                     sliderDouble("ATK speed", &(*arr)->attack_SPD, 0, 100);
                     igSliderInt("ATK cooldown", &(*arr)->attack_cooldown, 0, 100, NULL, 0);
+                    igSliderInt("Cooldown left", &(*arr)->cooldown_left, 0, 100, NULL, 0);
 
                     igTreePop();
                 }

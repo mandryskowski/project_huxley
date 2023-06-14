@@ -1,6 +1,7 @@
 #include "game.h"
 #include "entity.h"
 #include "room.h"
+#include <math.h>
 #include "glad/glad.h"
 #include "glfw/glfw3.h"
 #include "render.h"
@@ -11,6 +12,7 @@
 #include "pathfind.h"
 #include "util.h"
 #include "level.h"
+#include "animation.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,8 +52,45 @@ void updateVelocity(GameState* state, int up, int down, int right, int left, dou
     *velocity = Vec2d_add(Vec2d_scale(*velocity, acceleration), Vec2d_scale(velChange, 1.0f - acceleration));
 }
 
+void updateDialogue(GameState* state)
+{
+    if(state->player->isInDialogue)
+    {
+        if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
+        {
+            state->guiState->dialogue->isSkippable = true;
+
+            if(glfwGetKey(state->window, GLFW_KEY_E))
+            {
+                state->guiState->dialogue->isSkippable = false;
+                state->guiState->dialogue->dialogueIndex++;
+
+                if(state->guiState->dialogue->dialogueIndex == state->guiState->dialogue->dialogueSize)
+                {
+                    state->player->isInDialogue = false;
+                    return;
+                }
+
+                state->player->lastSkip = glfwGetTime();
+            }
+        }
+    }
+
+    else
+    {
+        fprintf(stderr, "Entity is not in dialogue\n");
+        exit(0);
+    }
+}
+
 void handleEvents(GameState* state)
 {
+    if(state->player->isInDialogue)
+    {
+        updateDialogue(state);
+        return;
+    }
+
     updateVelocity(state, GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_A, state->player->entity->SPD,
                    &state->player->entity->velocity, state->player->acceleration_const);
     updateVelocity(state, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_RIGHT, GLFW_KEY_LEFT, state->player->entity->attack_SPD,
@@ -95,7 +134,7 @@ void erase_dead(Room *room)
 
 static int frame_cnt = 0;
 
-void update(GameState* state, double dt)
+void updateLogic(GameState* state, double dt)
 {
     frame_cnt++;
     state->renderNewRoom = false;
@@ -122,7 +161,8 @@ void update(GameState* state, double dt)
     }
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
+        if (!Vec2d_zero((*entity)->attack_velocity))
+            handle_attack(*entity, NULL, SPAWN_ENTITY);
     }
 
     move(state, arr, dt);
@@ -132,6 +172,26 @@ void update(GameState* state, double dt)
     {
         jump_to_next_room(state);
     }
+}
+
+void updateAnimations(GameState* state, double dt, Animation* anim)
+{
+    if (--anim->framesLeftUntilUpdate > 0)
+        return;
+    
+    anim->framesLeftUntilUpdate = anim->framesPerUpdate;
+
+    int* val = (int*)anim->curVal;
+    int* start = (int*)anim->startVal;
+    int* end = (int*)anim->endVal;
+
+    printf("val %d %d %d \n", *val, *start, *end);
+
+    if (*val == *end)
+    {
+        *val = *start;
+    }
+    (*val) += 2;
 }
 
 void initGame(GameState* state)
@@ -151,6 +211,9 @@ void initGame(GameState* state)
         printf("GLFW error.\n");
         exit(-1);
     }
+
+    GUIState* guiState = calloc(1, sizeof(GUIState));
+    state->guiState = guiState;
 
     glfwMakeContextCurrent(state->window);
 
@@ -174,6 +237,7 @@ void gameLoop(GameState* gState)
 {
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
+
     RenderState rState = RenderState_construct();
 
     {
@@ -186,14 +250,23 @@ void gameLoop(GameState* gState)
     Player *player;
     player = Entity_construct_player();
     gState->player = player;
-
+    gState->player->isInDialogue = true;
     gState->currentLevel = construct_level(player, 6);
+    gState->guiState->dialogue = newDialogue();
+
+  /*  gState->currentLevel->currentRoom->entity_cnt++;
+    gState->currentLevel->currentRoom->entities[2] = construct_monster((Vec2d){4, 4}, ZOMBIE, gState->currentLevel->currentRoom);
+    gState->currentLevel->currentRoom->entities[2]->canFly = true;
+/*
+    Animation* anim = Animation_construct();
+    int startVal = 4, endVal = 10;
+    anim->curVal = &gState->currentLevel->currentRoom->entities[1]->textureID;
+    *(int*)anim->curVal = startVal;
+    anim->startVal = &startVal;
+    anim->endVal = &endVal; */
 
     initRenderState(gState, &rState);
 
-    glEnable(GL_MULTISAMPLE); 
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(rState.shader, "atlas"), 0);
 
     for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
@@ -208,7 +281,8 @@ void gameLoop(GameState* gState)
         if (deltaTime >= timestep)
         {
             handleEvents(gState);
-            update(gState, deltaTime);
+            updateLogic(gState, deltaTime);
+  //          updateAnimations(gState, deltaTime, anim);
             lastUpdateTime = glfwGetTime();
             if (gState->renderNewRoom)
             {
