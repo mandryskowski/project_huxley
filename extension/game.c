@@ -1,6 +1,7 @@
 #include "game.h"
 #include "entity.h"
 #include "room.h"
+#include <math.h>
 #include "glad/glad.h"
 #include "glfw/glfw3.h"
 #include "render.h"
@@ -50,8 +51,45 @@ void updateVelocity(GameState* state, int up, int down, int right, int left, dou
     *velocity = Vec2d_add(Vec2d_scale(*velocity, acceleration), Vec2d_scale(velChange, 1.0f - acceleration));
 }
 
+void updateDialogue(GameState* state)
+{
+    if(state->player->isInDialogue)
+    {
+        if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
+        {
+            state->guiState->dialogue->isSkippable = true;
+
+            if(glfwGetKey(state->window, GLFW_KEY_E))
+            {
+                state->guiState->dialogue->isSkippable = false;
+                state->guiState->dialogue->dialogueIndex++;
+
+                if(state->guiState->dialogue->dialogueIndex == state->guiState->dialogue->dialogueSize)
+                {
+                    state->player->isInDialogue = false;
+                    return;
+                }
+
+                state->player->lastSkip = glfwGetTime();
+            }
+        }
+    }
+
+    else
+    {
+        fprintf(stderr, "Entity is not in dialogue\n");
+        exit(0);
+    }
+}
+
 void handleEvents(GameState* state)
 {
+    if(state->player->isInDialogue)
+    {
+        updateDialogue(state);
+        return;
+    }
+
     updateVelocity(state, GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_A, state->player->entity->SPD,
                    &state->player->entity->velocity, state->player->acceleration_const);
     updateVelocity(state, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_RIGHT, GLFW_KEY_LEFT, state->player->entity->attack_SPD,
@@ -152,6 +190,9 @@ void initGame(GameState* state)
         exit(-1);
     }
 
+    GUIState* guiState = calloc(1, sizeof(GUIState));
+    state->guiState = guiState;
+
     glfwMakeContextCurrent(state->window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -174,6 +215,7 @@ void gameLoop(GameState* gState)
 {
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
+
     RenderState rState = RenderState_construct();
 
     {
@@ -186,8 +228,9 @@ void gameLoop(GameState* gState)
     Player *player;
     player = Entity_construct_player();
     gState->player = player;
-
+    gState->player->isInDialogue = true;
     gState->currentLevel = construct_level(player, 6);
+    gState->guiState->dialogue = newDialogue();
 
     initRenderState(gState, &rState);
 
