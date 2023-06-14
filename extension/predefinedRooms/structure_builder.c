@@ -12,7 +12,7 @@ void patternBuilder(Room *room, Pattern pattern, Vec2i topLeft, Vec2i bottomRigh
     int xMax = max(topLeft.x, bottomRight.x);
     int yMin = min(topLeft.y, bottomRight.y);
     int yMax = max(topLeft.y, bottomRight.y);
-    //printf("xMin is: %d\nxMax is:")
+
 
     if(pattern == FILL)
     {
@@ -24,13 +24,15 @@ void patternBuilder(Room *room, Pattern pattern, Vec2i topLeft, Vec2i bottomRigh
             }
         }
     }
-
+    
+   
     if(pattern == CHECKERED)
     {
-        for(int i = xMin; i <= xMax; i += 2)
+        for(int i = xMin; i < xMax; i += 2)
         {
-            for(int j = yMin; j <= yMax; j += 2)
+            for(int j = yMin; j < yMax; j += 2)
             {
+                
                 room->tiles[i][j].type = type;
             }
         }
@@ -100,7 +102,7 @@ void presetStructures(Room *room, Structure structure, Vec2i topLeft, Vec2i bott
         topLeft.x = bottomRight.x;
         bottomRight.x = swapper;
     }
-
+    
     switch(structure) 
     {
         case L_SHAPE:

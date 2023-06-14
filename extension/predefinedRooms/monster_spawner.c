@@ -13,28 +13,24 @@ double position_chance(Vec2i current_i, Room* room, Mode mode)
     Vec2d current = Vec2i_to_Vec2d(current_i);
 
     Vec2d middle;
-    middle.x = ((double)(room->width)) / 2.0;
-    middle.y = ((double)(room->height)) / 2.0;
-
-    //Distance from the doors
-    double leftDistance = Vec2d_metric_distance(current,(Vec2d) {0, middle.y});
-    double rightDistance = Vec2d_metric_distance(current, (Vec2d) {2.0 * middle.x , middle.y});
+    middle.x = ((double)(room->size.x)) / 2.0;
+    middle.y = ((double)(room->size.y)) / 2.0;
 
     //Closest door to the mob
-    double distance = min(leftDistance, rightDistance);
+    double distance = Vec2d_metric_distance(middle, current);
 
     //20% higher chance of mobs spawning every time the mode becomes more intense
     double modifier = ((double) mode) * (0.2) + 1;
 
-    return modifier * (distance / middle.x);
+    return 1 - 1.0/distance ;
 
 }
 
 void put_monsters(MonsterType** monsters, Room* room, Mode mode)
 {
-    for (int i = 0; i < room->height; i++)
+    for (int i = 0; i < room->size.y; i++)
     {
-        for (int j = 0; j < room->width; j++)
+        for (int j = 0; j < room->size.x; j++)
         {
             if (room->tiles[i][j].type != TILE_FLOOR)
             {
@@ -42,26 +38,25 @@ void put_monsters(MonsterType** monsters, Room* room, Mode mode)
                 continue;
             }
 
-            double prob = AVG(((double) (rand() % 1000)) ,
-                              1000 * position_chance((Vec2i) {j, i}, room, mode));
+            double prob = AVG((double) (rand() % 1000) , 1000 * position_chance((Vec2i) {j, i}, room, mode));
             double threshold = ((double) mode) * 50;
 
-            if (prob < 100 + threshold)
+            monsters[i][j] = NOT_MONSTER;
+            printf("%f\n", prob);
+
+            if (prob < 200 + threshold)
             {
                 monsters[i][j] = ZOMBIE;
             }
-            if (prob < 80 + threshold)
+            if (prob < 150 + threshold)
             {
                 monsters[i][j] = SHOOTER;
             }
-            if (prob < 20 + threshold)
+            if (prob < 50 + threshold)
             {
                 monsters[i][j] = FLYING_SHOOTER;
             }
-            else
-            {
-             monsters[i][j] = NOT_MONSTER;
-            }
+        
         }
     }
 }
@@ -69,10 +64,10 @@ void put_monsters(MonsterType** monsters, Room* room, Mode mode)
 MonsterType **spawn_monsters(Room* room, Mode mode)
 {
     //Allocating monsters mem.
-    MonsterType** monsters = calloc(room->height, sizeof(MonsterType*));
-    for(int i = 0; i < room->height; i++)
+    MonsterType** monsters = calloc(room->size.y, sizeof(MonsterType*));
+    for(int i = 0; i < room->size.y; i++)
     {
-        monsters[i] = calloc(room->width, sizeof(MonsterType));
+        monsters[i] = calloc(room->size.x, sizeof(MonsterType));
         if(monsters[i] == NULL) {exit(EXIT_FAILURE);}
     }
     if(monsters == NULL) {exit(EXIT_FAILURE);}

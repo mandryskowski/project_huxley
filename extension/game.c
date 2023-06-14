@@ -12,7 +12,7 @@
 #include "pathfind.h"
 #include "util.h"
 #include "level.h"
-#include "animation.h"s
+#include "animation.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -247,6 +247,11 @@ void gameLoop(GameState* gState)
 
     initRenderState(gState, &rState);
 
+
+    for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
+    {
+        (*entity)->cooldown_left = 180;
+    }
 
     while (!glfwWindowShouldClose(gState->window))
     {
