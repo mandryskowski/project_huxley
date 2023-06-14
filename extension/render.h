@@ -5,6 +5,11 @@
 #include "game_math.h"
 typedef unsigned int uint;
 
+struct Animation
+{
+    int startTexID, endTexID;
+};
+
 typedef struct RenderState
 {
     uint LevelVAO;
@@ -18,6 +23,8 @@ typedef struct RenderState
     bool VSync;
 
     Vec2i resolution;
+
+    Vec4d backgroundColor;
 
 } RenderState;
 

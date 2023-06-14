@@ -140,3 +140,23 @@ Vec2i Vec2i_middle(Vec2i lhs, Vec2i rhs)
 {
     return (Vec2i) {(lhs.x + rhs.x) / 2, (lhs.y + rhs.y) / 2};
 }
+
+Vec4d Vec4d_add(Vec4d lhs, Vec4d rhs)
+{
+    return (Vec4d) {lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w};
+}
+
+Vec4d Vec4d_scale(Vec4d vec, double scalar)
+{
+    return (Vec4d) { vec.x * scalar, vec.y * scalar, vec.z * scalar, vec.w * scalar };
+}
+
+Vec4d Vec4d_lerp(Vec4d lhs, Vec4d rhs, double T) // lhs + (rhs - lhs) * T
+{
+    return Vec4d_add(lhs, Vec4d_scale(Vec4d_add(rhs, Vec4d_scale(lhs, -1.0)), T));
+}
+
+Vec4f Vec4d_to_Vec4f(Vec4d vec)
+{
+    return (Vec4f){(float)vec.x, (float)vec.y, (float)vec.z, (float)vec.w };
+}
