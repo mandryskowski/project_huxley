@@ -8,7 +8,7 @@
 #include "structure_builder.h"
 #include "generator_attributes.h"
 #include "../haskell.h"
-//#include "monster_spawner.h"
+#include "monster_spawner.h"
 
 void put_tiles(Room* room, Mode mode)
 {
@@ -74,7 +74,7 @@ Room *generate_room(int seed, Mode mode)
 
     if (seed == -1)
     {
-        srand48(clock());
+        srand(time(NULL));
     }
     else
     {
@@ -142,9 +142,9 @@ void room_to_file(Room* room, MonsterType** monsters)
     //Freeing tile space.
     for(int i = 0; i < height; i++)
     {
-        free(tiles[i]);
+        free(room->tiles[i]);
     }
-    free(tiles);
+    free(room->tiles);
 
     //Freeing monsters space.
     for(int i = 0; i < height; i++)

@@ -56,7 +56,11 @@ void updateDialogue(GameState* state)
 {
     if(state->player->isInDialogue)
     {
-        if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
+        if (glfwGetKey(state->window, GLFW_KEY_SPACE))
+        {  
+                state->player->isInDialogue = false;
+        }
+        else if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
         {
             state->guiState->dialogue->isSkippable = true;
 
@@ -73,6 +77,7 @@ void updateDialogue(GameState* state)
 
                 state->player->lastSkip = glfwGetTime();
             }
+
         }
     }
 
@@ -162,7 +167,7 @@ void updateLogic(GameState* state, double dt)
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
         if (!Vec2d_zero((*entity)->attack_velocity))
-            handle_attack(*entity, NULL, SPAWN_ENTITY);
+            handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
     }
 
     move(state, arr, dt);
