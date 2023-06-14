@@ -41,6 +41,10 @@ void jump_to_next_room(GameState *state)
     }
 
     Room *newRoom = level->map[newRoomCoords.x][newRoomCoords.y];
+    for (int i = 1; i < newRoom->entity_cnt; i++)
+    {
+        printf("newroom ent hp %d\n", newRoom->entities[i]->HP);
+    }
 
     if (isClear(level->currentRoom) && newRoom->type != NOT_ROOM)
     {
