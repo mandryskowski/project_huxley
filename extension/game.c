@@ -136,24 +136,15 @@ void updateLogic(GameState* state, double dt)
     }
 }
 
-void updateAnimations(GameState* state, double dt, Animation* anim)
+void updateAnimations(GameState* state, Entity** entities, size_t entity_cnt)
 {
-    if (--anim->framesLeftUntilUpdate > 0)
-        return;
-    
-    anim->framesLeftUntilUpdate = anim->framesPerUpdate;
-
-    int* val = (int*)anim->curVal;
-    int* start = (int*)anim->startVal;
-    int* end = (int*)anim->endVal;
-
-    printf("val %d %d %d \n", *val, *start, *end);
-
-    if (*val == *end)
+    for (int i = 0; i < entity_cnt; i++)
     {
-        *val = *start;
+        if (entities[i]->currentAnimation != NULL)
+        {
+            entities[i]->currentAnimation->animFunc(entities[i]->currentAnimation);
+        }
     }
-    (*val) += 2;
 }
 
 void initGame(GameState* state)
@@ -211,17 +202,6 @@ void gameLoop(GameState* gState)
 
     gState->currentLevel = construct_level(player, 6);
 
-    gState->currentLevel->currentRoom->entity_cnt++;
-    gState->currentLevel->currentRoom->entities[2] = construct_monster((Vec2d){4, 4}, ZOMBIE, gState->currentLevel->currentRoom);
-    gState->currentLevel->currentRoom->entities[2]->canFly = true;
-
-    Animation* anim = Animation_construct();
-    int startVal = 4, endVal = 10;
-    anim->curVal = &gState->currentLevel->currentRoom->entities[2]->textureID;
-    *(int*)anim->curVal = startVal;
-    anim->startVal = &startVal;
-    anim->endVal = &endVal; 
-
     initRenderState(gState, &rState);
 
 
@@ -234,7 +214,7 @@ void gameLoop(GameState* gState)
         {
             handleEvents(gState);
             updateLogic(gState, deltaTime);
-            updateAnimations(gState, deltaTime, anim);
+            updateAnimations(gState, gState->currentLevel->currentRoom->entities, gState->currentLevel->currentRoom->entity_cnt);
             lastUpdateTime = glfwGetTime();
             if (gState->renderNewRoom)
             {
