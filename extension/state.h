@@ -3,12 +3,14 @@
 
 #include <stdbool.h>
 
+
 typedef struct GLFWwindow GLFWwindow;
 typedef struct ImGuiContext ImGuiContext;
 typedef struct ImGuiIO ImGuiIO;
 //typedef struct Room Room;
 typedef struct Level Level;
 typedef struct Player Player;
+
 typedef struct GameState
 {
     struct GLFWwindow* window;
