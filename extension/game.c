@@ -12,7 +12,7 @@
 #include "pathfind.h"
 #include "util.h"
 #include "level.h"
-#include "animation.h"s
+#include "animation.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -254,16 +254,16 @@ void gameLoop(GameState* gState)
     gState->currentLevel = construct_level(player, 6);
     gState->guiState->dialogue = newDialogue();
 
-    gState->currentLevel->currentRoom->entity_cnt++;
+  /*  gState->currentLevel->currentRoom->entity_cnt++;
     gState->currentLevel->currentRoom->entities[2] = construct_monster((Vec2d){4, 4}, ZOMBIE, gState->currentLevel->currentRoom);
     gState->currentLevel->currentRoom->entities[2]->canFly = true;
-
+/*
     Animation* anim = Animation_construct();
     int startVal = 4, endVal = 10;
-    anim->curVal = &gState->currentLevel->currentRoom->entities[2]->textureID;
+    anim->curVal = &gState->currentLevel->currentRoom->entities[1]->textureID;
     *(int*)anim->curVal = startVal;
     anim->startVal = &startVal;
-    anim->endVal = &endVal; 
+    anim->endVal = &endVal; */
 
     initRenderState(gState, &rState);
 
@@ -277,7 +277,7 @@ void gameLoop(GameState* gState)
         {
             handleEvents(gState);
             updateLogic(gState, deltaTime);
-            updateAnimations(gState, deltaTime, anim);
+  //          updateAnimations(gState, deltaTime, anim);
             lastUpdateTime = glfwGetTime();
             if (gState->renderNewRoom)
             {

@@ -415,10 +415,9 @@ Mat3f renderIsoGrid(GameState* gState, RenderState* state, Mesh* gridMesh, Vec2d
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  
     glBindTexture(GL_TEXTURE_2D_ARRAY, state->isoTileAtlas);
     glBindVertexArray(gridMesh->VAO);
-    glDrawArrays(GL_TRIANGLES, 0, gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6);
+    glDrawArrays(GL_TRIANGLES, 0, gridMesh->vertexCount);
     glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
     return viewMat;
-    //glDrawArrays(GL_TRIANGLES, 0, 4* 6);
 }
 
 Vec2d getIsoOrGridPos(GameState* gState, RenderState* rState, Vec2d pos)
