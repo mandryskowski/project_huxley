@@ -69,7 +69,7 @@ Room *generate_room(int seed, Mode mode)
 
     if (seed == -1)
     {
-        srand48(clock());
+        srand(time(NULL));
     }
     else
     {

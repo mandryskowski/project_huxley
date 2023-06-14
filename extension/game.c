@@ -56,7 +56,11 @@ void updateDialogue(GameState* state)
 {
     if(state->player->isInDialogue)
     {
-        if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
+        if (glfwGetKey(state->window, GLFW_KEY_SPACE))
+        {  
+                state->player->isInDialogue = false;
+        }
+        else if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
         {
             state->guiState->dialogue->isSkippable = true;
 
@@ -73,6 +77,7 @@ void updateDialogue(GameState* state)
 
                 state->player->lastSkip = glfwGetTime();
             }
+
         }
     }
 
