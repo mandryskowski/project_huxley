@@ -90,7 +90,7 @@ Entity construct_projectile(Entity *creator)
     return (Entity) {.ATK = creator->ATK, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
             .HP = INT_MAX, .maxHP = INT_MAX,
-            .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room};
+            .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room, .textureID = creator->faction == ALLY ? 0 : 5};
 }
 
 
@@ -128,9 +128,9 @@ void mine_death(Entity *attacker)
 Entity construct_mine(Entity *creator)
 {
     return (Entity) {.ATK = 90, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
+            .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .attack_SPD = 1, .attack_velocity = (Vec2d){1, 1},
             .HP = INT_MAX, .maxHP = INT_MAX, .death_func = mine_death,
-            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room, .cooldown_left = 300};
+            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room, .cooldown_left = 300, .textureID = 0};
 }
 
 void spawn_mine(Entity *attacker)
@@ -154,9 +154,9 @@ bool bomber_attack(Entity *attacker, Entity *victim, AttackType type)
 void construct_bomber(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 0, .canFly = false,
-            .hitbox = (Rectangle){(Vec2d){-0.2, -0.2}, (Vec2d){0.2, 0.2}},
+            .hitbox = (Rectangle){(Vec2d){-0.2, -0.2}, (Vec2d){0.2, 0.2}}, .attack_velocity = (Vec2d){1,1}, .attack_SPD = 1.0,
             .HP = 1, .maxHP = 1,
-            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0};
+            .SPD = 3, .velocity = (Vec2d){0, 0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0, .textureID = 3};
 }
 
 void construct_zombie(Entity *monster)
@@ -164,7 +164,7 @@ void construct_zombie(Entity *monster)
     *monster =  (Entity) {.ATK = 3, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 100, .maxHP = 100,
-            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0, .textureID = 3};
 }
 
 void construct_shooter(Entity *monster)
@@ -172,7 +172,7 @@ void construct_shooter(Entity *monster)
     *monster =  (Entity) {.ATK = 1, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}, .textureID = 3};
 }
 
 void construct_flying_shooter(Entity *monster)
@@ -180,7 +180,7 @@ void construct_flying_shooter(Entity *monster)
     *monster =  (Entity) {.ATK = 1, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}};
+            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1};
 }
 
 Player *Entity_construct_player()
@@ -191,8 +191,8 @@ Player *Entity_construct_player()
     *entity = (Entity) {.ATK = 100, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0},
-            .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30};
-    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}};
+            .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30, .textureID = 2};
+    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0};
 
     return player;
 }
@@ -234,3 +234,17 @@ bool isMine(Entity *entity)
     return fabs(entity->SPD) < EPSILON;
 }
 
+
+Dialogue* newDialogue(void) {
+    Dialogue *d = calloc(1, sizeof(Dialogue));
+    d->title = "Mysterious figure";
+    d->dialogueSize = 3;
+    d->skipCooldown = 2.0;
+    d->dialogueIndex = 0;
+    d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
+    d->dialogueLines[0] = "By the gods! Konstantinos, my old friend, I never thought I'd see you again. Not after... the Cataclysm.";
+    d->dialogueLines[1] = "It came out of nowhere, its machinations spreading deep in the digital world, and then... nothing, the worldwide\ncollapse of the power grid rendering us virtually blind. Cities plunged into darkness, their inhabitants left\nstranded and vulnerable in a world devoid of electricity and communication.";
+    d->dialogueLines[2] = "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.";
+    d->isSkippable = false;
+    return d;
+} 

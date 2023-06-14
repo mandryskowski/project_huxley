@@ -41,6 +41,7 @@ void jump_to_next_room(GameState *state)
     }
 
     Room *newRoom = level->map[newRoomCoords.x][newRoomCoords.y];
+    
 
     if (isClear(level->currentRoom) && newRoom->type != NOT_ROOM)
     {

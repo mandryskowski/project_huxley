@@ -3,19 +3,30 @@
 
 #include <stdbool.h>
 
+
 typedef struct GLFWwindow GLFWwindow;
 typedef struct ImGuiContext ImGuiContext;
 typedef struct ImGuiIO ImGuiIO;
 //typedef struct Room Room;
 typedef struct Level Level;
 typedef struct Player Player;
+typedef struct Dialogue Dialogue;
+
+typedef struct GUIState
+{
+    Dialogue* dialogue;
+} GUIState;
+
 typedef struct GameState
 {
-    struct GLFWwindow* window;
-    struct ImGuiContext* ctx;
-    struct ImGuiIO* io;
-    struct Level* currentLevel;
-    struct Player* player;
+    GLFWwindow* window;
+    ImGuiContext* ctx;
+    ImGuiIO* io;
+    Level* currentLevel;
+    Player* player;
+    GUIState* guiState;
     bool renderNewRoom;
 } GameState;
+
+
 #endif // STATE_H
