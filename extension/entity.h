@@ -85,4 +85,6 @@ void handle_attack(Entity *, Entity *, AttackType);
 
 Dialogue* newDialogue(void);
 
+void shooter_spawn_attack(Entity *attacker);
+
 #endif // ENTITY_H

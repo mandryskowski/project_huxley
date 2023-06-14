@@ -41,10 +41,7 @@ void jump_to_next_room(GameState *state)
     }
 
     Room *newRoom = level->map[newRoomCoords.x][newRoomCoords.y];
-    for (int i = 1; i < newRoom->entity_cnt; i++)
-    {
-        printf("newroom ent hp %d\n", newRoom->entities[i]->HP);
-    }
+    
 
     if (isClear(level->currentRoom) && newRoom->type != NOT_ROOM)
     {
@@ -56,6 +53,10 @@ void jump_to_next_room(GameState *state)
         state->player->entity->room = newRoom;
         state->player->entity->pos = (Vec2d){level->currentRoom->size.x * (1 - direction.x) / 2 + direction.x * 1.5,
                                              level->currentRoom->size.y * (1 - direction.y) / 2 + direction.y * 1.5};
+        for (Entity **entity = newRoom->entities + 1; *entity; entity++)
+        {
+            (*entity)->cooldown_left = 180;
+        }
     }
 }
 
