@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 typedef struct Entity Entity;
+typedef struct Animation Animation;
 
 typedef enum {
     ATTACK_CONTACT, SPAWN_ENTITY
@@ -16,7 +17,7 @@ typedef enum {
 } Faction;
 
 typedef enum {
-    ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER, BOMBER, HASKELL
+    ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER, BOMBER, HASKELL, MYSTERIOUS_CHARACTER
 } MonsterType;
 
 typedef bool (*Attack_Func)(Entity *, Entity *, AttackType);
@@ -42,6 +43,7 @@ typedef struct Entity
     Death_Func death_func;
 
     Room *room;
+    Animation *currentAnimation; // can be NULL if not animated.
 
     uint textureID;
 } Entity;
@@ -59,8 +61,8 @@ typedef struct Dialogue
 typedef struct Player
 {
     Entity *entity;
-    double acceleration_const; // between 0 and 1
-    double movement_swing; // between 0 and 1
+    double acceleration_const; // between 0 and 1.
+    double movement_swing; // between 0 and 1.
     Vec2d cameraSize; // number of tiles visible on the x and y isometric diagonal centred around the player.
     
     bool isInDialogue;
@@ -70,8 +72,6 @@ typedef struct Player
 
 Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
 Player *Entity_construct_player();
-
-Entity Entity_construct_generic(Rectangle, Vec2d);
 
 bool isProjectile(Entity *);
 
