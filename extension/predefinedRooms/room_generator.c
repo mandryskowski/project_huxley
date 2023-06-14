@@ -11,8 +11,8 @@
 
 void put_tiles(Room* room, Mode mode)
 {
-    int height = room->height;
-    int width = room->width;
+    int height = room->size.y;
+    int width = room->size.x;
 
     // for (int i = 1; i < height - 1; i++)
     // {
@@ -97,8 +97,8 @@ Room *generate_room(int seed, Mode mode)
     if(tiles == NULL) {exit(EXIT_FAILURE);}
 
     room->tiles = tiles;
-    room->height = height;
-    room->width = width;
+    room->size.y = height;
+    room->size.x = width;
 
     for (int i = 1; i < height - 1; i++)
     {
@@ -107,19 +107,19 @@ Room *generate_room(int seed, Mode mode)
             int prob = rand() % 100;
             if (prob < 100)
             {
-                tiles[i][j] = TILE_FLOOR;
+                tiles[i][j].type = TILE_FLOOR;
             }
             else if (prob < 94)
             {
-                tiles[i][j] = TILE_HOLE;
+                tiles[i][j].type = TILE_HOLE;
             }
             else if (prob < 97)
             {
-                tiles[i][j] = TILE_BARRIER;
+                tiles[i][j].type = TILE_BARRIER;
             }
             else
             {
-                tiles[i][j] = TILE_WALL;
+                tiles[i][j].type = TILE_WALL;
             }
         }
     }
@@ -127,9 +127,9 @@ Room *generate_room(int seed, Mode mode)
     {
         for (int j = 0; j < width; j++)
         {
-            if (tiles[i][j] != TILE_FLOOR)
+            if (tiles[i][j].type != TILE_FLOOR)
             {
-                monsters[i][j] = NOT_MONSTER;
+                monsters[i][j]= NOT_MONSTER;
                 continue;
             }
             int prob = rand() % 600;
@@ -137,11 +137,11 @@ Room *generate_room(int seed, Mode mode)
             {
                 monsters[i][j] = ZOMBIE;
             }
-            else if (prob < 0)
+            else if (prob < 3)
             {
                 monsters[i][j] = SHOOTER;
             }
-            else if (prob < 0)
+            else if (prob < 4)
             {
                 monsters[i][j] = FLYING_SHOOTER;
             }
@@ -159,7 +159,7 @@ Room *generate_room(int seed, Mode mode)
     fprintf(file, "%d %d\n", height, width);
     for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < room->width; j++)
+        for (int j = 0; j < room->size.x; j++)
         {
             if (j)
             {
@@ -170,9 +170,9 @@ Room *generate_room(int seed, Mode mode)
         fprintf(file, "\n");
     }
 
-    for (int i = 0; i < room->height; i++)
+    for (int i = 0; i < room->size.y; i++)
     {
-        for (int j = 0; j < room->width; j++)
+        for (int j = 0; j < room->size.x; j++)
         {
             if (j)
             {
@@ -185,14 +185,14 @@ Room *generate_room(int seed, Mode mode)
 
     Tile** tiles = room->tiles;
     //Freeing tile space.
-    for(int i = 0; i < room->height; i++)
+    for(int i = 0; i < room->size.y; i++)
     {
         free(tiles[i]);
     }
     free(tiles);
 
     //Freeing monsters space.
-    for(int i = 0; i < room->height; i++)
+    for(int i = 0; i < room->size.y; i++)
     {
         free(monsters[i]);
     }

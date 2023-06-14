@@ -20,6 +20,16 @@ typedef struct Vec2d
     double x, y;
 } Vec2d;
 
+typedef struct Vec4d
+{
+    double x, y, z, w;
+} Vec4d;
+
+typedef struct Vec4f
+{
+    float x, y, z, w;
+} Vec4f;
+
 typedef struct Mat3f
 {
     float d[3][3];
@@ -56,4 +66,9 @@ Vec2d Vec2i_to_Vec2d(Vec2i);
 double Vec2d_metric_distance(Vec2d lhs, Vec2d rhs); 
 Vec2i Vec2i_middle(Vec2i lhs, Vec2i rhs);
 
+Vec4d Vec4d_add(Vec4d, Vec4d);
+Vec4d Vec4d_scale(Vec4d, double scalar);
+Vec4d Vec4d_lerp(Vec4d lhs, Vec4d rhs, double T); // T from 0 to 1. If 0, returns lhs. If 1, returns rhs. Otherwise, returns a mix based on T.
+
+Vec4f Vec4d_to_Vec4f(Vec4d);
 #endif // GAME_MATH_H
