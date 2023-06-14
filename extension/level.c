@@ -47,6 +47,7 @@ void jump_to_next_room(GameState *state)
     {
         level->prevRoomCoords = level->currRoomCoords;
         level->currRoomCoords = newRoomCoords;
+        level->prevRoom = level->currentRoom;
         *level->currentRoom->entities = NULL;
         level->currentRoom = newRoom;
         *newRoom->entities = state->player->entity;
