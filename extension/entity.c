@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "movement.h"
+#include "haskell.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -213,6 +214,9 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
             break;
         case BOMBER:
             construct_bomber(monster);
+            break;
+        case HASKELL:
+            construct_haskell(monster);
             break;
         default:
             perror("not a monster mf\n");

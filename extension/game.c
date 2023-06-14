@@ -268,6 +268,11 @@ void gameLoop(GameState* gState)
     initRenderState(gState, &rState);
 
 
+    for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
+    {
+        (*entity)->cooldown_left = 180;
+    }
+
     while (!glfwWindowShouldClose(gState->window))
     {
         glfwPollEvents();
