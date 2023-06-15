@@ -109,7 +109,7 @@ Level *construct_level(Player *player, int room_number)
     Vec2i dirs[4] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
     Vec2i *to_add = calloc(sizeof(Vec2i), map_width * map_width);
     Vec2i *to_add_cpy = to_add;
-    Vec2i *to_add_end = to_add;
+    Vec2i *to_add_end = to_add + 1;
     *to_add = (Vec2i){map_width / 2, map_width / 2};
     visited[map_width / 2][map_width / 2] = true;
 
@@ -150,6 +150,7 @@ Level *construct_level(Player *player, int room_number)
         {
             if (level->map[i][j])
             {
+                printf("%d %d room exiosts\n", i, j);
                 for (int k = 0; k < 4; k++)
                 {
                     Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);

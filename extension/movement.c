@@ -69,6 +69,7 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     Vec2d currEntityNewPos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt));
     Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntityNewPos);
 
+
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
         if (otherPtr == currEntityPtr || isDead(*otherPtr) ||
@@ -91,7 +92,13 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
             }
         }
         if (isProjectile(currEntity) && currEntity->faction == ENEMY)
+<<<<<<< HEAD
             break;
+=======
+        {
+            break;
+        }
+>>>>>>> 6f585c77ee23393222a5d20ec7ed0e591e5538db
     }
 
     for (Rectangle *obstacle = obstacles; obstacle->topRight.x; obstacle++)
@@ -170,15 +177,47 @@ void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameSt
     }
 }
 
+void add_potential_obstacles_projectile(Rectangle *obstaclesEnd, Entity *currEntity, GameState *state)
+{
+    Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntity->pos);
+    Vec2i x_bounds = currEntity->velocity.x >= 0 ? (Vec2i){currHitbox.bottomLeft.x,  currHitbox.topRight.x + 1}
+                                                 : (Vec2i){currHitbox.bottomLeft.x - 1,  currHitbox.topRight.x};
+    Vec2i y_bounds = currEntity->velocity.y >= 0 ? (Vec2i){currHitbox.bottomLeft.y,  currHitbox.topRight.y + 1}
+                                                 : (Vec2i){currHitbox.bottomLeft.y - 1,  currHitbox.topRight.y};
+
+    if (currEntity->velocity.x > 0)
+    {
+        Vec2i tile = (Vec2i){currHitbox.topRight.x + 1, currHitbox.bottomLeft.y};
+        if (getTile(tile, state) != TILE_FLOOR && getTile(tile, state) != TILE_HOLE)
+        {
+            *obstaclesEnd++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
+        }
+    }
+    else
+    {
+        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity);
+    }
+
+    if (currEntity->velocity.y > 0)
+    {
+        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity);
+    }
+    else
+    {
+        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity);
+    }
+}
+
 void move(GameState* state, Entity** entity, double dt)
 {
-    const int NUM_OF_STEPS = 6;
+    const int NUM_OF_STEPS = 1;
     bool is_clear = isClear(state->currentLevel->currentRoom);
+
     for (Entity **currEntity = entity; *currEntity; currEntity++)
     {
-        Rectangle *obstacles = calloc(50, sizeof(Rectangle));
+        Rectangle *obstacles = calloc(8, sizeof(Rectangle));
         add_potential_obstacles(obstacles, *currEntity, state);
-        
+
         for (int i = 0; i < NUM_OF_STEPS; i++)
         {
             double timePerStep = dt / NUM_OF_STEPS;

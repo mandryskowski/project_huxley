@@ -23,6 +23,15 @@ void killEntity(Entity *entity)
     entity->HP = -1;
 }
 
+void take_dmg(Entity *entity, int dmg)
+{
+    if (!(*entity->room->entities == entity) || !entity->hit_animation)
+    {
+        entity->HP -= dmg;
+        entity->hit_animation = 30;
+    }
+}
+
 void handle_attack(Entity *attacker, Entity *victim, AttackType type)
 {
     if (attacker->cooldown_left || attacker->attack_func == NULL)
@@ -42,7 +51,7 @@ void handle_attack(Entity *attacker, Entity *victim, AttackType type)
 
 void zombie_collision_attack(Entity *attacker, Entity *victim)
 {
-    victim->HP -= attacker->ATK;
+    take_dmg(victim, attacker->ATK);
 }
 
 bool zombie_attack(Entity *attacker, Entity *victim, AttackType type)
@@ -58,7 +67,7 @@ bool zombie_attack(Entity *attacker, Entity *victim, AttackType type)
 
 void projectile_collision_attack(Entity *attacker, Entity *victim)
 {
-    victim->HP -= attacker->ATK;
+    take_dmg(victim, attacker->ATK);
     killEntity(attacker);
 }
 
@@ -122,7 +131,7 @@ void mine_death(Entity *attacker)
         Vec2d colResult = detectCollisionRect(mine_hitbox, rectangle_Vec2d((*entity)->hitbox, (*entity)->pos));
         if (colResult.x > 0 && colResult.y > 0)
         {
-            (*entity)->HP -= attacker->ATK;
+            take_dmg(*entity, attacker->ATK);
         }
     }
 }
