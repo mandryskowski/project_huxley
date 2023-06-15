@@ -449,8 +449,8 @@ void render(GameState* gState, RenderState* state)
         {
             Vec2d offset = Vec2i_to_Vec2d(Vec2i_add(gState->currentLevel->prevRoomCoords, Vec2i_scale(gState->currentLevel->currRoomCoords, -1.0)));
             
-            printf ("offset %f %f %d %d %d %d %d\n", offset.x, offset.y, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y,
-            gState->currentLevel->prevRoom->size.x, gState->currentLevel->prevRoom->size.y);
+            //printf ("offset %f %f %d %d %d %d %d\n", offset.x, offset.y, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y,
+            //gState->currentLevel->prevRoom->size.x, gState->currentLevel->prevRoom->size.y);
             Vec2i sizeDiff = Vec2i_add(gState->currentLevel->prevRoom->size, Vec2i_scale(gState->currentLevel->currentRoom->size, -1));
             //Vec2i sizeDiff = abs(gState->currentLevel->prevRoom->size.x - gState->currentLevel->currentRoom->size.x) / 2;
             if (offset.x > 0 || offset.y >  0)
