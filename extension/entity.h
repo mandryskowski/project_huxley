@@ -17,7 +17,7 @@ typedef enum {
 } Faction;
 
 typedef enum {
-    ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER, BOMBER, HASKELL, MYSTERIOUS_CHARACTER
+    ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER, BOMBER, HASKELL, MYSTERIOUS_CHARACTER, MINI_LAMBDA
 } MonsterType;
 
 typedef bool (*Attack_Func)(Entity *, Entity *, AttackType);
@@ -36,6 +36,7 @@ typedef struct Entity
 
     int HP, maxHP, attack_cooldown, cooldown_left;
     int ATK;
+    int hit_animation;
     double SPD, attack_SPD;
 
     Faction faction;

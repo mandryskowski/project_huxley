@@ -20,7 +20,7 @@ void patternBuilder(Room *room, Pattern pattern, Vec2i topLeft, Vec2i bottomRigh
         {
             for(int j = yMin; j <= yMax; j++)
             {
-                room->tiles[i][j].type = type;
+                room->tiles[j][i].type = type;
             }
         }
     }
@@ -33,7 +33,7 @@ void patternBuilder(Room *room, Pattern pattern, Vec2i topLeft, Vec2i bottomRigh
             for(int j = yMin; j < yMax; j += 2)
             {
                 
-                room->tiles[i][j].type = type;
+                room->tiles[j][i].type = type;
             }
         }
     }

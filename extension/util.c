@@ -13,7 +13,7 @@ void swap(void **this, void **other)
 void shuffle(void *array, int num_elements, int element_size) {
     char *ptr = (char *)array;
     int i;
-    srand48(clock());
+    srand(time(NULL));
 
     for (i = num_elements - 1; i > 0; --i) {
         int j = rand() % (i + 1);
