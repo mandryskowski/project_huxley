@@ -16,8 +16,8 @@ typedef enum {
     ALLY, ENEMY
 } Faction;
 
-typedef enum {
-    ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER, BOMBER, HASKELL, MYSTERIOUS_CHARACTER
+typedef enum MonsterType {
+    ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER, BOMBER, HASKELL, MYSTERIOUS_CHARACTER, MINI_LAMBDA
 } MonsterType;
 
 typedef bool (*Attack_Func)(Entity *, Entity *, AttackType);

@@ -19,7 +19,7 @@ Mesh Mesh_construct()
 
 RenderState RenderState_construct()
 {
-    return (RenderState){.bDebugHitboxes = false, .VSync = true, .renderIsometric = true,
+    return (RenderState){.bDebugHitboxes = false, .VSync = false, .renderIsometric = true,
                          .characterAtlas = loadAtlas("character.png", 1, 1), .legacyGridMesh = Mesh_construct(), .isoMesh = Mesh_construct(), .isoMesh2 = Mesh_construct(), .quadMesh = Mesh_construct(), .shader = 0, .tileAtlas = loadAtlas("textures.png", 1, 4),
                          .isoTileAtlas = loadAtlas("isoatlas.png", 4, 4), .isoCharacterAtlas = loadAtlas("isocharacter.png", 2, 6),
                          .resolution = (Vec2i){2048, 2048}, .backgroundColor = (Vec4d){0.2, 0.2, 0.2, 1.0}};
@@ -69,6 +69,7 @@ const char vShaderSrc[] = "#version 400 core\n" \
                       " fsTexID = vTexID;\n" \
                       " fsTexCoord = vTexCoord;\n" \
                       "}\0";
+
 
 const char fShaderSrc[] = "#version 400 core\n" \
                       "flat in uint fsTexID;\n" \
@@ -240,7 +241,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
         }
     }
 
-    printf("out mesh has %d verts\n", outMesh.vertexCount);
+    //printf("out mesh has %d verts\n", outMesh.vertexCount);
     return outMesh;
 }
 
@@ -398,7 +399,7 @@ Mat3f renderIsoGrid(GameState* gState, RenderState* state, Mesh* gridMesh, Vec2d
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * 0.05,  -cameraCenterGrid.y* 0.05}, (Vec2d){1.0 / (gState->player->cameraSize.x) *0.055, (1.0 / gState->player->cameraSize.y) * 0.055});
     //*viewMat = Mat3f_construct(getIsoPos(Vec2d_scale(Vec2i_to_Vec2d(gState->currentRoom->size), 0.5), gState->currentRoom->size), (Vec2d){1.0f / gState->currentRoom->size.y, 1.0f / gState->currentRoom->size.y});
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
-    if (gridMesh == &state->isoMesh2)
+    if (gridMesh == &state->isoMesh2 && 0)
         {
             const double fadeDistance = 10.0;
             double fadeVal;
@@ -447,12 +448,15 @@ void render(GameState* gState, RenderState* state)
         if (state->isoMesh2.vertexCount != 0)
         {
             Vec2d offset = Vec2i_to_Vec2d(Vec2i_add(gState->currentLevel->prevRoomCoords, Vec2i_scale(gState->currentLevel->currRoomCoords, -1.0)));
-            printf ("offset %f %f\n", offset.x, offset.y);
+            
+            printf ("offset %f %f %d %d %d %d %d\n", offset.x, offset.y, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y,
+            gState->currentLevel->prevRoom->size.x, gState->currentLevel->prevRoom->size.y);
+            Vec2i sizeDiff = Vec2i_add(gState->currentLevel->prevRoom->size, Vec2i_scale(gState->currentLevel->currentRoom->size, -1));
+            //Vec2i sizeDiff = abs(gState->currentLevel->prevRoom->size.x - gState->currentLevel->currentRoom->size.x) / 2;
             if (offset.x > 0 || offset.y >  0)
             {
-
                 glDisable(GL_DEPTH_TEST);
-                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1), -offset.y * (gState->currentLevel->currentRoom->size.y - 1)});
+                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1)  + offset.y * abs(sizeDiff.x / 2), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) + offset.x * abs(sizeDiff.y / 2)});
                 glEnable(GL_DEPTH_TEST);
                 viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0});
             }
@@ -460,7 +464,7 @@ void render(GameState* gState, RenderState* state)
             {
                 viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0});
                 glUniform1i(glGetUniformLocation(state->shader, "customDepth"), 0);
-                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1), -offset.y * (gState->currentLevel->currentRoom->size.y - 1)});
+                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1) + offset.y * abs(sizeDiff.x / 2), -offset.y * (gState->currentLevel->currentRoom->size.y - 1) + offset.x * abs(sizeDiff.y / 2)});
  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);               
             }
     
