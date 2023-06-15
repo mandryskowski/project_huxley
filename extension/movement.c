@@ -1,56 +1,47 @@
-#include "GLFW/glfw3.h"
+#include "glfw/glfw3.h"
 #include "state.h"
 #include <math.h>
-#include "math.h"
+#include "game_math.h"
 #include "entity.h"
 #include "room.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "level.h"
 
-void playerMovement(GameState* state, float dt)
+void playerMovement(GameState* state, double dt)
 {
-//    Player* player = state->player;
-//    if (glfwGetKey(state->window, GLFW_KEY_W) == GLFW_PRESS)
-//    {
-//        player->entity.velocity += {0.0f, dt};
-//    }
-//    if (glfwGetKey(state->window, GLFW_KEY_S) == GLFW_PRESS)
-//    {
-//        player->entity.velocity += {0.0f, -dt};
-//    }
-//    if (glfwGetKey(state->window, GLFW_KEY_D) == GLFW_PRESS)
-//    {
-//        player->entity.velocity += {dt, 0.0f};
-//    }
-//    if (glfwGetKey(state->window, GLFW_KEY_A) == GLFW_PRESS)
-//    {
-//        player->entity.velocity += {-dt, 0.0f};
-//    }
-//
-//    player->entity.velocity = player->entity.SPD * normalize(player->entity.velocity);
-
 
 }
 
-Vec2f detectCollisionRect(Rectangle a, Rectangle b, Vec2f velocity)
+void deal_collison_damage(Entity *entity, Entity *other)
 {
-//    float overlapX = velocity.x > 0 ? b.topRight.x - a.bottomLeft.x : a.topRight.x - b.bottomLeft.x;
-//    float overlapY = velocity.y > b.topRight.y ? b.topRight.y - a.bottomLeft.y : a.topRight.y - b.bottomLeft.y;
-    float overlapX = a.topRight.x > b.topRight.x ? b.topRight.x - a.bottomLeft.x : a.topRight.x - b.bottomLeft.x;
-    float overlapY = a.topRight.y > b.topRight.y ? b.topRight.y - a.bottomLeft.y : a.topRight.y - b.bottomLeft.y;
-    return (Vec2f){overlapX, overlapY};
-}
-
-void checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, float *highestAfterCollision,  Vec2f *newVelocity, Vec2f velocity)
-{
-    Vec2f collisionResult = detectCollisionRect(currHitbox, otherHitbox, velocity);
-    //printf("xddd\n");
-    if (collisionResult.x > EPS && collisionResult.y > EPS)
+    if (isMine(other))
     {
-        float xtime = velocity.x ? fabs(collisionResult.x / velocity.x) : 1e9;
-        float ytime = velocity.y ? fabs(collisionResult.y / velocity.y) : 1e9;
-        float timeAfterCollision = min(xtime, ytime);
+        other->cooldown_left = 0;
+    }
+    handle_attack(entity, other, ATTACK_CONTACT);
+    handle_attack(other, entity, ATTACK_CONTACT);
+}
+
+Vec2d detectCollisionRect(Rectangle a, Rectangle b)
+{
+    double overlapX = a.topRight.x > b.topRight.x ? b.topRight.x - a.bottomLeft.x : a.topRight.x - b.bottomLeft.x;
+    double overlapY = a.topRight.y > b.topRight.y ? b.topRight.y - a.bottomLeft.y : a.topRight.y - b.bottomLeft.y;
+
+    return (Vec2d){overlapX + EPSILON, overlapY + EPSILON};
+}
+
+bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *highestAfterCollision,  Vec2d *newVelocity, Vec2d velocity)
+{
+    Vec2d collisionResult = detectCollisionRect(currHitbox, otherHitbox);
+    
+    if (collisionResult.x > 0 && collisionResult.y > 0)
+    {
+        double xtime = velocity.x ? fabs(((double)collisionResult.x + EPSILON / 2) / velocity.x) : 1e9;
+        double ytime = velocity.y ? fabs(((double)collisionResult.y + EPSILON / 2) / velocity.y) : 1e9;
+        double timeAfterCollision = min(xtime, ytime);
+
         if (timeAfterCollision > *highestAfterCollision)
         {
             *highestAfterCollision = timeAfterCollision;
@@ -65,83 +56,135 @@ void checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, float *highe
                 newVelocity->y = 0;
             }
         }
+        return true;
     }
+    return false;
 }
 
-float moveUnitlPossible(Entity **entity, Entity **currEntityPtr, float dt, Rectangle *obstacles, Rectangle *obstaclesEnd)
+double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rectangle *obstacles, GameState *state, bool isclear)
 {
-    float highestAfterCollision = 0;
+    double highestAfterCollision = 0;
     Entity *currEntity = *currEntityPtr;
-    Vec2f newVelocity = currEntity->velocity;
-    Vec2f currEntityNewPos = Vec2f_add(currEntity->pos, Vec2f_scale(currEntity->velocity, dt));
-    Rectangle currHitbox = rectangle_Vec2f(currEntity->hitbox, currEntityNewPos);
+    Vec2d newVelocity = currEntity->velocity;
+    Vec2d currEntityNewPos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt));
+    Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntityNewPos);
 
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
-        if (otherPtr == currEntityPtr)
+        if (otherPtr == currEntityPtr || isDead(*otherPtr) ||
+        ((isProjectile(*otherPtr) || isProjectile(*currEntityPtr)) && (*otherPtr)->faction == (*currEntityPtr)->faction)
+        || (isProjectile(*otherPtr) && isProjectile(*currEntityPtr)) || (isMine(*otherPtr) && (*otherPtr)->faction == (*currEntityPtr)->faction) )
         {
             continue;
         }
         Entity *other = *otherPtr;
 
-        Vec2f currEntityNewPos = Vec2f_add(currEntity->pos, Vec2f_scale(currEntity->velocity, dt));
-        Rectangle currHitbox = rectangle_Vec2f(currEntity->hitbox, currEntityNewPos);
-        Rectangle otherHitbox = rectangle_Vec2f(other->hitbox, other->pos);
-
-        checkForCollision(currHitbox, otherHitbox, &highestAfterCollision, &newVelocity, currEntity->velocity);
+        Rectangle otherHitbox = rectangle_Vec2d(other->hitbox, other->pos);
+        bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
+                                          &newVelocity, currEntity->velocity);
+        if (collides)
+        {
+            deal_collison_damage(currEntity, other);
+            if (isDead(*currEntityPtr))
+            {
+                return 0; // Entity is dead
+            }
+        }
     }
 
-    for (Rectangle *obstacle = obstacles; obstacle < obstaclesEnd; obstacle++)
+    for (Rectangle *obstacle = obstacles; obstacle->topRight.x; obstacle++)
     {
         Rectangle otherHitbox = *obstacle;
+        bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
+                                          &newVelocity, currEntity->velocity);
 
-        checkForCollision(currHitbox, otherHitbox, &highestAfterCollision, &newVelocity, currEntity->velocity);
+        if (collides)
+        {
+            if (isclear && currEntityPtr == entity && getTile(Vec2d_to_Vec2i(Vec2d_scale(Vec2d_add(otherHitbox.bottomLeft, otherHitbox.topRight), 0.5)), state) == TILE_DOOR)
+            {
+                state->renderNewRoom = true;
+            }
+            if (isProjectile(currEntity))
+            {
+                killEntity(currEntity);
+                return  0; // Entity is dead
+            }
+        }
     }
 
-    //Vec2f_print(currEntity->velocity);
-    //printf(" %f xddd\n", highestAfterCollision);
-    currEntity->pos = Vec2f_add(currEntity->pos, Vec2f_scale(currEntity->velocity, dt - highestAfterCollision));
+    currEntity->pos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt - highestAfterCollision));
     currEntity->velocity = newVelocity;
     return highestAfterCollision;
 }
 
-void move(GameState* state, Entity** entity, float dt)
+void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state, Entity *currEntity)
 {
-    const int NUM_OF_STEPS = 36;
-    for (Entity **currEntity = entity; *currEntity; currEntity++)
+    for (int i = cBounds.x; i <= cBounds.y; i++)
     {
-        Rectangle *obstacles = calloc(8, sizeof(Rectangle));
-        Rectangle *obstaclesEnd = obstacles;
-        for (int i = -1; i < 2; i++)
+        Vec2i tile = isX ? (Vec2i){valBound, i} : (Vec2i){i, valBound};
+
+//        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
+//        {
+//            continue;
+//        }
+        if (isProjectile(currEntity))
         {
-            for (int j = -1; j < 2; j++)
+            if (getTile(tile, state) != TILE_FLOOR && getTile(tile, state) != TILE_HOLE)
             {
-                Vec2i tile = {(int)(*currEntity)->pos.x + i, (int)(*currEntity)->pos.y + j};
-                if (getTile(tile, state) != TILE_FLOOR)
-                {
-                    *obstaclesEnd++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
-                }
+                *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
             }
         }
-//        for (Rectangle *i = obstacles; i < obstaclesEnd; i++)
-//        {
-//            Rectangle_print(*i);
-//            printf("\n");
-//        }
-//        exit(0);
+        else if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
+        {
+            *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
+        }
+    }
+}
+
+void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameState *state)
+{
+    Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntity->pos);
+    Vec2i x_bounds = currEntity->velocity.x >= 0 ? (Vec2i){currHitbox.bottomLeft.x,  currHitbox.topRight.x + 1}
+        : (Vec2i){currHitbox.bottomLeft.x - 1,  currHitbox.topRight.x};
+    Vec2i y_bounds = currEntity->velocity.y >= 0 ? (Vec2i){currHitbox.bottomLeft.y,  currHitbox.topRight.y + 1}
+        : (Vec2i){currHitbox.bottomLeft.y - 1,  currHitbox.topRight.y};
+
+    if (currEntity->velocity.x > 0)
+    {
+        add_wall(y_bounds, currHitbox.topRight.x + 1, true, &obstaclesEnd, state, currEntity);
+    }
+    else
+    {
+        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity);
+    }
+
+    if (currEntity->velocity.y > 0)
+    {
+        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity);
+    }
+    else
+    {
+        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity);
+    }
+}
+
+void move(GameState* state, Entity** entity, double dt)
+{
+    const int NUM_OF_STEPS = 6;
+    bool is_clear = isClear(state->currentLevel->currentRoom);
+    for (Entity **currEntity = entity; *currEntity; currEntity++)
+    {
+        Rectangle *obstacles = calloc(50, sizeof(Rectangle));
+        add_potential_obstacles(obstacles, *currEntity, state);
+        
         for (int i = 0; i < NUM_OF_STEPS; i++)
         {
-            float timePerStep = dt / NUM_OF_STEPS;
-            while (timePerStep && !Vec2f_zero((*currEntity)->velocity))
+            double timePerStep = dt / NUM_OF_STEPS;
+            while (timePerStep && !Vec2d_zero((*currEntity)->velocity) && !isDead(*currEntity))
             {
-                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles, obstaclesEnd);
+                timePerStep = moveUnitlPossible(entity, currEntity, timePerStep, obstacles, state, is_clear);
             }
         }
         free(obstacles);
     }
-}
-
-Vec2f* findPath(GameState* state, Entity* entity, Vec2f desiredPosition)
-{
-    
 }
