@@ -22,6 +22,15 @@ void killEntity(Entity *entity)
     entity->HP = -1;
 }
 
+void take_dmg(Entity *entity, int dmg)
+{
+    if (!(*entity->room->entities == entity) || !entity->hit_animation)
+    {
+        entity->HP -= dmg;
+        entity->hit_animation = 30;
+    }
+}
+
 void handle_attack(Entity *attacker, Entity *victim, AttackType type)
 {
     if (attacker->cooldown_left || attacker->attack_func == NULL)
@@ -41,7 +50,7 @@ void handle_attack(Entity *attacker, Entity *victim, AttackType type)
 
 void zombie_collision_attack(Entity *attacker, Entity *victim)
 {
-    victim->HP -= attacker->ATK;
+    take_dmg(victim, attacker->ATK);
 }
 
 bool zombie_attack(Entity *attacker, Entity *victim, AttackType type)
@@ -57,7 +66,7 @@ bool zombie_attack(Entity *attacker, Entity *victim, AttackType type)
 
 void projectile_collision_attack(Entity *attacker, Entity *victim)
 {
-    victim->HP -= attacker->ATK;
+    take_dmg(victim, attacker->ATK);
     killEntity(attacker);
 }
 
@@ -121,7 +130,7 @@ void mine_death(Entity *attacker)
         Vec2d colResult = detectCollisionRect(mine_hitbox, rectangle_Vec2d((*entity)->hitbox, (*entity)->pos));
         if (colResult.x > 0 && colResult.y > 0)
         {
-            (*entity)->HP -= attacker->ATK;
+            take_dmg(*entity, attacker->ATK);
         }
     }
 }
@@ -165,7 +174,7 @@ void construct_zombie(Entity *monster)
     *monster =  (Entity) {.ATK = 3, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 100, .maxHP = 100,
-            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0, .textureID = 3, .currentAnimation = NULL};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0, .currentAnimation = NULL};
 }
 
 void construct_shooter(Entity *monster)
@@ -214,6 +223,7 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
     switch (type)
     {
         case ZOMBIE:
+        //case MINI_LAMBDA:
             construct_zombie(monster);
             break;
         case SHOOTER:

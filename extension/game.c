@@ -114,6 +114,7 @@ void update_cooldowns(GameState* state)
     for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
     {
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
+        (*entity)->hit_animation = max((*entity)->hit_animation - 1, 0);
     }
 }
 
