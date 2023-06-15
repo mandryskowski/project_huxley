@@ -26,13 +26,14 @@ ifeq ($(OS),Windows_NT)
     endif
 else
     UNAME_S := $(shell uname -s)
-    CFLAGS += -Llib/linux -lcimgui
-    LDFLAGS="-Wl,-rpath,lib/linux/"
+        
     ifeq ($(UNAME_S),Linux)
-        CFLAGS += -D LINUX 
+        CFLAGS += -D LINUX -Llib/linux -lcimgui -lm
+        LDFLAGS="-Wl,-rpath,lib/linux/"
     endif
     ifeq ($(UNAME_S),Darwin)
-        CFLAGS += -D OSX
+        CFLAGS += -D OSX -Llib/macos -lcimgui
+        LDFLAGS="-Wl,-rpath,lib/macos/"
     endif
     UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
@@ -54,7 +55,7 @@ endif
 ########################Project files########################
 
 # Here you add the names of header-source file pairs. E.g. gameControl adds gameControl.h and gameControl.c
-_GAME_SOURCE_HEADER_PAIRS = game math room render assets entity movement gui pathfind\
+_GAME_SOURCE_HEADER_PAIRS = game game_math room render assets entity movement gui pathfind util level pqueue animation haskell\
 
 # Here on the other hand you add just the headers.
 _GAME_JUST_HEADERS = state.h
