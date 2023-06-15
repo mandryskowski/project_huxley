@@ -61,11 +61,6 @@ void put_tiles(Room* room, Mode mode)
         room->tiles[height - 1][i].type = TILE_WALL;
     }
 
-    //ADDING THE DOORS
-    room->tiles[0][width / 2 - 1].type = TILE_DOOR;
-    room->tiles[0][width / 2].type = TILE_DOOR;
-    room->tiles[height / 2 - 1][0].type = TILE_DOOR;
-    room->tiles[height / 2][0].type = TILE_DOOR;
 }
 
 Room *generate_room(int seed, Mode mode)

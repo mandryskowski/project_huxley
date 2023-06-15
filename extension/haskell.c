@@ -33,7 +33,7 @@ void circle_attack(Entity *haskell, Entity *victim)
         haskell->cooldown_left= 60;
         return;
     }
-    int num_of_projetiles = 50;
+    int num_of_projetiles = 100;
     for (int i = 0; i < num_of_projetiles; i++)
     {
         haskell->attack_velocity = Vec2d_rotate(haskell->attack_velocity, 360.0 / num_of_projetiles);
@@ -63,18 +63,18 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
 {
     switch (type) {
         case SPAWN_ENTITY:
-            printf("%d\n", attack_cycle_left);
+            //printf("%d\n", attack_cycle_left);
             if (!attack_cycle_left)
             {
                 srand(clock());
                 int p = rand() % 10;
                 printf("%d\n", p);
-                if (p < 2)
+                if (p < 10)
                 {
                     attack = circle_attack;
                     attack_cycle_left = 6;
                 }
-                else if (p < 4 && attack != spawn_monsters_attack)
+                else if (p < 6 && attack != spawn_monsters_attack)
                 {
                     attack = spawn_monsters_attack;
                     attack_cycle_left = 1;

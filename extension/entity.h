@@ -36,6 +36,7 @@ typedef struct Entity
 
     int HP, maxHP, attack_cooldown, cooldown_left;
     int ATK;
+    int hit_animation;
     double SPD, attack_SPD;
 
     Faction faction;
