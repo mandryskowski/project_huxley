@@ -90,6 +90,8 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
                 return 0; // Entity is dead
             }
         }
+        if (isProjectile(currEntity) && currEntity->faction == ENEMY)
+            break;
     }
 
     for (Rectangle *obstacle = obstacles; obstacle->topRight.x; obstacle++)

@@ -200,7 +200,7 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     GLFW_COCOA_RETINA_FRAMEBUFFER;
-    state->window = glfwCreateWindow(1920, 1080, "Huxley game", NULL, NULL);
+    state->window = glfwCreateWindow(3840, 2075, "Huxley game", glfwGetPrimaryMonitor(), NULL);
 
     if (state->window == NULL)
     {
@@ -224,7 +224,7 @@ void initGame(GameState* state)
 
 void renderGame(GameState* gState, RenderState* rState)
 {
-    glfwSwapInterval(rState->VSync);
+   glfwSwapInterval(0);
     render(gState, rState);
     gui_render();
     glfwSwapBuffers(gState->window);
@@ -252,11 +252,12 @@ void gameLoop(GameState* gState)
 
     initRenderState(gState, &rState);
 
-
     for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
         (*entity)->cooldown_left = 180;
     }
+
+    glfwSwapInterval(rState.VSync);
 
     while (!glfwWindowShouldClose(gState->window))
     {
@@ -265,6 +266,7 @@ void gameLoop(GameState* gState)
         double deltaTime = glfwGetTime() - lastUpdateTime;
         if (deltaTime >= timestep)
         {
+            
             handleEvents(gState);
             updateLogic(gState, deltaTime);
             updateAnimations(gState, gState->currentLevel->currentRoom->entities, gState->currentLevel->currentRoom->entity_cnt);

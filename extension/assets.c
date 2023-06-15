@@ -3,6 +3,7 @@
 #include "stb/stb_image.h"
 #include "game_math.h"
 #include "glad/glad.h"
+#include "entity.h"
 
 unsigned char** cutImages(unsigned char* uncutPtr, Vec2i atlasCounts, Vec2i tileSize, int channels)
 {
@@ -69,3 +70,25 @@ uint loadAtlas(char* filename, int width, int height)
     return atlasTex;
 }
 
+uint getMonsterTextureID(MonsterType type)
+{
+    switch (type)
+    {
+        case ZOMBIE:
+        case SHOOTER:
+        case BOMBER:
+            return 3;
+        case FLYING_SHOOTER:
+            return 1;
+
+        case HASKELL:
+            return 7;
+        case MYSTERIOUS_CHARACTER:
+            return 4;
+        case MINI_LAMBDA:
+            return 7;
+        case NOT_MONSTER:
+        default:
+            return 0;
+    }
+}

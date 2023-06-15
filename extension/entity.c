@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "animation.h"
+#include "assets.h"
 
 bool isProjectile(Entity *entity)
 {
@@ -157,7 +158,7 @@ void construct_bomber(Entity *monster)
     *monster =  (Entity) {.ATK = 0, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.2, -0.2}, (Vec2d){0.2, 0.2}}, .attack_velocity = (Vec2d){1,1}, .attack_SPD = 1.0,
             .HP = 1, .maxHP = 1,
-            .SPD = 3, .velocity = (Vec2d){0, 0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0, .textureID = 3, .currentAnimation = NULL};
+            .SPD = 3, .velocity = (Vec2d){0, 0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0, .currentAnimation = NULL};
 }
 
 void construct_zombie(Entity *monster)
@@ -165,7 +166,7 @@ void construct_zombie(Entity *monster)
     *monster =  (Entity) {.ATK = 3, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 100, .maxHP = 100,
-            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0, .textureID = 3, .currentAnimation = NULL};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0, .currentAnimation = NULL};
 }
 
 void construct_shooter(Entity *monster)
@@ -173,7 +174,7 @@ void construct_shooter(Entity *monster)
     *monster =  (Entity) {.ATK = 1, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}, .textureID = 3, .currentAnimation = NULL};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}, .currentAnimation = NULL};
 }
 
 void construct_flying_shooter(Entity *monster)
@@ -214,6 +215,7 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
     switch (type)
     {
         case ZOMBIE:
+        case MINI_LAMBDA:
             construct_zombie(monster);
             break;
         case SHOOTER:
@@ -238,6 +240,7 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
 
     monster->room = room;
     monster->pos = pos;
+    monster->textureID = getMonsterTextureID(type);
 
     return monster;
 }
