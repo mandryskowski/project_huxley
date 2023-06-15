@@ -92,13 +92,9 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
             }
         }
         if (isProjectile(currEntity) && currEntity->faction == ENEMY)
-<<<<<<< HEAD
-            break;
-=======
         {
             break;
         }
->>>>>>> 6f585c77ee23393222a5d20ec7ed0e591e5538db
     }
 
     for (Rectangle *obstacle = obstacles; obstacle->topRight.x; obstacle++)
