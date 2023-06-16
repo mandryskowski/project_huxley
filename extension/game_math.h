@@ -40,6 +40,8 @@ typedef struct Rectangle
     Vec2d bottomLeft, topRight;
 } Rectangle;
 
+double clamp(double a, double minVal, double maxVal);
+
 Mat3f Mat3f_construct(Vec2d translation, Vec2d scale);
 Mat3f Mat3f_multiply(Mat3f, Mat3f);
 void Mat3f_print(Mat3f*);

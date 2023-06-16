@@ -199,7 +199,7 @@ void construct_mysterious_character(Entity* monster)
     *monster =  (Entity) {.ATK = 0, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 100, .maxHP = 60,
-            .SPD = 0, .velocity = (Vec2d){0.0, 0.0}, .attack_func = NULL, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
+            .SPD = 0, .velocity = (Vec2d){0.0, 0.0}, .attack_func = NULL, .faction = ALLY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
     Animation_construct_mysterious(monster);
 }
 

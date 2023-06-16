@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 
+double clamp(double a, double minVal, double maxVal)
+{
+    return (a > maxVal) ? maxVal : ((a < minVal) ? minVal : a);
+}
+
 Mat3f Mat3f_construct(Vec2d translation, Vec2d scale)
 {
     Mat3f mat;

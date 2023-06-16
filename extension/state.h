@@ -11,6 +11,7 @@ typedef struct ImGuiIO ImGuiIO;
 typedef struct Level Level;
 typedef struct Player Player;
 typedef struct Dialogue Dialogue;
+typedef struct RenderState RenderState;
 
 typedef struct GUIState
 {
@@ -26,6 +27,7 @@ typedef struct GameState
     Player* player;
     GUIState* guiState;
     bool renderNewRoom;
+    RenderState* rState;
 } GameState;
 
 

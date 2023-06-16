@@ -56,7 +56,7 @@ void jump_to_next_room(GameState *state)
                                              level->currentRoom->size.y * (1 - direction.y) / 2 + direction.y * 1.5};
         for (Entity **entity = newRoom->entities + 1; *entity; entity++)
         {
-            (*entity)->cooldown_left = 180;
+            //(*entity)->cooldown_left = 180;
         }
     }
 }
