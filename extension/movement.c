@@ -204,8 +204,10 @@ void move(GameState* state, Entity** entity, double dt)
         }
         free(obstacles);
     }
+
     if (isOutOfBounds(Vec2d_to_Vec2i(state->player->entity->pos), state->currentLevel->currentRoom))
     {
         state->renderNewRoom = true;
     }
 }
+

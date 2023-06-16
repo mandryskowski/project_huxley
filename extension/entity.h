@@ -16,7 +16,7 @@ typedef enum {
     ALLY, ENEMY
 } Faction;
 
-typedef enum {
+typedef enum MonsterType {
     ZOMBIE, SHOOTER, FLYING_SHOOTER, NOT_MONSTER, BOMBER, HASKELL, MYSTERIOUS_CHARACTER, MINI_LAMBDA
 } MonsterType;
 
