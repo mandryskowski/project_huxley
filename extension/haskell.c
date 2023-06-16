@@ -43,7 +43,7 @@ void circle_attack(Entity *haskell, Entity *victim)
 
 void spawn_monsters_attack(Entity *haskell, Entity *victim)
 {
-    haskell->attack_cooldown = 120;
+    haskell->attack_cooldown = 200;
     Room *room = haskell->room;
     for (int i = -2; i <= 2; i += 4)
     {
@@ -69,12 +69,12 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
                 srand(clock());
                 int p = rand() % 10;
                 printf("%d\n", p);
-                if (p < 10)
+                if (p < 3)
                 {
                     attack = circle_attack;
                     attack_cycle_left = 6;
                 }
-                else if (p < 6 && attack != spawn_monsters_attack)
+                else if (p < 6)
                 {
                     attack = spawn_monsters_attack;
                     attack_cycle_left = 1;
