@@ -24,7 +24,7 @@ bool animLogic(Animation* anim)
     int* start = (int*)anim->startVal;
     int* end = (int*)anim->endVal;
 
-    printf("val %d %d %d \n", *val, *start, *end);
+    printf("val %f %f %f \n", *val, *start, *end);
 
     if (*val == *end)
     {
