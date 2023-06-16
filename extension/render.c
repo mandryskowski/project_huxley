@@ -62,9 +62,11 @@ const char vShaderSrc[] = "#version 400 core\n" \
                       "out vec2 fsTexCoord;\n" \
                       "uniform mat3 viewMat;\n" \
                       "uniform int customDepth;\n" \
+                      "uniform int depthOffset;\n" \
                       "void main() \n" \
                       "{ \n" \
                       " float depth = (customDepth == -1) ? (float(vDepth)) : (float(customDepth));\n" \
+                      " if (depthOffset != -1) depth += float(depthOffset);\n"\
                       " gl_Position = vec4(vec2(viewMat * vec3(vPosition, 1.0)), depth / 255.0, 1.0);\n" \
                       " fsTexID = vTexID;\n" \
                       " fsTexCoord = vTexCoord;\n" \
@@ -199,6 +201,8 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
     {
         for (int y = height - 1; y >= 0; y--)
         {
+            if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
+                ;//continue;
             const Vec2d quadPos = Vec2d_add(Vec2d_scale(xOffset, (width - 1 - x)), 
                                             Vec2d_scale(yOffset, (height - 1 - y)));
             TileType type = gameState->currentLevel->currentRoom->tiles[x][y].type;
@@ -442,6 +446,7 @@ void render(GameState* gState, RenderState* state)
 
     glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
     glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);
+    glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);
     Mat3f viewMat;
    
     if (state->renderIsometric)
@@ -450,22 +455,24 @@ void render(GameState* gState, RenderState* state)
         {
             Vec2d offset = Vec2i_to_Vec2d(Vec2i_add(gState->currentLevel->prevRoomCoords, Vec2i_scale(gState->currentLevel->currRoomCoords, -1.0)));
             
-            printf ("offset %f %f %d %d %d %d %d\n", offset.x, offset.y, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y,
-            gState->currentLevel->prevRoom->size.x, gState->currentLevel->prevRoom->size.y);
-            Vec2i sizeDiff = Vec2i_add(gState->currentLevel->prevRoom->size, Vec2i_scale(gState->currentLevel->currentRoom->size, -1));
+           // printf ("offset %f %f %d %d %d %d %d\n", offset.x, offset.y, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y,
+            //gState->currentLevel->prevRoom->size.x, gState->currentLevel->prevRoom->size.y);
+            Vec2i sizeDiff = Vec2i_add(gState->currentLevel->currentRoom->size, Vec2i_scale(gState->currentLevel->prevRoom->size , -1));
             //Vec2i sizeDiff = abs(gState->currentLevel->prevRoom->size.x - gState->currentLevel->currentRoom->size.x) / 2;
             if (offset.x > 0 || offset.y >  0)
-            {
-                glDisable(GL_DEPTH_TEST);
-                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1)  - sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) -  sizeDiff.y / 2.0 * abs(offset.x)});
-                glEnable(GL_DEPTH_TEST);
+            {       
+                //glDepthFunc(GL_GEQUAL);
+                glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), (offset.x != 0 ? gState->currentLevel->currentRoom->size.x : gState->currentLevel->currentRoom->size.y) + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2 - (offset.x + offset.y));               
+                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1)  + sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) +  sizeDiff.y / 2.0 * abs(offset.x)});
+                glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);   
                 viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0});
             }
             else
             {
                 viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0});
-                glUniform1i(glGetUniformLocation(state->shader, "customDepth"), 0);
- glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);               
+                glUniform1i(glGetUniformLocation(state->shader, "customDepth"), max(1 + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2, 0));          
+ renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1) + sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->currentRoom->size.y - 1) +  sizeDiff.y / 2.0 * abs(offset.x)});
+  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);     
             }
     
 
@@ -539,7 +546,6 @@ void render(GameState* gState, RenderState* state)
         glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, offsetViewMatCharacter.d);
         glUniform1i(glGetUniformLocation(state->shader, "materialType"),7);
         float col[4] = {1.0, 1.0 - (*ent)->hit_animation / 30.0, 1.0 - (*ent)->hit_animation / 30.0, 1.0};
-        printf ("col %f \n", col[3]);
          glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, col);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
