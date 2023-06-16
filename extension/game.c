@@ -189,6 +189,9 @@ void updateAnimations(GameState* state, Entity** entities, size_t entity_cnt)
             entities[i]->currentAnimation->animFunc(entities[i]->currentAnimation);
         }
     }
+
+    if (state->player->screenShakeFramesLeft > 0)
+        state->player->screenShakeFramesLeft--;
 }
 
 void initGame(GameState* state)
