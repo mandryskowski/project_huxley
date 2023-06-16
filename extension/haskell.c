@@ -52,7 +52,7 @@ void spawn_monsters_attack(Entity *haskell, Entity *victim)
             Vec2d new_vec = Vec2d_add(victim->pos, (Vec2d){i, j});
             if (new_vec.x > 2 && new_vec.y > 2 && new_vec.x < room->size.x - 2 && new_vec.y < room->size.y - 2)
             {
-                room->entities[room->entity_cnt++] = construct_monster(new_vec, ZOMBIE, room);
+                room->entities[room->entity_cnt++] = construct_monster(new_vec, MINI_LAMBDA, room);
             }
         }
     }
@@ -97,6 +97,6 @@ void construct_haskell(Entity *monster)
 {
     *monster = (Entity) {.ATK = 10, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-1, -1}, (Vec2d){1, 1}},
-            .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_velocity = (Vec2d){6, 0},
-            .attack_func = haskell_attack, .faction = ENEMY, .attack_SPD = 6, .attack_cooldown = 20, .currentAnimation = NULL, .textureID = 7};
+            .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0},
+            .attack_func = haskell_attack, .faction = ENEMY, .attack_SPD = 6, .attack_cooldown = 20, .currentAnimation = NULL};
 }
