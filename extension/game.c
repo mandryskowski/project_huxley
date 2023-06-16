@@ -124,7 +124,7 @@ void erase_dead(Room *room)
     for (int i = 1; i < entity_cnt; i++)
     {
         Entity **entity = room->entities + i;
-        if (*entity && isDead(*entity))
+        if (*entity && isDead(*entity) && !(*entity)->hit_animation)
         {
             if ((*entity)->death_func)
             {
@@ -147,7 +147,7 @@ void updateLogic(GameState* state, double dt)
     Entity** arr = state->currentLevel->currentRoom->entities;
 
 
-    if (frame_cnt % 5 == 0)
+    if (frame_cnt % 5 == 0 && !isClear(state->currentLevel->currentRoom))
     {
         int index = 0;
         Vec2d* velocities = path((**arr).pos, arr + 1, state);
@@ -155,11 +155,24 @@ void updateLogic(GameState* state, double dt)
         {
             if (isProjectile(*other))
             {
+                index++;
                 continue;
             }
-            (*other)->velocity = Vec2d_scale(*(velocities+index), (*other)->SPD);
+
+            //Vec2d_print((*other)->pos);
+            //printf("  ");
+            //Vec2d_print(velocities[index]);
+            //printf(" %d, speed %f\n", index, (*other)->SPD);
+            (*other)->velocity = *(velocities+index);
             index++;
         }
+//        for (Entity **p = arr+1; *p; p++)
+//        {
+//            Vec2d_print((*p)->velocity);
+//            printf(" ");
+//            Vec2d_print((*p)->pos);
+//            printf("%d velocity pos post pathfind\n", p - arr - 1);
+//        }
     }
 
     if (!Vec2d_zero(state->player->entity->attack_velocity)) {
@@ -167,7 +180,7 @@ void updateLogic(GameState* state, double dt)
     }
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        if (!Vec2d_zero((*entity)->attack_velocity))
+        //if (!Vec2d_zero((*entity)->attack_velocity))
             handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
     }
 

@@ -57,7 +57,7 @@ bool isClear(Room *room)
 {
     for (Entity **entity = room->entities; *entity; entity++)
     {
-        if ((*entity)->faction == ENEMY)
+        if ((*entity)->faction == ENEMY && !isProjectile(*entity) && !isMine(*entity))
         {
             return false;
         }

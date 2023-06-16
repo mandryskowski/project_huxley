@@ -23,6 +23,12 @@ typedef enum {
 typedef bool (*Attack_Func)(Entity *, Entity *, AttackType);
 typedef void (*Death_Func)(Entity *);
 
+typedef struct ProjectileStats
+{
+    int bounces;
+    int pierces;
+} ProjectileStats;
+
 typedef struct Entity
 {
     Vec2d pos;
@@ -35,9 +41,11 @@ typedef struct Entity
     bool canFly;
 
     int HP, maxHP, attack_cooldown, cooldown_left;
-    int ATK;
+    int ATK, attack_modifier;
     int hit_animation;
     double SPD, attack_SPD;
+
+    ProjectileStats projectileStats;
 
     Faction faction;
     Attack_Func attack_func;

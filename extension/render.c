@@ -447,7 +447,6 @@ void render(GameState* gState, RenderState* state)
         if (state->isoMesh2.vertexCount != 0)
         {
             Vec2d offset = Vec2i_to_Vec2d(Vec2i_add(gState->currentLevel->prevRoomCoords, Vec2i_scale(gState->currentLevel->currRoomCoords, -1.0)));
-            printf ("offset %f %f\n", offset.x, offset.y);
             if (offset.x > 0 || offset.y >  0)
             {
 

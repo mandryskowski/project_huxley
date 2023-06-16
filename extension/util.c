@@ -30,3 +30,8 @@ void shuffle(void *array, int num_elements, int element_size) {
         free(temp);
     }
 }
+
+bool isOutOfBounds(Vec2i a, Room* room) {
+    return !(0 <= a.x && a.x < room->size.x
+             && 0 <= a.y && a.y < room->size.y);
+}

@@ -27,7 +27,10 @@ void take_dmg(Entity *entity, int dmg)
     if (!(*entity->room->entities == entity) || !entity->hit_animation)
     {
         entity->HP -= dmg;
-        entity->hit_animation = 30;
+        if (!isProjectile(entity))
+        {
+            entity->hit_animation = 30;
+        }
     }
 }
 
@@ -67,7 +70,14 @@ bool zombie_attack(Entity *attacker, Entity *victim, AttackType type)
 void projectile_collision_attack(Entity *attacker, Entity *victim)
 {
     take_dmg(victim, attacker->ATK);
-    killEntity(attacker);
+    if (attacker->projectileStats.pierces)
+    {
+        attacker->projectileStats.pierces--;
+    }
+    else
+    {
+        killEntity(attacker);
+    }
 }
 
 bool projectile_attack(Entity *attacker, Entity *victim, AttackType type)
@@ -95,20 +105,32 @@ bool mine_attack(Entity *attacker, Entity *victim, AttackType type)
     }
 }
 
-Entity construct_projectile(Entity *creator)
+Entity construct_projectile(Entity *creator, Vec2d velocity)
 {
     return (Entity) {.ATK = creator->ATK, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
-            .HP = INT_MAX, .maxHP = INT_MAX,
-            .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = creator->attack_velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room, .textureID = creator->faction == ALLY ? 0 : 5, .currentAnimation = NULL};
+            .HP = INT_MAX, .maxHP = INT_MAX, .projectileStats = creator->projectileStats,
+            .pos = (Vec2d)creator->pos, .SPD = 5, .velocity = velocity, .attack_func = projectile_attack, .faction = creator->faction, .room = creator->room, .textureID = creator->faction == ALLY ? 0 : 5, .currentAnimation = NULL};
 }
 
 
 void shooter_spawn_attack(Entity *attacker)
 {
-    Entity *projectile = malloc(sizeof(Entity));
-    *projectile = construct_projectile(attacker);
-    attacker->room->entities[attacker->room->entity_cnt++] = projectile;
+    if (attacker->attack_modifier)
+    {
+        for (int i = 0; i <= attacker->attack_modifier; i++)
+        {
+            Entity *projectile = malloc(sizeof(Entity));
+            *projectile = construct_projectile(attacker, Vec2d_rotate(attacker->attack_velocity, -15 + i * 30 / attacker->attack_modifier));
+            attacker->room->entities[attacker->room->entity_cnt++] = projectile;
+        }
+    }
+    else
+    {
+        Entity *projectile = malloc(sizeof(Entity));
+        *projectile = construct_projectile(attacker, attacker->attack_velocity);
+        attacker->room->entities[attacker->room->entity_cnt++] = projectile;
+    }
 }
 
 bool shooter_attack(Entity *attacker, Entity *victim, AttackType type)
@@ -207,10 +229,10 @@ Player *Entity_construct_player()
     Player *player = calloc(sizeof(Player), 1);
     Entity *entity = calloc(sizeof(Entity), 1);
 
-    *entity = (Entity) {.ATK = 100, .canFly = false,
+    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 0},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
-            .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0},
-            .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30, .currentAnimation = NULL, .textureID = 2};
+            .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
+            .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2};
     *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0};
 
     return player;
