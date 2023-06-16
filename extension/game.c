@@ -17,15 +17,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void errorCallback(int lol, const char* str)
+void errorCallback(int code, const char* str)
 {
-    printf("Error %d: %s \n", lol, str);
+    printf("Error %d: %s \n", code, str);
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    GameState* gState = (GameState*)glfwGetWindowUserPointer(window);
+    gState->player->cameraSize.x = clamp(gState->player->cameraSize.x + yoffset * 0.1, 3.0, 32.0);
+    gState->player->cameraSize.y = clamp(gState->player->cameraSize.y + yoffset * 0.1, 3.0, 32.0);
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    RenderState* rState = glfwGetWindowUserPointer(window);
-    rState->resolution = (Vec2i){width, height};
+    GameState* gState = glfwGetWindowUserPointer(window);
+    gState->rState->resolution = (Vec2i){width, height};
 }
 
 void updateVelocity(GameState* state, int up, int down, int right, int left, double max_spd, Vec2d *velocity, double acceleration)
@@ -90,6 +97,7 @@ void updateDialogue(GameState* state)
 
 void handleEvents(GameState* state)
 {
+
     if(state->player->isInDialogue)
     {
         updateDialogue(state);
@@ -147,7 +155,7 @@ void updateLogic(GameState* state, double dt)
     Entity** arr = state->currentLevel->currentRoom->entities;
 
 
-    if (frame_cnt % 5 == 0)
+    if (frame_cnt % 500 == 0)
     {
         int index = 0;
         Vec2d* velocities = path((**arr).pos, arr + 1, state);
@@ -167,7 +175,7 @@ void updateLogic(GameState* state, double dt)
     }
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        if (!Vec2d_zero((*entity)->attack_velocity))
+        //if (!Vec2d_zero((*entity)->attack_velocity))
             handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
     }
 
@@ -224,6 +232,14 @@ void initGame(GameState* state)
     }
 
     gui_init(state);
+
+    state->rState = malloc(sizeof(RenderState));
+    *state->rState = RenderState_construct();
+
+    glfwSetWindowUserPointer(state->window, state);
+    glfwGetFramebufferSize(state->window, &state->rState->resolution.x, &state->rState->resolution.y);
+    glfwSetWindowSizeCallback(state->window, framebufferSizeCallback);
+    glfwSetScrollCallback(state->window, scrollCallback);
 }
 
 void renderGame(GameState* gState, RenderState* rState)
@@ -238,15 +254,6 @@ void gameLoop(GameState* gState)
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
 
-    RenderState rState = RenderState_construct();
-
-    {
-        glfwGetFramebufferSize(gState->window, &rState.resolution.x, &rState.resolution.y);
-    }
-
-    glfwSetWindowUserPointer(gState->window, &rState);
-    glfwSetWindowSizeCallback(gState->window, framebufferSizeCallback);
-
     Player *player;
     player = Entity_construct_player();
     gState->player = player;
@@ -254,14 +261,14 @@ void gameLoop(GameState* gState)
     gState->currentLevel = construct_level(player, 6);
     gState->guiState->dialogue = newDialogue();
 
-    initRenderState(gState, &rState);
+    initRenderState(gState, gState->rState);
 
     for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
         (*entity)->cooldown_left = 180;
     }
 
-    glfwSwapInterval(rState.VSync);
+    glfwSwapInterval(gState->rState->VSync);
 
     while (!glfwWindowShouldClose(gState->window))
     {
@@ -277,11 +284,11 @@ void gameLoop(GameState* gState)
             lastUpdateTime = glfwGetTime();
             if (gState->renderNewRoom)
             {
-                refreshRoom(gState, &rState);
+                refreshRoom(gState, gState->rState);
                 //printf("xdd\n");
             }
         }
-        gui_update(gState, &rState);
+        gui_update(gState, gState->rState);
 
         GLenum err = glGetError();
         if (err)
@@ -289,7 +296,7 @@ void gameLoop(GameState* gState)
             printf("GL error %d\n", err);
         }
 
-        renderGame(gState, &rState);
+        renderGame(gState, gState->rState);
     }
 
     gui_terminate(gState);

@@ -76,7 +76,7 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
                 int p = rand() % 10;
                 printf("%d\n", p);
                 
-                if (p < 10)
+                if (p < 2)
                 {
                     attack = circle_attack;
                     attack_cycle_left = 6;
