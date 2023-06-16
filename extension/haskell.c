@@ -3,6 +3,7 @@
 #include "game_math.h"
 #include <time.h>
 #include <stdlib.h>
+#include "animation.h"
 
 int attack_cycle_left = 0;
 typedef void (*current_attack)(Entity *, Entity *);
@@ -33,10 +34,10 @@ void circle_attack(Entity *haskell, Entity *victim)
         haskell->cooldown_left= 60;
         return;
     }
-    int num_of_projetiles = 100;
-    for (int i = 0; i < num_of_projetiles; i++)
+    int num_of_projectiles = 100;
+    for (int i = 0; i < num_of_projectiles; i++)
     {
-        haskell->attack_velocity = Vec2d_rotate(haskell->attack_velocity, 360.0 / num_of_projetiles);
+        haskell->attack_velocity = Vec2d_rotate(haskell->attack_velocity, 360.0 / num_of_projectiles);
         shooter_spawn_attack(haskell);
     }
 }
@@ -69,7 +70,7 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
                 srand(clock());
                 int p = rand() % 10;
                 printf("%d\n", p);
-                if (p < 10)
+                if (p < 2)
                 {
                     attack = circle_attack;
                     attack_cycle_left = 6;
