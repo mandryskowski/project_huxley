@@ -47,6 +47,8 @@ typedef struct Entity
     Animation *currentAnimation; // can be NULL if not animated.
 
     uint textureID;
+
+    void* specific_data; // points to a Player object for player, a Boss object for a boss etc. Allows to retrieve extra fields in functions that accept Entity*.
 } Entity;
 
 typedef struct Dialogue
@@ -68,6 +70,8 @@ typedef struct Player
     
     bool isInDialogue;
     double lastSkip;
+
+    int screenShakeFramesLeft;
 } Player;
 
 

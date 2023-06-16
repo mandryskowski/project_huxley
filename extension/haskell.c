@@ -25,6 +25,11 @@ void lasers_attack(Entity *haskell, Entity *victim)
 void circle_attack(Entity *haskell, Entity *victim)
 {
     haskell->attack_cooldown = 20;
+    if (victim == victim->room->entities[0]) // if victim is the player
+    {
+        ((Player*)victim->specific_data)->screenShakeFramesLeft = 15;
+    }
+
     if (attack_cycle_left == 6)
     {
         double new_pos_x = victim->pos.x > 7 ? victim->pos.x - 5 : victim->pos.x + 5;
@@ -70,7 +75,8 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
                 srand(clock());
                 int p = rand() % 10;
                 printf("%d\n", p);
-                if (p < 2)
+                
+                if (p < 10)
                 {
                     attack = circle_attack;
                     attack_cycle_left = 6;

@@ -397,7 +397,8 @@ Mat3f renderIsoGrid(GameState* gState, RenderState* state, Mesh* gridMesh, Vec2d
 {
         Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * ((double)state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
     Vec2d lolOffset = (Vec2d){0,0};// Vec2d_add(Vec2d_scale(gState->player->cameraSize, -0.19), (Vec2d){5.94, 5.94});
-    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add(offset,Vec2d_add(gState->player->entity->pos, Vec2d_rotate(Vec2d_scale(gState->player->cameraSize, 0), 0))), gState->currentLevel->currentRoom->size);
+    printf("SHAKE IS %f \n", gState->player->screenShakeFramesLeft / 30.0);
+    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add(offset,Vec2d_add(gState->player->entity->pos, Vec2d_scale(Vec2d_rotate((Vec2d){1,0}, rand() % 360),  pow((double)gState->player->screenShakeFramesLeft / 30.0, 3.0)))), gState->currentLevel->currentRoom->size);
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (0.19 * gState->player->cameraSize.x / gState->currentRoom->size.y),  -cameraCenterGrid.y* (0.19 * gState->player->cameraSize.y / gState->currentRoom->size.y)}, (Vec2d){lolOffset.x / gState->currentRoom->size.y, lolOffset.y / gState->currentRoom->size.y});
     //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (5.0 / gState->currentRoom->size.y),  -cameraCenterGrid.y* (5.0 / gState->currentRoom->size.y)}, (Vec2d){5.0f / gState->currentRoom->size.y, 5.0f / gState->currentRoom->size.y});
     Mat3f viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * scaledSize.x,  -cameraCenterGrid.y* scaledSize.y}, scaledSize);
