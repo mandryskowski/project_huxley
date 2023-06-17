@@ -482,6 +482,7 @@ void render(GameState* gState, RenderState* state)
             //gState->currentLevel->prevRoom->size.x, gState->currentLevel->prevRoom->size.y);
             Vec2i sizeDiff = Vec2i_add(gState->currentLevel->currentRoom->size, Vec2i_scale(gState->currentLevel->prevRoom->size , -1));
             //Vec2i sizeDiff = abs(gState->currentLevel->prevRoom->size.x - gState->currentLevel->currentRoom->size.x) / 2;
+
             if (offset.x > 0 || offset.y >  0)
             {       
                 //glDepthFunc(GL_GEQUAL);

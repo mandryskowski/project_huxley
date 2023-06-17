@@ -8,8 +8,9 @@
 #include "room.h"
 #include "pathfind.h"
 #include "level.h"
+#include "util.h"
 
-#define EPS 0.1f
+#define EPS 1e-5
 #define D_INF 10000000.0
 typedef struct SortedEntity {
 	Entity* entity;
@@ -28,13 +29,8 @@ PQElement *newPQElement(double value, Vec2i tile) {
     return newEl;
 }
 
-bool isOutOfBounds(Vec2i a, Room* room) {
-    return !(0 <= a.x && a.x < room->size.x
-          && 0 <= a.y && a.y < room->size.y);
-}
-
 bool isWalkable(Room* room, Vec2i tile) {
-    return room->tiles[tile.x][tile.y].type == TILE_FLOOR;
+    return !isOutOfBounds(tile, room) && room->tiles[tile.x][tile.y].type == TILE_FLOOR;
 }
 
 int bfsDist(Entity* entity, double** bfs) {
@@ -43,7 +39,7 @@ int bfsDist(Entity* entity, double** bfs) {
 
 Vec2d Vec2d_center(Rectangle rec)
 {
-    return Vec2d_scale(Vec2d_add(rec.bottomLeft, rec.topRight), 0.5f);
+    return Vec2d_scale(Vec2d_add(rec.bottomLeft, rec.topRight), 0.5);
 }
 
 const int dx[10] = {0, -1, -1, -1, 0, 1, 1, 1, 0, -1};
@@ -66,10 +62,10 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
         }
     }
 
-    bfs[startTile.x][startTile.y] = 10.0;
+    bfs[startTile.x][startTile.y] = 20000.0;
 
     PQueue* pq = pqueue_new(_cmp, MAX_SIZE);
-    pqueue_enqueue(pq, newPQElement(10.0, startTile));
+    pqueue_enqueue(pq, newPQElement(20000.0, startTile));
  // Zombie dijkstra
     while(pq->size) {
         PQElement* pqtop = (PQElement*)pqueue_dequeue(pq);
@@ -102,11 +98,11 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
     while(*entity != NULL) {
         if (isProjectile(*entity)) {
             entity++;
-	    sz++;
+	        sz++;
             continue;
         }
         Vec2i tile = Vec2d_to_Vec2i((*entity)->pos);
-        bfs[tile.x][tile.y] += 2.0;
+        bfs[tile.x][tile.y] += 1000.0;
 	    for(int i = 1; i < 9; i++) {
 		    Vec2i adjTile = Vec2i_add(tile, (Vec2i){dx[i], dy[i]});
 		    if(!isOutOfBounds(adjTile, gState->currentLevel->currentRoom))
@@ -120,10 +116,10 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
     entity = entities;
     int ind2 = 0;
     while(*entity != NULL) {
-	if(isProjectile(*entity)) {
-		entity++; ind2++;
-		continue;
-	}
+        if(isProjectile(*entity)) {
+            entity++; ind2++;
+            continue;
+        }
         sortedEntities[nonProjIndex++] = (SortedEntity){*entity, ind2};
         for(int ind = nonProjIndex - 1; ind > 0; ind--) {
                 if(bfsDist(sortedEntities[ind].entity, bfs) < bfsDist(sortedEntities[ind-1].entity, bfs)) {
@@ -134,7 +130,7 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
                 else
                         break;
         }
-	entity++; ind2++;
+        entity++; ind2++;
     }
 
 
@@ -151,7 +147,7 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
         Vec2d hbCenter = Vec2d_add(Vec2d_center(entityPos->hitbox), entityPos->pos);
 
         Vec2i tile = Vec2d_to_Vec2i(entityPos->pos);
-        Vec2d tileCenter = Vec2d_add(Vec2i_to_Vec2d(tile), (Vec2d){0.5f, 0.5f});
+        Vec2d tileCenter = Vec2d_add(Vec2i_to_Vec2d(tile), (Vec2d){0.5, 0.5});
 
         entityPos->attack_velocity = Vec2d_scale(Vec2d_normalize((Vec2d){start.x + 0.5 - entityPos->pos.x, start.y + 0.5 - entityPos->pos.y}), entityPos->attack_SPD);
 
@@ -159,7 +155,7 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
         Vec2i nextPos = tile;
 	    int newDir = -1;
 
-        for(int dir = 1; dir < 9; dir++) //NSEW + DIAG
+        for(int dir = 2; dir < 9; dir += 2) //NSEW
         {
             Vec2i nextTile = Vec2i_add(tile, (Vec2i){dx[dir], dy[dir]});
             if(!isOutOfBounds(nextTile, gState->currentLevel->currentRoom)
@@ -173,32 +169,104 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
             }
         }
 
-	int vIndex = sEntity[index].index;
+        for(int dir = 1; dir < 9; dir += 2) //DIAG
+        {
+            Vec2i nextTile = Vec2i_add(tile, (Vec2i){dx[dir], dy[dir]});
+            if(!isOutOfBounds(nextTile, gState->currentLevel->currentRoom)
+               && isWalkable(gState->currentLevel->currentRoom, nextTile)
+               && isWalkable(gState->currentLevel->currentRoom, Vec2i_add(tile, (Vec2i){dx[dir - 1], dy[dir - 1]}))
+               && isWalkable(gState->currentLevel->currentRoom, Vec2i_add(tile, (Vec2i){dx[dir + 1], dy[dir + 1]})))
+            {
+                if(maxNext > bfs[nextTile.x][nextTile.y]) {
+                    maxNext = bfs[nextTile.x][nextTile.y];
+                    nextPos = nextTile;
+                    newDir = dir;
+                    //printf("%d %d in\n", newDir, wtf);
+                }
+            }
+        }
 
-	if(maxNext == D_INF) {
-		velocity[vIndex] = (Vec2d){0.0, 0.0};
-	}
-	else {
-		if (newDir % 2 == 0
-	        && (!isWalkable(gState->currentLevel->currentRoom, Vec2i_add(tile, (Vec2i){dx[newDir - 1], dy[newDir - 1]}))
-	        || !isWalkable(gState->currentLevel->currentRoom, Vec2i_add(tile, (Vec2i){dx[newDir + 1], dy[newDir + 1]}))))
-		{
-			if((newDir % 4 == 2 && fabs(tileCenter.y - hbCenter.y) > EPS)
-			 ||(newDir % 4 == 0 && fabs(tileCenter.x - hbCenter.x) > EPS)) {
-		        	velocity[vIndex] = Vec2d_normalize(Vec2d_add(tileCenter, Vec2d_scale(hbCenter, -1.0f)));
-			}
-			else {
-				bfs[nextPos.x][nextPos.y] += 2.0;
-			        velocity[vIndex] = Vec2d_normalize(Vec2i_to_Vec2d(Vec2i_add(nextPos, Vec2i_scale(tile, -1))));
-			}
-		}
-		else
-		{
-			bfs[nextPos.x][nextPos.y] += 2.0;
-		        velocity[vIndex] = Vec2d_normalize(Vec2i_to_Vec2d(Vec2i_add(nextPos, Vec2i_scale(tile, -1))));
-		}
-	}
-	index++;
+        //printf("%d final\n", newDir);
+
+        int vIndex = sEntity[index].index;
+
+        if(maxNext == D_INF) {
+            //printf("xddd\n");
+            velocity[vIndex] = (Vec2d){0.0, 0.0};
+        }
+
+        else {
+            if (newDir % 2 == 0)
+            {
+                double x_to_centre = fabs(tileCenter.x - hbCenter.x);
+                double y_to_centre = fabs(tileCenter.y - hbCenter.y);
+                if(newDir % 4 == 2 && y_to_centre > EPSILON) {
+                    double y_coord = min(y_to_centre * 60 / 5, entityPos->SPD);
+                    if (tileCenter.y < hbCenter.y)
+                    {
+                        y_coord *= -1;
+                    }
+                    double x_coord = dx[newDir] * sqrt(fabs(entityPos->SPD * entityPos->SPD - y_coord * y_coord));
+                    velocity[vIndex] = (Vec2d){x_coord, y_coord};
+                    //printf("%d visited in while loop option 1 , next pos \n", vIndex);
+//                    Vec2d_print(Vec2i_to_Vec2d(nextPos));
+//                    printf(" curent pos");
+//                    Vec2d_print(Vec2d_scale(hbCenter, -1.0f));
+//                    printf(", to normalize");
+//                    Vec2d_print(Vec2d_add(tileCenter, Vec2d_scale(hbCenter, -1.0f)));
+//                    printf(", actual answer ");
+//                    Vec2d_print(velocity[vIndex]);
+//                    printf("\n");
+                }
+                else if (newDir % 4 == 0 && x_to_centre > EPSILON)
+                {
+                    //Vec2d_print(entityPos->pos);
+                   // printf(" %d visited in while loop option 2, next pos \n", vIndex);
+                    double x_coord = min(x_to_centre * 60 / 5, entityPos->SPD);
+                    if (tileCenter.x < hbCenter.x)
+                    {
+                        x_coord *= -1;
+                    }
+                    double y_coord = dy[newDir] * sqrt(fabs(entityPos->SPD * entityPos->SPD - x_coord * x_coord));
+                    velocity[vIndex] = (Vec2d){x_coord, y_coord};
+                }
+                else {
+                   // Vec2d_print(entityPos->pos);
+                 //   printf(" %d visited in while loop option 3 , next pos \n", vIndex);
+                    bfs[nextPos.x][nextPos.y] += 1000.0;
+                    Vec2d next_centre = Vec2d_add(Vec2i_to_Vec2d(nextPos), (Vec2d){0.5, 0.5});
+//                    Vec2d_print(next_centre);
+//                    printf("\n");
+                    velocity[vIndex] = Vec2d_scale(Vec2d_normalize(Vec2d_add(next_centre, Vec2d_scale(entityPos->pos, -1))), entityPos->SPD);
+
+//                    printf("%d visited in while loop option 2 , next pos ", vIndex);
+//                    Vec2d_print(Vec2i_to_Vec2d(nextPos));
+//                    printf("\n");
+                }
+            }
+            else
+            {
+//                printf("%d %d, ", isWalkable(gState->currentLevel->currentRoom, Vec2i_add(tile, (Vec2i){dx[newDir - 1], dy[newDir - 1]})),
+//                       isWalkable(gState->currentLevel->currentRoom, Vec2i_add(tile, (Vec2i){dx[newDir + 1], dy[newDir + 1]})));
+//                Vec2d_print(entityPos->pos);
+//                printf(" %d visited in while loop option 4 , next pos  ", vIndex);
+                bfs[nextPos.x][nextPos.y] += 1000.0;
+                Vec2d next_centre = Vec2d_add(Vec2i_to_Vec2d(nextPos), (Vec2d){0.5, 0.5});
+//                Vec2d_print(next_centre);
+//                printf("\n");
+                velocity[vIndex] = Vec2d_scale(Vec2d_normalize(Vec2d_add(next_centre, Vec2d_scale(entityPos->pos, -1))), entityPos->SPD);
+//                printf("%d visited in while loop option 3, next pos ", vIndex);
+//                Vec2d_print(Vec2i_to_Vec2d(nextPos));
+//                printf(" curent pos");
+//                Vec2d_print(Vec2i_to_Vec2d(Vec2i_scale(tile, -1)));
+//                printf(", to normalize");
+//                Vec2d_print(Vec2i_to_Vec2d(Vec2i_add(nextPos, Vec2i_scale(tile, -1))));
+//                printf(", actual answer ");
+//                Vec2d_print(velocity[vIndex]);
+//                printf("\n");
+            }
+        }
+        index++;
     }
 
     for(int i = 0; i < gState->currentLevel->currentRoom->size.x; i++) {
