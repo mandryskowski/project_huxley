@@ -3,6 +3,7 @@
 #include "game_math.h"
 #include <time.h>
 #include <stdlib.h>
+#include "animation.h"
 
 int attack_cycle_left = 0;
 typedef void (*current_attack)(Entity *, Entity *);
@@ -24,6 +25,11 @@ void lasers_attack(Entity *haskell, Entity *victim)
 void circle_attack(Entity *haskell, Entity *victim)
 {
     haskell->attack_cooldown = 20;
+    if (victim == victim->room->entities[0]) // if victim is the player
+    {
+        ((Player*)victim->specific_data)->screenShakeFramesLeft = 15;
+    }
+
     if (attack_cycle_left == 6)
     {
         double new_pos_x = victim->pos.x > 7 ? victim->pos.x - 5 : victim->pos.x + 5;
@@ -33,10 +39,10 @@ void circle_attack(Entity *haskell, Entity *victim)
         haskell->cooldown_left= 60;
         return;
     }
-    int num_of_projetiles = 100;
-    for (int i = 0; i < num_of_projetiles; i++)
+    int num_of_projectiles = 100;
+    for (int i = 0; i < num_of_projectiles; i++)
     {
-        haskell->attack_velocity = Vec2d_rotate(haskell->attack_velocity, 360.0 / num_of_projetiles);
+        haskell->attack_velocity = Vec2d_rotate(haskell->attack_velocity, 360.0 / num_of_projectiles);
         shooter_spawn_attack(haskell);
     }
 }

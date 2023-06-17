@@ -62,9 +62,11 @@ const char vShaderSrc[] = "#version 400 core\n" \
                       "out vec2 fsTexCoord;\n" \
                       "uniform mat3 viewMat;\n" \
                       "uniform int customDepth;\n" \
+                      "uniform int depthOffset;\n" \
                       "void main() \n" \
                       "{ \n" \
                       " float depth = (customDepth == -1) ? (float(vDepth)) : (float(customDepth));\n" \
+                      " if (depthOffset != -1) depth += float(depthOffset);\n"\
                       " gl_Position = vec4(vec2(viewMat * vec3(vPosition, 1.0)), depth / 255.0, 1.0);\n" \
                       " fsTexID = vTexID;\n" \
                       " fsTexCoord = vTexCoord;\n" \
@@ -97,7 +99,8 @@ const char fShaderSrc[] = "#version 400 core\n" \
                       " color = texture(atlas, vec3(texCoord, fsTexID)) * unColor;\n" \
                       "} else if (materialType == 6) { \n" \
                       " discardThreshold = 0.0; color = vec4(0.0, 0.0, 0.0, 0.5 * pow(1.0 - distance(vec2(0.5), texCoord), shadowSize));\n  " \
-                      "} if (color.a < discardThreshold) \n" \
+                      "} else if (materialType == 7) { \n" \
+                      " color = texture(atlas, vec3(texCoord, unTexId)) * unColor; } if (color.a < discardThreshold) \n" \
                       "{\n" \
                       " discard;\n" \
                       "} \n" \
@@ -198,6 +201,8 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
     {
         for (int y = height - 1; y >= 0; y--)
         {
+            if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
+                ;//continue;
             const Vec2d quadPos = Vec2d_add(Vec2d_scale(xOffset, (width - 1 - x)), 
                                             Vec2d_scale(yOffset, (height - 1 - y)));
             TileType type = gameState->currentLevel->currentRoom->tiles[x][y].type;
@@ -388,28 +393,51 @@ Mat3f renderGrid(GameState* gState, RenderState* state)
     return viewMat;
 }
 
-Mat3f renderIsoGrid(GameState* gState, RenderState* state, Mesh* gridMesh, Vec2d offset)
+void renderMinimap(GameState* gState, RenderState* rState)
 {
-        Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * ((double)state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
-    Vec2d lolOffset = (Vec2d){0,0};// Vec2d_add(Vec2d_scale(gState->player->cameraSize, -0.19), (Vec2d){5.94, 5.94});
-    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add(offset,Vec2d_add(gState->player->entity->pos, Vec2d_rotate(Vec2d_scale(gState->player->cameraSize, 0), 0))), gState->currentLevel->currentRoom->size);
-    //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (0.19 * gState->player->cameraSize.x / gState->currentRoom->size.y),  -cameraCenterGrid.y* (0.19 * gState->player->cameraSize.y / gState->currentRoom->size.y)}, (Vec2d){lolOffset.x / gState->currentRoom->size.y, lolOffset.y / gState->currentRoom->size.y});
-    //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * (5.0 / gState->currentRoom->size.y),  -cameraCenterGrid.y* (5.0 / gState->currentRoom->size.y)}, (Vec2d){5.0f / gState->currentRoom->size.y, 5.0f / gState->currentRoom->size.y});
+    glDisable(GL_DEPTH_TEST);
+    Vec2i mapSize = (Vec2i){4,4};
+    Vec2d quadSize = (Vec2d){1.0 / mapSize.x, 1.0 / mapSize.y};
+    Mat3f miniMapMat = Mat3f_construct((Vec2d){-0.75, 0.75}, (Vec2d){0.25, 0.25});
+    Mat3f viewMat = Mat3f_construct( (Vec2d){ -1.0 + quadSize.x , -1.0 + quadSize.y}, quadSize);
+
+    for (int y = 0; y < mapSize.y; y++)
+    {
+        for (int x = 0; x < mapSize.x; x++)
+        {
+            Mat3f resultant = Mat3f_multiply(viewMat, miniMapMat);
+            glUniformMatrix3fv(glGetUniformLocation(rState->shader, "viewMat"), 1, GL_FALSE, resultant.d);
+            glUniform1i(glGetUniformLocation(rState->shader, "materialType"), 1);
+            float col[4] = {(double)(x+y)/6.0,(double)(x+y)/6.0,(double)(x+y)/6.0, 0.51 * (gState->currentLevel->map[x][y] != NULL)};
+            glUniform4fv(glGetUniformLocation(rState->shader, "unColor"), 1, col);
+            glBindVertexArray(rState->quadMesh.VAO);
+            glDrawArrays(GL_TRIANGLES, 0, rState->quadMesh.vertexCount);
+            viewMat = Mat3f_multiply(Mat3f_construct((Vec2d){2, 0}, (Vec2d){1,1}), viewMat);
+        }
+        viewMat = Mat3f_multiply(Mat3f_construct((Vec2d){-mapSize.x * 2, 2}, (Vec2d){1,1}), viewMat);
+    }
+    glEnable(GL_DEPTH_TEST);
+}
+
+Mat3f renderIsoGrid(GameState* gState, RenderState* state, Mesh* gridMesh, Vec2d gridOffset, Vec2d fadeOffset)
+{
+    Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * ((double)state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
+    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add(gridOffset, Vec2d_add(gState->player->entity->pos, Vec2d_scale(Vec2d_rotate((Vec2d){1,0}, rand() % 360),  pow((double)gState->player->screenShakeFramesLeft / 30.0, 3.0)))), gState->currentLevel->currentRoom->size);
+
     Mat3f viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * scaledSize.x,  -cameraCenterGrid.y* scaledSize.y}, scaledSize);
-    //*viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * 0.05,  -cameraCenterGrid.y* 0.05}, (Vec2d){1.0 / (gState->player->cameraSize.x) *0.055, (1.0 / gState->player->cameraSize.y) * 0.055});
-    //*viewMat = Mat3f_construct(getIsoPos(Vec2d_scale(Vec2i_to_Vec2d(gState->currentRoom->size), 0.5), gState->currentRoom->size), (Vec2d){1.0f / gState->currentRoom->size.y, 1.0f / gState->currentRoom->size.y});
+
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
-    if (gridMesh == &state->isoMesh2 && 0)
+    if (gridMesh == &state->isoMesh2)
         {
             const double fadeDistance = 10.0;
             double fadeVal;
-            if (offset.x < 0) fadeVal = 1.0 - (gState->currentLevel->currentRoom->size.x - gState->player->entity->pos.x) / fadeDistance;
-            else if (offset.x > 0) fadeVal = 1.0 - gState->player->entity->pos.x / fadeDistance;
-            else if (offset.y < 0) fadeVal = 1.0 - (gState->currentLevel->currentRoom->size.y - gState->player->entity->pos.y) / fadeDistance;
+            if (fadeOffset.x > 0) fadeVal = 1.0 - (gState->currentLevel->currentRoom->size.x - gState->player->entity->pos.x) / fadeDistance;
+            else if (fadeOffset.x < 0) fadeVal = 1.0 - gState->player->entity->pos.x / fadeDistance;
+            else if (fadeOffset.y > 0) fadeVal = 1.0 - (gState->currentLevel->currentRoom->size.y - gState->player->entity->pos.y) / fadeDistance;
             else fadeVal = 1.0 - gState->player->entity->pos.y / fadeDistance;
-           // printf ("fade %f %f \n", offset.x, offset.y);
+
             Vec4f fadeCol = Vec4d_to_Vec4f(Vec4d_lerp(state->backgroundColor, (Vec4d){1.0, 1.0, 1.0, 1.0}, min(1.0, fadeVal)));
-           // printf ("fadecol %f %f %f %f \n", fadeCol.x, fadeCol.y, fadeCol.z, fadeCol.w);
+         //   printf ("fadecol %f %f %f %f %f %f %f \n", fadeCol.x, fadeCol.y, fadeCol.z, fadeCol.w, fadeOffset.x, fadeOffset.y, fadeVal);
             glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, &fadeCol);
             glUniform1i(glGetUniformLocation(state->shader, "materialType"), 5);
         }
@@ -441,6 +469,7 @@ void render(GameState* gState, RenderState* state)
 
     glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
     glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);
+    glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);
     Mat3f viewMat;
    
     if (state->renderIsometric)
@@ -448,31 +477,32 @@ void render(GameState* gState, RenderState* state)
         if (state->isoMesh2.vertexCount != 0)
         {
             Vec2d offset = Vec2i_to_Vec2d(Vec2i_add(gState->currentLevel->prevRoomCoords, Vec2i_scale(gState->currentLevel->currRoomCoords, -1.0)));
-
-            //printf ("offset %f %f %d %d %d %d %d\n", offset.x, offset.y, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y,
+            
+           // printf ("offset %f %f %d %d %d %d %d\n", offset.x, offset.y, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y,
             //gState->currentLevel->prevRoom->size.x, gState->currentLevel->prevRoom->size.y);
-            Vec2i sizeDiff = Vec2i_add(gState->currentLevel->prevRoom->size, Vec2i_scale(gState->currentLevel->currentRoom->size, -1));
+            Vec2i sizeDiff = Vec2i_add(gState->currentLevel->currentRoom->size, Vec2i_scale(gState->currentLevel->prevRoom->size , -1));
             //Vec2i sizeDiff = abs(gState->currentLevel->prevRoom->size.x - gState->currentLevel->currentRoom->size.x) / 2;
 
             if (offset.x > 0 || offset.y >  0)
-            {
-                glDisable(GL_DEPTH_TEST);
-                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1)  + offset.y * abs(sizeDiff.x / 2), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) + offset.x * abs(sizeDiff.y / 2)});
-                glEnable(GL_DEPTH_TEST);
-                viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0});
+            {       
+                //glDepthFunc(GL_GEQUAL);
+                glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), (offset.x != 0 ? gState->currentLevel->currentRoom->size.x : gState->currentLevel->currentRoom->size.y) + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2 - (offset.x + offset.y));               
+                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1)  + sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) +  sizeDiff.y / 2.0 * abs(offset.x)}, offset);
+                glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);   
+                viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0}, (Vec2d){0,0});
             }
             else
             {
-                viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0});
-                glUniform1i(glGetUniformLocation(state->shader, "customDepth"), 0);
-                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1) + offset.y * abs(sizeDiff.x / 2), -offset.y * (gState->currentLevel->currentRoom->size.y - 1) + offset.x * abs(sizeDiff.y / 2)});
- glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);               
+                viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0}, (Vec2d){0,0});
+                glUniform1i(glGetUniformLocation(state->shader, "customDepth"), max(1 + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2, 0));          
+ renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1) + sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->currentRoom->size.y - 1) +  sizeDiff.y / 2.0 * abs(offset.x)}, offset);
+  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);     
             }
     
 
         }
 
-      else  viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0});
+      else  viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0}, (Vec2d){0,0});
 
     }
     else
@@ -488,6 +518,7 @@ void render(GameState* gState, RenderState* state)
         Vec2d modelOffset = (Vec2d){0,0};
         Vec2d shadowOffset;
         float shadowSize;
+        double hitColouring = (*ent)->hit_animation / 30.0;
 
         getShadowInfo(*ent, &shadowOffset, &modelOffset, &shadowSize);
 
@@ -511,9 +542,12 @@ void render(GameState* gState, RenderState* state)
             glDisable(GL_DEPTH_TEST);
             glUniform1i(glGetUniformLocation(state->shader, "materialType"), 4);
             
-            float allyColour[4] = {0.1f, 1.0f, 0.2f, 1.0f}, enemyColour[4] = {0.55f, 0.1f, 0.1f, 1.0f}, neutralColour[4] = {0.4f, 0.4f, 0.4f, 1.0f};
+            const float allyColour[4] = {0.1f, 1.0f, 0.2f, 1.0f}, enemyColour[4] = {0.55f, 0.1f, 0.1f, 1.0f}, neutralColour[4] = {0.4f, 0.4f, 0.4f, 1.0f};
+            const float *thisColour = isProjectile(*ent) ? neutralColour : ((*ent)->faction == ALLY) ? (allyColour) : (enemyColour);
 
-            glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, isProjectile(*ent) ? neutralColour : ((*ent)->faction == ALLY) ? (allyColour) : (enemyColour));
+            Vec4d thisColourVec = (Vec4d){.x = thisColour[0], .y = thisColour[1], .z = thisColour[2], .w = thisColour[3]};
+            Vec4f mixed = Vec4d_to_Vec4f(Vec4d_lerp(thisColourVec, (Vec4d){1,0,0,1}, hitColouring * 0.8));
+            glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, &mixed);
             glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, offsetViewMatCharacter.d);    
 
             glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -538,7 +572,9 @@ void render(GameState* gState, RenderState* state)
 
         // entity render
         glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, offsetViewMatCharacter.d);
-        glUniform1i(glGetUniformLocation(state->shader, "materialType"), 2);
+        glUniform1i(glGetUniformLocation(state->shader, "materialType"),7);
+        float col[4] = {1.0, 1.0 - hitColouring, 1.0 - hitColouring, 1.0};
+         glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, col);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
@@ -562,6 +598,8 @@ void render(GameState* gState, RenderState* state)
     }
 
     glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), 0);
+
+    renderMinimap(gState, state);
 }
 
 void renderIsometric(GameState*, RenderState*)
