@@ -8,11 +8,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "level.h"
+#include "util.h"
 
 void playerMovement(GameState* state, double dt)
 {
 
 }
+
+static bool is_clear;
 
 void deal_collison_damage(Entity *entity, Entity *other)
 {
@@ -105,14 +108,17 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
 
         if (collides)
         {
-            if (isclear && currEntityPtr == entity && getTile(Vec2d_to_Vec2i(Vec2d_scale(Vec2d_add(otherHitbox.bottomLeft, otherHitbox.topRight), 0.5)), state) == TILE_DOOR)
-            {
-                state->renderNewRoom = true;
-            }
             if (isProjectile(currEntity))
             {
-                killEntity(currEntity);
-                return  0; // Entity is dead
+                if (currEntity->projectileStats.bounces)
+                {
+                    currEntity->projectileStats.bounces--;
+                }
+                else
+                {
+                    killEntity(currEntity);
+                    return  0; // Entity is dead
+                }
             }
         }
     }
@@ -128,10 +134,15 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
     {
         Vec2i tile = isX ? (Vec2i){valBound, i} : (Vec2i){i, valBound};
 
-//        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
-//        {
-//            continue;
-//        }
+        if (isOutOfBounds(tile, state->currentLevel->currentRoom))
+        {
+            continue;
+        }
+
+        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
+        {
+            continue;
+        }
         if (isProjectile(currEntity))
         {
             if (getTile(tile, state) != TILE_FLOOR && getTile(tile, state) != TILE_HOLE)
@@ -139,7 +150,7 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
                 *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
             }
         }
-        else if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL) && getTile(tile, state) != TILE_FLOOR)
+        else if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL || getTile(tile, state) == TILE_DOOR) && getTile(tile, state) != TILE_FLOOR)
         {
             *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
         }
@@ -173,41 +184,10 @@ void add_potential_obstacles(Rectangle *obstaclesEnd, Entity *currEntity, GameSt
     }
 }
 
-void add_potential_obstacles_projectile(Rectangle *obstaclesEnd, Entity *currEntity, GameState *state)
-{
-    Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntity->pos);
-    Vec2i x_bounds = currEntity->velocity.x >= 0 ? (Vec2i){currHitbox.bottomLeft.x,  currHitbox.topRight.x + 1}
-                                                 : (Vec2i){currHitbox.bottomLeft.x - 1,  currHitbox.topRight.x};
-    Vec2i y_bounds = currEntity->velocity.y >= 0 ? (Vec2i){currHitbox.bottomLeft.y,  currHitbox.topRight.y + 1}
-                                                 : (Vec2i){currHitbox.bottomLeft.y - 1,  currHitbox.topRight.y};
-
-    if (currEntity->velocity.x > 0)
-    {
-        Vec2i tile = (Vec2i){currHitbox.topRight.x + 1, currHitbox.bottomLeft.y};
-        if (getTile(tile, state) != TILE_FLOOR && getTile(tile, state) != TILE_HOLE)
-        {
-            *obstaclesEnd++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
-        }
-    }
-    else
-    {
-        add_wall(y_bounds, currHitbox.bottomLeft.x - 1, true, &obstaclesEnd, state, currEntity);
-    }
-
-    if (currEntity->velocity.y > 0)
-    {
-        add_wall(x_bounds, currHitbox.topRight.y + 1, false, &obstaclesEnd, state, currEntity);
-    }
-    else
-    {
-        add_wall(x_bounds, currHitbox.bottomLeft.y - 1, false, &obstaclesEnd, state, currEntity);
-    }
-}
-
 void move(GameState* state, Entity** entity, double dt)
 {
     const int NUM_OF_STEPS = 1;
-    bool is_clear = isClear(state->currentLevel->currentRoom);
+    is_clear = isClear(state->currentLevel->currentRoom);
 
     for (Entity **currEntity = entity; *currEntity; currEntity++)
     {
@@ -224,4 +204,10 @@ void move(GameState* state, Entity** entity, double dt)
         }
         free(obstacles);
     }
+
+    if (isOutOfBounds(Vec2d_to_Vec2i(state->player->entity->pos), state->currentLevel->currentRoom))
+    {
+        state->renderNewRoom = true;
+    }
 }
+
