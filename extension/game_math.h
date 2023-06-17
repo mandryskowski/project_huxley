@@ -65,7 +65,8 @@ bool Vec2d_equals(Vec2d, Vec2d);
 Vec2i Vec2d_to_Vec2i(Vec2d);
 Vec2d Vec2i_to_Vec2d(Vec2i);
 
-double Vec2d_metric_distance(Vec2d lhs, Vec2d rhs); 
+double Vec2d_metric_distance(Vec2d lhs, Vec2d rhs);
+double angle_between_Vec2d(Vec2d a, Vec2d b);
 Vec2i Vec2i_middle(Vec2i lhs, Vec2i rhs);
 
 Vec4d Vec4d_add(Vec4d, Vec4d);

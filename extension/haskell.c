@@ -103,6 +103,6 @@ void construct_haskell(Entity *monster)
 {
     *monster = (Entity) {.ATK = 10, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-1, -1}, (Vec2d){1, 1}},
-            .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0},
+            .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .projectileStats = (ProjectileStats){0, 0},
             .attack_func = haskell_attack, .faction = ENEMY, .attack_SPD = 6, .attack_cooldown = 20, .currentAnimation = NULL};
 }
