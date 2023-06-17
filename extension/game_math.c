@@ -143,6 +143,21 @@ double Vec2d_metric_distance(Vec2d lhs, Vec2d rhs)
     return sqrt((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y));
 }
 
+double Vec2d_magnitude(Vec2d vec)
+{
+    return sqrt(vec.x * vec.x + vec.y * vec.y);
+}
+
+double angle_between_Vec2d(Vec2d a, Vec2d b)
+{
+    double dot_product = a.x * b.x + a.y * b.y;
+    //Vec2d_print(a);
+    //printf(" ");
+    //Vec2d_print(b);
+    //printf("%f, %f, %f \n", dot_product, Vec2d_magnitude(a), Vec2d_magnitude(b));
+    return acos(dot_product / (Vec2d_magnitude(a) * Vec2d_magnitude(b))) * 180 / PI;
+}
+
 Vec2i Vec2i_middle(Vec2i lhs, Vec2i rhs)
 {
     return (Vec2i) {(lhs.x + rhs.x) / 2, (lhs.y + rhs.y) / 2};
