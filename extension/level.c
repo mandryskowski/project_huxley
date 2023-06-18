@@ -4,10 +4,12 @@
 #include "level.h"
 #include "util.h"
 #include "entity.h"
+#include "predefinedRooms/room_generator.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 void jump_to_next_room(GameState *state)
 {
@@ -48,7 +50,11 @@ void jump_to_next_room(GameState *state)
         level->prevRoomCoords = level->currRoomCoords;
         level->currRoomCoords = newRoomCoords;
         level->prevRoom = level->currentRoom;
-        *level->currentRoom->entities = NULL;
+        for (Entity **entity = level->currentRoom->entities; *entity; entity++)
+        {
+            *entity = NULL;
+        }
+        level->currentRoom->entity_cnt = 1;
         level->currentRoom = newRoom;
         *newRoom->entities = state->player->entity;
         state->player->entity->room = newRoom;
@@ -90,6 +96,8 @@ void create_door(Room *room, int site)
 
 Level *construct_level(Player *player, int room_number)
 {
+    srand(time(NULL));
+
     Level *level = calloc(sizeof(Level), 1);
     int map_width = sqrt(room_number) + 2;
 
@@ -118,8 +126,7 @@ Level *construct_level(Player *player, int room_number)
         shuffle(to_add, to_add_end - to_add, sizeof(Vec2i));
         if (i)
         {
-            printf("%d %d rooms\n", to_add->x, to_add->y);
-            system("./predefinedRooms/room_generator");
+            generate_room();
             level->map[to_add->x][to_add->y] = construct_room("predefinedRooms/new_room", NORMAL_ROOM);
         }
         for (int j = 0; j < 4; j++)
@@ -143,6 +150,33 @@ Level *construct_level(Player *player, int room_number)
     *level->currentRoom->entities = player->entity;
     player->entity->room = level->currentRoom;
     player->entity->pos = (Vec2d){10, 10};
+
+    Vec2i boss_room = {0, 0};
+    for (int i = 0; i < map_width; i++)
+    {
+        for (int j = 0; j < map_width; j++)
+        {
+            if (!level->map[i][j])
+            {
+                int neighbours = 0;
+                for (int k = 0; k < 4; k++) {
+                    Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);
+                    if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width ||
+                        !level->map[new_coord.x][new_coord.y])
+                    {
+                        continue;
+                    }
+                    neighbours++;
+                }
+                if (neighbours == 1)
+                {
+                    boss_room = (Vec2i){i, j};
+                }
+            }
+        }
+    }
+
+    level->map[boss_room.x][boss_room.y] = construct_room("predefinedRooms/haskell_room", BOSS_ROOM);
 
     for (int i = 0; i < map_width; i++)
     {
