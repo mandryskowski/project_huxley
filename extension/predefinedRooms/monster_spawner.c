@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "../room.h"
 #include "../entity.h"
 #include "../game_math.h"
@@ -28,6 +29,7 @@ double position_chance(Vec2i current_i, Room* room, Mode mode)
 
 void put_monsters(MonsterType** monsters, Room* room, Mode mode)
 {
+    srand(time(NULL));
     for (int i = 0; i < room->size.y; i++)
     {
         for (int j = 0; j < room->size.x; j++)
@@ -44,6 +46,10 @@ void put_monsters(MonsterType** monsters, Room* room, Mode mode)
             monsters[i][j] = NOT_MONSTER;
             //printf("%f\n", prob);
 
+            if (prob < 250 + threshold)
+            {
+                monsters[i][j] = BOMBER;
+            }
             if (prob < 200 + threshold)
             {
                 monsters[i][j] = ZOMBIE;

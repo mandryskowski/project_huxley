@@ -163,7 +163,7 @@ Entity construct_mine(Entity *creator)
     return (Entity) {.ATK = 90, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .attack_SPD = 1, .attack_velocity = (Vec2d){1, 1},
             .HP = INT_MAX, .maxHP = INT_MAX, .death_func = mine_death,
-            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room, .cooldown_left = 300, .textureID = 0, .currentAnimation = NULL};
+            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room, .cooldown_left = 300, .textureID = 5, .currentAnimation = NULL};
 }
 
 void spawn_mine(Entity *attacker)
@@ -230,7 +230,7 @@ Player *Entity_construct_player()
     Player *player = calloc(sizeof(Player), 1);
     Entity *entity = calloc(sizeof(Entity), 1);
 
-    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
+    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){4, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player};

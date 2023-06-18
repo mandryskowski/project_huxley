@@ -174,6 +174,7 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
 
         if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
         {
+            //printf("xdd\n");
             continue;
         }
         if (isProjectile(currEntity))
@@ -236,6 +237,10 @@ void move(GameState* state, Entity** entity, double dt)
             }
         }
         free(obstacles);
+        if (currEntity!= entity && isOutOfBounds(Vec2d_to_Vec2i((*currEntity)->pos), state->currentLevel->currentRoom))
+        {
+            killEntity(*currEntity);
+        }
     }
 
     if (isOutOfBounds(Vec2d_to_Vec2i(state->player->entity->pos), state->currentLevel->currentRoom))
