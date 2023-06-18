@@ -188,7 +188,7 @@ void updateLogic(GameState* state, double dt)
     }
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        //if (!Vec2d_zero((*entity)->attack_velocity))
+        if (!Vec2d_zero((*entity)->attack_velocity))
             handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
     }
 

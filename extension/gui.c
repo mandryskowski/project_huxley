@@ -100,6 +100,7 @@ void gui_update(GameState* gState, RenderState* rState)
     igShowMetricsWindow(NULL);
     if (igTreeNode_Str("Entity tree"))
     {
+        igImage((void*)(intptr_t)gState->rState->isoCharacterAtlas, (ImVec2){1024, 3072}, (ImVec2){0,0}, (ImVec2){1,1}, (ImVec4){1,1,1,1}, (ImVec4){1,1,1,1});
         Entity** arr = gState->currentLevel->currentRoom->entities;
         int i = 0;
         while (*arr != NULL)

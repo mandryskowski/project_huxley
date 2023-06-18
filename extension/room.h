@@ -39,6 +39,7 @@ typedef struct Room
     Entity** entities;
     int entity_cnt;
     RoomType type;
+    bool visited;
 } Room;
 
 TileType getTile(Vec2i vec, GameState *state);

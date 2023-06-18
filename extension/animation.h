@@ -21,7 +21,8 @@ typedef struct Animation
 
 Animation* Animation_construct();
 
-bool animLogic(Animation* anim);
+bool animLogicInt(Animation* anim);
+bool animLogicDouble(Animation* anim);
 
 Animation* Animation_construct_mysterious(Entity* entity);
 
