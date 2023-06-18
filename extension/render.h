@@ -19,7 +19,7 @@ typedef struct RenderState
     Mesh isoMesh, isoMesh2;
     Mesh quadMesh;
     int shader;
-    uint tileAtlas, characterAtlas, isoTileAtlas, isoCharacterAtlas;
+    uint tileAtlas, characterAtlas, isoTileAtlas, isoCharacterAtlas, itemAtlas;
 
     bool renderIsometric;
     bool bDebugHitboxes;

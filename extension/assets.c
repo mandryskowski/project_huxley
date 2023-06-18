@@ -5,6 +5,32 @@
 #include "glad/glad.h"
 #include "entity.h"
 
+uint loadTexture(char* filename)
+{
+    stbi_set_flip_vertically_on_load(0);
+    int imgWidth, imgHeight, imgChannels;
+    unsigned char* data = stbi_load(filename, &imgWidth, &imgHeight, &imgChannels, 0);
+
+    if (data == NULL)
+    {
+        printf("Could not load texture %s\n", filename);
+        return 0;
+    }
+
+    uint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imgWidth, imgHeight, 0, (imgChannels == 4) ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    // Texture parameters
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+
+    return tex;
+}
+
 unsigned char** cutImages(unsigned char* uncutPtr, Vec2i atlasCounts, Vec2i tileSize, int channels)
 {
     const int nrImages = atlasCounts.x * atlasCounts.y;

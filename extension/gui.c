@@ -71,6 +71,47 @@ void gui_update(GameState* gState, RenderState* rState)
         igEnd();
     }
 
+    igPushStyleColor_Vec4(ImGuiCol_WindowBg, (ImVec4){0,0,0,0});
+    igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0,0,0,0});
+
+    // Items
+    {
+        igBegin("Items", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
+        ImVec2 lol;
+        igSetWindowSize_Vec2((ImVec2){0,0}, 0);
+        igGetWindowSize(&lol);
+        igSetWindowPos_Vec2((ImVec2){igGetIO()->DisplaySize.x - lol.x, igGetIO()->DisplaySize.y - lol.y},  0);
+
+        for (int i = 0; i < 16; i++)
+        {
+            double minSize = min(igGetIO()->DisplaySize.x, igGetIO()->DisplaySize.y);
+            
+            igImage((void*)(intptr_t)gState->rState->itemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(i % 4) * 0.25, (i / 4) * 0.25}, (ImVec2){(double)(i % 4) * 0.25 + 0.25, (i / 4) * 0.25 + 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,1,0.5});
+            igSameLine(0, minSize * 0.0125);
+        }
+        igEnd();
+    }
+
+    // Health
+    {
+        igBegin("Health", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
+        ImVec2 lol;
+        igSetWindowSize_Vec2((ImVec2){0,0}, 0);
+        igGetWindowSize(&lol);
+        igSetWindowPos_Vec2((ImVec2){0, igGetIO()->DisplaySize.y - lol.y},  0);
+        
+        
+        //igPushFont();
+
+        igPushStyleColor_Vec4(ImGuiCol_Text, (ImVec4){1,0,0,1});
+        igText("%d", gState->player->entity->HP);
+        igPopStyleColor(1);
+
+        igEnd();
+    }
+
+    igPopStyleColor(2);
+
     igBegin("Game debug", NULL, 0);
 
     if (sliderDouble("1:1 Camera size", &gState->player->cameraSize.x, 1.0, 32.0))
@@ -100,7 +141,6 @@ void gui_update(GameState* gState, RenderState* rState)
     igShowMetricsWindow(NULL);
     if (igTreeNode_Str("Entity tree"))
     {
-        igImage((void*)(intptr_t)gState->rState->isoCharacterAtlas, (ImVec2){1024, 3072}, (ImVec2){0,0}, (ImVec2){1,1}, (ImVec4){1,1,1,1}, (ImVec4){1,1,1,1});
         Entity** arr = gState->currentLevel->currentRoom->entities;
         int i = 0;
         while (*arr != NULL)
