@@ -156,6 +156,10 @@ void mine_death(Entity *attacker)
             take_dmg(*entity, attacker->ATK);
         }
     }
+
+    // small amount of screen shake
+    Player* playerData = ((Player*)attacker->room->entities[0]->specific_data);
+    playerData->screenShakeFramesLeft = max(playerData->screenShakeFramesLeft, 15);
 }
 
 Entity construct_mine(Entity *creator)
