@@ -234,7 +234,7 @@ Player *Entity_construct_player()
     Player *player = calloc(sizeof(Player), 1);
     Entity *entity = calloc(sizeof(Entity), 1);
 
-    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 0},
+    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player};
