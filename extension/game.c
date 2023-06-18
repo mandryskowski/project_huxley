@@ -225,7 +225,7 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     GLFW_COCOA_RETINA_FRAMEBUFFER;
-    state->window = glfwCreateWindow(3840, 2075, "Huxley game", glfwGetPrimaryMonitor(), NULL);
+    state->window = glfwCreateWindow(3840, 2075, "Huxley game", NULL, NULL);
 
     if (state->window == NULL)
     {
