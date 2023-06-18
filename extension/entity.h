@@ -77,6 +77,7 @@ typedef struct Player
     Vec2d cameraSize; // number of tiles visible on the x and y isometric diagonal centred around the player.
     
     bool isInDialogue;
+    bool canEnterDialogue;
     double lastSkip;
 
     int screenShakeFramesLeft;
@@ -89,6 +90,8 @@ Player *Entity_construct_player();
 bool isProjectile(Entity *);
 
 bool isMine(Entity *);
+
+bool isNPC(Entity *);
 
 bool isDead(Entity *);
 

@@ -59,7 +59,13 @@ void gui_update(GameState* gState, RenderState* rState)
         igEnd();
     }
 
-    if(gState->player->isInDialogue)
+    if(gState->player->canEnterDialogue)
+    {
+        igBegin("Dialogue prompt", NULL, 0);
+        igText("Press \"Q\" to interact...", NULL, 0);
+        igEnd();
+    }
+    else if(gState->player->isInDialogue)
     {
         //igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_FirstUseEver, (ImVec2){100, 100});
         igBegin(gState->guiState->dialogue->title, NULL, 0);

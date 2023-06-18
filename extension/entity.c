@@ -18,6 +18,11 @@ bool isDead(Entity *entity)
     return entity->HP <= 0;
 }
 
+bool isNPC(Entity *entity) 
+{
+    return !isProjectile(entity) && entity->faction == ALLY;
+}
+
 void killEntity(Entity *entity)
 {
     entity->HP = -1;
@@ -234,7 +239,7 @@ Player *Entity_construct_player()
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player};
-    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0, .screenShakeFramesLeft = 0};
+    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue = false, .canEnterDialogue = false, .lastSkip = 0.0, .screenShakeFramesLeft = 0};
 
     return player;
 }
@@ -278,7 +283,7 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
 
 bool isMine(Entity *entity)
 {
-    return fabs(entity->SPD) < EPSILON;
+    return !isNPC(entity) && fabs(entity->SPD) < EPSILON;
 }
 
 
