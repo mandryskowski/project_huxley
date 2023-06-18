@@ -13,6 +13,7 @@
 #include "util.h"
 #include "level.h"
 #include "animation.h"
+#include "audio.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -274,6 +275,9 @@ void gameLoop(GameState* gState)
     gState->guiState->dialogue = newDialogue();
 
     initRenderState(gState, gState->rState);
+
+    AudioState aState;
+    initAudio(&aState);
 
     for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
