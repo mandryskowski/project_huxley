@@ -65,8 +65,9 @@ void updateDialogue(GameState* state)
     {
         if (glfwGetKey(state->window, GLFW_KEY_SPACE))
         {  
-                state->player->isInDialogue = false;
+            state->player->isInDialogue = false;
         }
+
         else if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
         {
             state->guiState->dialogue->isSkippable = true;
@@ -95,10 +96,34 @@ void updateDialogue(GameState* state)
     }
 }
 
+void updateDialogueState(GameState* state)
+{
+    if(state->player->canEnterDialogue)
+    {
+        if(glfwGetKey(state->window, GLFW_KEY_Q))
+        {
+            state->player->isInDialogue = true;
+            state->guiState->dialogue->dialogueIndex = 0;
+            state->player->lastSkip = glfwGetTime();
+            state->player->canEnterDialogue = false;
+        }
+    }
+
+    else
+    {
+        fprintf(stderr, "Entity cannot enter dialogue\n");
+        exit(0);
+    }
+}
+
 void handleEvents(GameState* state)
 {
+    if(state->player->canEnterDialogue)
+    {
+        updateDialogueState(state);
+    }
 
-    if(state->player->isInDialogue)
+    else if(state->player->isInDialogue)
     {
         updateDialogue(state);
         return;
@@ -270,7 +295,8 @@ void gameLoop(GameState* gState)
     Player *player;
     player = Entity_construct_player();
     gState->player = player;
-    gState->player->isInDialogue = true;
+    gState->player->isInDialogue = false;
+    gState->player->canEnterDialogue = false;
     gState->currentLevel = construct_level(player, 6);
     gState->guiState->dialogue = newDialogue();
 
