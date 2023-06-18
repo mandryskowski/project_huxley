@@ -47,6 +47,7 @@ void jump_to_next_room(GameState *state)
 
     if (isClear(level->currentRoom) && newRoom->type != NOT_ROOM)
     {
+        Room *oldRoom = level->currentRoom;
         level->prevRoomCoords = level->currRoomCoords;
         level->currRoomCoords = newRoomCoords;
         level->prevRoom = level->currentRoom;
@@ -58,8 +59,22 @@ void jump_to_next_room(GameState *state)
         level->currentRoom = newRoom;
         *newRoom->entities = state->player->entity;
         state->player->entity->room = newRoom;
-        state->player->entity->pos = (Vec2d){level->currentRoom->size.x * (1 - direction.x) / 2 + direction.x * 0,
-                                             level->currentRoom->size.y * (1 - direction.y) / 2 + direction.y * 0};
+
+        if (direction.x)
+        {
+            int y_diff = (newRoom->size.y - oldRoom->size.y) / 2;
+            int x_change = direction.x < 0 ? newRoom->size.x - 1 : 1 - oldRoom->size.x;
+            state->player->entity->pos.y += y_diff;
+            state->player->entity->pos.x += x_change;
+        }
+        else
+        {
+            int x_diff = (newRoom->size.x - oldRoom->size.x) / 2;
+            int y_change = direction.y < 0 ? newRoom->size.y - 1 : 1 - oldRoom->size.y;
+            state->player->entity->pos.y += y_change;
+            state->player->entity->pos.x += x_diff;
+        }
+
         for (Entity **entity = newRoom->entities + 1; *entity; entity++)
         {
             (*entity)->cooldown_left = 180;

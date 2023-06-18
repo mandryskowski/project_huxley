@@ -224,8 +224,8 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    GLFW_COCOA_RETINA_FRAMEBUFFER;
-    state->window = glfwCreateWindow(3840, 2075, "Huxley game", NULL, NULL);
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_FALSE);
+    state->window = glfwCreateWindow(1512, 1037, "Huxley game", NULL, NULL);
 
     if (state->window == NULL)
     {
@@ -250,8 +250,8 @@ void initGame(GameState* state)
     *state->rState = RenderState_construct();
 
     glfwSetWindowUserPointer(state->window, state);
-    glfwGetFramebufferSize(state->window, &state->rState->resolution.x, &state->rState->resolution.y);
-    glfwSetWindowSizeCallback(state->window, framebufferSizeCallback);
+    glfwGetWindowSize(state->window, &state->rState->resolution.x, &state->rState->resolution.y);
+    glfwSetFramebufferSizeCallback(state->window, framebufferSizeCallback);
     glfwSetScrollCallback(state->window, scrollCallback);
 }
 
