@@ -80,10 +80,13 @@ typedef struct Player
     double lastSkip;
 
     int screenShakeFramesLeft;
+    int coins;
 } Player;
 
 
 Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
+Entity *construct_katsu(Vec2d pos, Room *room);
+Entity *construct_coin(Vec2d pos, Room *room);
 Player *Entity_construct_player();
 
 bool isProjectile(Entity *);
@@ -91,6 +94,10 @@ bool isProjectile(Entity *);
 bool isMine(Entity *);
 
 bool isDead(Entity *);
+
+bool isPickable(Entity *);
+
+bool isKatsu(Entity *);
 
 void killEntity(Entity *);
 

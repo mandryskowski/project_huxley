@@ -8,6 +8,16 @@
 #include "animation.h"
 #include "assets.h"
 
+bool isPlayer(Entity *entity)
+{
+    return *entity->room->entities == entity;
+}
+
+bool isPickable(Entity * entity)
+{
+    return entity->ATK < 0;
+}
+
 bool isProjectile(Entity *entity)
 {
     return entity->maxHP == INT_MAX;
@@ -39,6 +49,12 @@ void handle_attack(Entity *attacker, Entity *victim, AttackType type)
 {
     if (attacker->cooldown_left || attacker->attack_func == NULL)
     {
+        return;
+    }
+    if (isPickable(attacker) && isPlayer(victim) && type == ATTACK_CONTACT)
+    {
+        printf("xdd\n");
+        attacker->attack_func(attacker, victim, type);
         return;
     }
     if (victim == NULL || (attacker->faction != victim->faction &&
@@ -230,9 +246,9 @@ Player *Entity_construct_player()
     Player *player = calloc(sizeof(Player), 1);
     Entity *entity = calloc(sizeof(Entity), 1);
 
-    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){4, 1},
+    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
-            .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
+            .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0, .specific_data = player,
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player};
     *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0, .screenShakeFramesLeft = 0};
 
@@ -278,7 +294,7 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
 
 bool isMine(Entity *entity)
 {
-    return fabs(entity->SPD) < EPSILON;
+    return entity->attack_func == mine_attack;
 }
 
 
@@ -294,4 +310,46 @@ Dialogue* newDialogue(void) {
     d->dialogueLines[2] = "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.";
     d->isSkippable = false;
     return d;
-} 
+}
+
+bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
+{
+    if (type == ATTACK_CONTACT && player->HP < player->maxHP)
+    {
+        player->HP = min(player->maxHP, player->HP - katsu->ATK);
+        killEntity(katsu);
+        return true;
+    }
+    return false;
+}
+
+bool money_collect(Entity *coin, Entity *player, AttackType type)
+{
+    if (type == ATTACK_CONTACT)
+    {
+        ((Player *)player->specific_data)->coins++;
+        killEntity(coin);
+    }
+    return true;
+}
+
+Entity *construct_katsu(Vec2d pos, Room *room)
+{
+    Entity * katsu = calloc(1, sizeof(Entity));
+    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = katsu_heal, .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
+                      .pos = pos, .textureID = 10, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .room = room};
+    return katsu;
+}
+
+Entity *construct_coin(Vec2d pos, Room *room)
+{
+    Entity * katsu = calloc(1, sizeof(Entity));
+    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .textureID = 0, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1,
+    .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .room = room};
+    return katsu;
+}
+
+bool isKatsu(Entity *entity)
+{
+    return entity->attack_func == katsu_heal;
+}
