@@ -158,7 +158,7 @@ void mine_death(Entity *attacker)
         }
     }
 
-    attacker->soundSource = addSoundSource(SOUND_EXPLODE);
+    playSoundAtPos(SOUND_EXPLODE, attacker->pos);
 
     // small amount of screen shake
     Player* playerData = ((Player*)attacker->room->entities[0]->specific_data);
@@ -236,7 +236,6 @@ Player *Entity_construct_player()
 {
     Player *player = calloc(sizeof(Player), 1);
     Entity *entity = calloc(sizeof(Entity), 1);
-    entity->soundSource = -1;
 
     *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){4, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
