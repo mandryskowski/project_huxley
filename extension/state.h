@@ -12,6 +12,7 @@ typedef struct Level Level;
 typedef struct Player Player;
 typedef struct Dialogue Dialogue;
 typedef struct RenderState RenderState;
+typedef struct AudioState AudioState;
 
 typedef struct GUIState
 {
@@ -28,6 +29,7 @@ typedef struct GameState
     GUIState* guiState;
     bool renderNewRoom;
     RenderState* rState;
+    AudioState* aState;
 } GameState;
 
 

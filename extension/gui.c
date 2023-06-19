@@ -12,7 +12,8 @@
 #include "render.h"
 #include "game_math.h"
 #include "level.h"
-
+#include "AL/alc.h"
+#include "audio.h"
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
     gState->ctx = igCreateContext(NULL);
@@ -177,6 +178,32 @@ void gui_update(GameState* gState, RenderState* rState)
             arr++;
         }
         igTreePop();
+    }
+
+    if (igBeginListBox("Audio device", (ImVec2){0,0}))
+    {
+    char* s = (char *)alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+    static int current_audio_idx = 0;
+    int i = 0;
+    while (*s != NULL)
+    {
+     //printf("lista audio: %s \n", s);
+
+     if (igSelectable_Bool(s, current_audio_idx, 0, (ImVec2){0,0}))
+     {
+        printf("Wybrano %s \n", s);
+        current_audio_idx = i;
+
+        cleanupAudio(gState->aState);
+        initAudio(gState->aState, s, false);
+     }
+     i++;
+     s += strlen(s) + 1;
+    }
+    
+    
+
+    igEndListBox();
     }
 
     igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);

@@ -60,6 +60,8 @@ typedef struct Entity
     Vec2d renderOffset; // for special animations like the boss jumping. Does not affect the hitbox so probably make the Entity invincible while this is happening.
 
     void* specific_data; // points to a Player object for player, a Boss object for a boss etc. Allows to retrieve extra fields in functions that accept Entity*.
+
+    int soundSource; // set to 0 if no sound source.
 } Entity;
 
 typedef struct Dialogue

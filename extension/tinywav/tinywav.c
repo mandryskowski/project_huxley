@@ -21,7 +21,6 @@
 #if _WIN32
 #include <winsock.h>
 #include <malloc.h>
-#pragma comment(lib, "Ws2_32.lib")
 #else
 #include <alloca.h>
 #include <netinet/in.h>
