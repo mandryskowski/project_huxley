@@ -13,6 +13,7 @@
 #include "util.h"
 #include "level.h"
 #include "animation.h"
+#include "audio.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,6 +139,11 @@ void erase_dead(Room *room)
             {
                 (*entity)->death_func(*entity);
             }
+            if ((*entity)->soundSource != 0)
+            {
+                removeSoundSource((*entity)->soundSource);
+            }
+
             free(*entity);
             *entity = NULL;
             swap(entity, (room->entities + room->entity_cnt - 1));
@@ -184,11 +190,15 @@ void updateLogic(GameState* state, double dt)
     }
 
     if (!Vec2d_zero(state->player->entity->attack_velocity)) {
+        if (state->player->entity->cooldown_left == 0)
+        {
+            playSoundAtSource(state->aState, state->player->entity->soundSource, SOUND_SHOOT);
+        }
         handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
     }
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        //if (!Vec2d_zero((*entity)->attack_velocity))
+        if (!Vec2d_zero((*entity)->attack_velocity))
             handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
     }
 
@@ -266,9 +276,16 @@ void gameLoop(GameState* gState)
 {
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
+    double timeAccumulator = 0.0;
+
+    AudioState aState;
+    initAudio(&aState, NULL, true);
+    gState->aState = &aState;
+
 
     Player *player;
     player = Entity_construct_player();
+    player->entity->soundSource = addSoundSource(SOUND_SHOOT);
     gState->player = player;
     gState->player->isInDialogue = true;
     gState->currentLevel = construct_level(player, 6);
@@ -288,18 +305,20 @@ void gameLoop(GameState* gState)
         glfwPollEvents();
 
         double deltaTime = glfwGetTime() - lastUpdateTime;
-        if (deltaTime >= timestep)
+        timeAccumulator += deltaTime;
+        lastUpdateTime = glfwGetTime();
+        while (timeAccumulator >= timestep)
         {
-            
             handleEvents(gState);
-            updateLogic(gState, deltaTime);
+            updateLogic(gState, timestep);
             updateAnimations(gState, gState->currentLevel->currentRoom->entities, gState->currentLevel->currentRoom->entity_cnt);
-            lastUpdateTime = glfwGetTime();
             if (gState->renderNewRoom)
             {
                 refreshRoom(gState, gState->rState);
                 //printf("xdd\n");
             }
+
+            timeAccumulator -= timestep;
         }
         gui_update(gState, gState->rState);
 

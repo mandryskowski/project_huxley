@@ -1,3 +1,4 @@
+=======
 CC      = gcc
 LINK_CC = gcc
 CFLAGS  ?= -std=c17 -g\
@@ -20,7 +21,8 @@ ifeq ($(OS),Windows_NT)
 # which gives an undefined reference error. So we link with g++, but the object files are compiled with gcc.
 # Note that we cannot ignore undefined reference errors with MinGW gcc (the linker flag is recognised but ignored) even if we ignore the fact that it is not a great practice.
     LINK_CC   = g++
-    CFLAGS += -D WIN32 -Llib/windows -lglfw3 -lm -lcimgui -lgdi32 -lopengl32
+    CFLAGS += -D WIN32 -Llib/windows -lglfw3 -lm -lcimgui -lgdi32 -lopengl32 -lopenal32 -lws2_32
+    LDFLAGS += "-Wl,-rpath,lib/windows/"
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         CFLAGS += -D AMD64
     else
@@ -36,7 +38,7 @@ else
     UNAME_S := $(shell uname -s)
         
     ifeq ($(UNAME_S),Linux)
-        CFLAGS += -D LINUX -Llib/linux -lcimgui -lm
+        CFLAGS += -D LINUX -Llib/linux -lcimgui -lm -lopenal
         LDFLAGS="-Wl,-rpath,lib/linux/"
     endif
     ifeq ($(UNAME_S),Darwin)
@@ -66,7 +68,7 @@ clean:
 ########################Project files########################
 
 # Here you add the names of header-source file pairs. E.g. gameControl adds gameControl.h and gameControl.c
-_GAME_SOURCE_HEADER_PAIRS = game game_math room render assets entity movement gui pathfind util level pqueue animation haskell predefinedRooms/room_generator predefinedRooms/monster_spawner predefinedRooms/structure_builder\
+_GAME_SOURCE_HEADER_PAIRS = game game_math room render audio assets entity movement gui pathfind util level pqueue animation haskell tinywav/tinywav predefinedRooms/room_generator predefinedRooms/monster_spawner predefinedRooms/structure_builder\
 
 # Here on the other hand you add just the headers.
 _GAME_JUST_HEADERS = state.h
@@ -93,4 +95,3 @@ GAME_OBJECTS += $(GAME_SOURCE_HEADER_PAIRS:=.o) main.o glad.o
 
 game: $(GAME_OBJECTS)
 	$(LINK_CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
-

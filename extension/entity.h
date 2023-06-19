@@ -29,6 +29,8 @@ typedef struct ProjectileStats
     int pierces;
 } ProjectileStats;
 
+// This general class for Entity should ideally need just a few fields but the lack of OOP in C makes this hard to achieve.
+// Shortcuts had to be used to obtain a minimum viable product within just 2 weeks.
 typedef struct Entity
 {
     Vec2d pos;
@@ -55,8 +57,11 @@ typedef struct Entity
     Animation *currentAnimation; // can be NULL if not animated.
 
     uint textureID;
+    Vec2d renderOffset; // for special animations like the boss jumping. Does not affect the hitbox so probably make the Entity invincible while this is happening.
 
     void* specific_data; // points to a Player object for player, a Boss object for a boss etc. Allows to retrieve extra fields in functions that accept Entity*.
+
+    int soundSource; // set to 0 if no sound source.
 } Entity;
 
 typedef struct Dialogue
