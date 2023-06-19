@@ -558,9 +558,11 @@ void render(GameState* gState, RenderState* state)
             else
             {
                 viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0}, (Vec2d){0,0});
+                //  glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), (offset.x != 0 ? gState->currentLevel->prevRoom->size.x : gState->currentLevel->prevRoom->size.y) + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2 - (offset.x + offset.y));               
                 glUniform1i(glGetUniformLocation(state->shader, "customDepth"), max(1 + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2, 0));          
  renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1) - sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) - sizeDiff.y / 2.0 * abs(offset.x)}, offset);
-  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);     
+  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);    
+    glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);    
             }
     
 
@@ -596,7 +598,11 @@ void render(GameState* gState, RenderState* state)
             Vec2d hitboxSize = Vec2d_add((*ent)->hitbox.topRight, Vec2d_scale((*ent)->hitbox.bottomLeft, -1.0f));
             Vec2d hitboxPos = Vec2d_add((*ent)->hitbox.bottomLeft, Vec2d_scale(hitboxSize, 0.5f));
             Vec2d absoluteHitboxPos = Vec2d_add((*ent)->pos, hitboxPos);
-        glUniform1i(glGetUniformLocation(state->shader, "customDepth"),absoluteHitboxPos.x +  absoluteHitboxPos.y + 1 );
+
+            // We set the entity's depth to minimal (0) when it's at a left/bottom edge of the room since we want it to render on top of the neighbour room.
+            float entDepth = (floor(absoluteHitboxPos.x) == 0 || floor(absoluteHitboxPos.y) == 0) ? 0 : (absoluteHitboxPos.x +  absoluteHitboxPos.y + 1);
+
+            glUniform1i(glGetUniformLocation(state->shader, "customDepth"), entDepth);
         }
 
         int entityTexID = (*ent)->textureID;
