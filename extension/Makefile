@@ -1,3 +1,4 @@
+=======
 CC      = gcc
 LINK_CC = gcc
 CFLAGS  ?= -std=c17 -g\
@@ -67,7 +68,7 @@ clean:
 ########################Project files########################
 
 # Here you add the names of header-source file pairs. E.g. gameControl adds gameControl.h and gameControl.c
-_GAME_SOURCE_HEADER_PAIRS = game game_math room render audio assets entity movement gui pathfind util level pqueue animation haskell tinywav/tinywav\
+_GAME_SOURCE_HEADER_PAIRS = game game_math room render audio assets entity movement gui pathfind util level pqueue animation haskell tinywav/tinywav predefinedRooms/room_generator predefinedRooms/monster_spawner predefinedRooms/structure_builder\
 
 # Here on the other hand you add just the headers.
 _GAME_JUST_HEADERS = state.h
@@ -94,4 +95,3 @@ GAME_OBJECTS += $(GAME_SOURCE_HEADER_PAIRS:=.o) main.o glad.o
 
 game: $(GAME_OBJECTS)
 	$(LINK_CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
-

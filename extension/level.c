@@ -4,10 +4,12 @@
 #include "level.h"
 #include "util.h"
 #include "entity.h"
+#include "predefinedRooms/room_generator.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 void jump_to_next_room(GameState *state)
 {
@@ -45,16 +47,35 @@ void jump_to_next_room(GameState *state)
 
     if (isClear(level->currentRoom) && newRoom->type != NOT_ROOM)
     {
+        Room *oldRoom = level->currentRoom;
         level->prevRoomCoords = level->currRoomCoords;
         level->currRoomCoords = newRoomCoords;
         level->prevRoom = level->currentRoom;
-        *level->currentRoom->entities = NULL;
+        for (Entity **entity = level->currentRoom->entities; *entity; entity++)
+        {
+            *entity = NULL;
+        }
+        level->currentRoom->entity_cnt = 1;
         level->currentRoom = newRoom;
         newRoom->visited = true;
         *newRoom->entities = state->player->entity;
         state->player->entity->room = newRoom;
-        state->player->entity->pos = (Vec2d){level->currentRoom->size.x * (1 - direction.x) / 2 + direction.x * 0,
-                                             level->currentRoom->size.y * (1 - direction.y) / 2 + direction.y * 0};
+
+        if (direction.x)
+        {
+            int y_diff = (newRoom->size.y - oldRoom->size.y) / 2;
+            int x_change = direction.x < 0 ? newRoom->size.x - 1 : 1 - oldRoom->size.x;
+            state->player->entity->pos.y += y_diff;
+            state->player->entity->pos.x += x_change;
+        }
+        else
+        {
+            int x_diff = (newRoom->size.x - oldRoom->size.x) / 2;
+            int y_change = direction.y < 0 ? newRoom->size.y - 1 : 1 - oldRoom->size.y;
+            state->player->entity->pos.y += y_change;
+            state->player->entity->pos.x += x_diff;
+        }
+
         for (Entity **entity = newRoom->entities + 1; *entity; entity++)
         {
             (*entity)->cooldown_left = 180;
@@ -91,6 +112,8 @@ void create_door(Room *room, int site)
 
 Level *construct_level(Player *player, int room_number)
 {
+    srand(time(NULL));
+
     Level *level = calloc(sizeof(Level), 1);
     int map_width = sqrt(room_number) + 2;
 
@@ -119,8 +142,7 @@ Level *construct_level(Player *player, int room_number)
         shuffle(to_add, to_add_end - to_add, sizeof(Vec2i));
         if (i)
         {
-            printf("%d %d rooms\n", to_add->x, to_add->y);
-            system("./predefinedRooms/room_generator");
+            generate_room();
             level->map[to_add->x][to_add->y] = construct_room("predefinedRooms/new_room", NORMAL_ROOM);
         }
         for (int j = 0; j < 4; j++)
@@ -145,6 +167,33 @@ Level *construct_level(Player *player, int room_number)
     player->entity->room = level->currentRoom;
     level->currentRoom->visited = true;
     player->entity->pos = (Vec2d){10, 10};
+
+    Vec2i boss_room = {0, 0};
+    for (int i = 0; i < map_width; i++)
+    {
+        for (int j = 0; j < map_width; j++)
+        {
+            if (!level->map[i][j])
+            {
+                int neighbours = 0;
+                for (int k = 0; k < 4; k++) {
+                    Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);
+                    if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width ||
+                        !level->map[new_coord.x][new_coord.y])
+                    {
+                        continue;
+                    }
+                    neighbours++;
+                }
+                if (neighbours == 1)
+                {
+                    boss_room = (Vec2i){i, j};
+                }
+            }
+        }
+    }
+
+    level->map[boss_room.x][boss_room.y] = construct_room("predefinedRooms/haskell_room", BOSS_ROOM);
 
     for (int i = 0; i < map_width; i++)
     {
