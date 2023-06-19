@@ -1,4 +1,3 @@
-=======
 CC      = gcc
 LINK_CC = gcc
 CFLAGS  ?= -std=c17 -g\
@@ -9,7 +8,7 @@ CXXFLAGS  ?= -std=c++11 -g\
 	-D_POSIX_SOURCE -D_DEFAULT_SOURCE\
 	-Wall -lm -fno-exceptions
 GAME_DIR = .
-GAME_OBJECTS = 
+GAME_OBJECTS =
 
 ########################OS Dependent#########################
 
@@ -42,7 +41,7 @@ else
         LDFLAGS="-Wl,-rpath,lib/linux/"
     endif
     ifeq ($(UNAME_S),Darwin)
-        CFLAGS += -D OSX -Llib/macos -lcimgui
+        CFLAGS += -D OSX -Llib/macos -lcimgui -lopenal
         LDFLAGS="-Wl,-rpath,lib/macos/"
     endif
     UNAME_P := $(shell uname -p)

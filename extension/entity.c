@@ -167,6 +167,10 @@ void mine_death(Entity *attacker)
     Rectangle mine_hitbox = (Rectangle){{attacker->pos.x - 1, attacker->pos.y - 1}, {attacker->pos.x + 2, attacker->pos.y + 2}};
     for (Entity **entity = attacker->room->entities; *entity; entity++)
     {
+        if (isProjectile(*entity) || isPickable(*entity) || isMine(*entity))
+        {
+            continue;
+        }
         Vec2d colResult = detectCollisionRect(mine_hitbox, rectangle_Vec2d((*entity)->hitbox, (*entity)->pos));
         if (colResult.x > 0 && colResult.y > 0)
         {
@@ -323,7 +327,7 @@ Dialogue* newDialogue(void) {
 
 bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
 {
-    if (type == ATTACK_CONTACT && player->HP < player->maxHP)
+    if (type == ATTACK_CONTACT && isPlayer(player) && player->HP < player->maxHP)
     {
         player->HP = min(player->maxHP, player->HP - katsu->ATK);
         killEntity(katsu);
@@ -334,7 +338,7 @@ bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
 
 bool money_collect(Entity *coin, Entity *player, AttackType type)
 {
-    if (type == ATTACK_CONTACT)
+    if (type == ATTACK_CONTACT && isPlayer(player))
     {
         ((Player *)player->specific_data)->coins++;
         killEntity(coin);

@@ -14,6 +14,8 @@
 #include "level.h"
 #include "AL/alc.h"
 #include "audio.h"
+#include <string.h>
+
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
     gState->ctx = igCreateContext(NULL);
