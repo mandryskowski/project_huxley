@@ -1,4 +1,3 @@
-=======
 CC      = gcc
 LINK_CC = gcc
 CFLAGS  ?= -std=c17 -g\
