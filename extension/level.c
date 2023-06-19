@@ -1,5 +1,6 @@
 #include "state.h"
 #include "game_math.h"
+#include "game.h"
 #include "room.h"
 #include "level.h"
 #include "util.h"
@@ -53,9 +54,13 @@ void jump_to_next_room(GameState *state)
         level->prevRoom = level->currentRoom;
         for (Entity **entity = level->currentRoom->entities; *entity; entity++)
         {
-            *entity = NULL;
+            if (isMine(*entity) || isProjectile(*entity))
+            {
+                killEntity(*entity);
+            }
         }
-        level->currentRoom->entity_cnt = 1;
+        erase_dead(level->currentRoom);
+        *level->currentRoom->entities = NULL;
         level->currentRoom = newRoom;
         newRoom->visited = true;
         *newRoom->entities = state->player->entity;
