@@ -20,7 +20,8 @@ ifeq ($(OS),Windows_NT)
 # which gives an undefined reference error. So we link with g++, but the object files are compiled with gcc.
 # Note that we cannot ignore undefined reference errors with MinGW gcc (the linker flag is recognised but ignored) even if we ignore the fact that it is not a great practice.
     LINK_CC   = g++
-    CFLAGS += -D WIN32 -Llib/windows -lglfw3 -lm -lcimgui -lgdi32 -lopengl32
+    CFLAGS += -D WIN32 -Llib/windows -lglfw3 -lm -lcimgui -lgdi32 -lopengl32 -lopenal32 -lws2_32
+    LDFLAGS += "-Wl,-rpath,lib/windows/"
     ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
         CFLAGS += -D AMD64
     else
