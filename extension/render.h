@@ -35,6 +35,7 @@ RenderState RenderState_construct();
 
 void initRenderState(GameState*, RenderState*);
 void refreshRoom(GameState*, RenderState*);
+Vec2d getIsoPos(Vec2d mapPos, Vec2i roomSize);
 
 void render(GameState*, RenderState*);
 void renderIsometric(GameState*, RenderState*);
