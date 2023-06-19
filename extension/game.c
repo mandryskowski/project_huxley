@@ -128,8 +128,9 @@ void update_cooldowns(GameState* state)
 
 void erase_dead(Room *room)
 {
-    int entity_cnt = room->entity_cnt;
-    for (int i = 1; i < entity_cnt; i++)
+    Entity **to_add= calloc(room->entity_cnt,8);
+    int to_add_cnt = 0;
+    for (int i = 1; i < room->entity_cnt; i++)
     {
         Entity **entity = room->entities + i;
         if (*entity && isDead(*entity) && !(*entity)->hit_animation)
@@ -138,12 +139,30 @@ void erase_dead(Room *room)
             {
                 (*entity)->death_func(*entity);
             }
+            if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity))
+            {
+                if (rand() % 5 == 0)
+                {
+                to_add[to_add_cnt++] = construct_katsu((*entity)->pos, room);
+                }
+                if (rand() % 7 == 0)
+                {
+                    to_add[to_add_cnt++] = construct_coin((*entity)->pos, room);
+                }
+            }
             free(*entity);
             *entity = NULL;
             swap(entity, (room->entities + room->entity_cnt - 1));
             room->entity_cnt--;
         }
     }
+    for (Entity **entity = to_add; *entity; entity++)
+    {
+        printf("%d xdd\n", room->entity_cnt);
+        room->entities[room->entity_cnt++] = *entity;
+        entity++;
+    }
+    free(to_add);
 }
 
 static int frame_cnt = 0;
@@ -167,20 +186,9 @@ void updateLogic(GameState* state, double dt)
                 continue;
             }
 
-            //Vec2d_print((*other)->pos);
-            //printf("  ");
-            //Vec2d_print(velocities[index]);
-            //printf(" %d, speed %f\n", index, (*other)->SPD);
             (*other)->velocity = *(velocities+index);
             index++;
         }
-//        for (Entity **p = arr+1; *p; p++)
-//        {
-//            Vec2d_print((*p)->velocity);
-//            printf(" ");
-//            Vec2d_print((*p)->pos);
-//            printf("%d velocity pos post pathfind\n", p - arr - 1);
-//        }
     }
 
     if (!Vec2d_zero(state->player->entity->attack_velocity)) {

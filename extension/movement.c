@@ -52,20 +52,17 @@ bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
         if (timeAfterCollision > *highestAfterCollision)
         {
             *highestAfterCollision = timeAfterCollision;
-            if (!is_projectile)
+            if (xtime <= ytime)
             {
-                if (xtime <= ytime)
-                {
-                    newVelocity->y = velocity.y;
-                    newVelocity->x = 0;
-                }
-                else
-                {
-                    newVelocity->x = velocity.x;
-                    newVelocity->y = 0;
-                }
+                newVelocity->y = velocity.y;
+                newVelocity->x = 0;
             }
-        }
+            else
+            {
+                newVelocity->x = velocity.x;
+                newVelocity->y = 0;
+            }
+    }
         return true;
     }
     return false;
@@ -92,20 +89,30 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
 
         Rectangle otherHitbox = rectangle_Vec2d(other->hitbox, other->pos);
 
+        if (currEntityPtr == entity && isPickable(other))
+        {
+            if (isKatsu(other) && currEntity->HP == currEntity->maxHP)
+            {
+                continue;
+            }
+        }
+
         if (checkForCollision(rectangle_Vec2d(currEntity->hitbox, currEntity->pos), otherHitbox, NULL, NULL, (Vec2d){0, 0}, false))
         {
             continue;
         }
 
         double highestAfterCollision_prev = highestAfterCollision;
+        Vec2d prev_newVelocity = newVelocity;
         bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
                                           &newVelocity, currEntity->velocity, isProjectile(currEntity));
         if (collides)
         {
             deal_collison_damage(currEntity, other);
-            if (isProjectile(currEntity))
+            if (isProjectile(currEntity) || isPickable(other))
             {
                 highestAfterCollision = highestAfterCollision_prev;
+                newVelocity = prev_newVelocity;
             }
             if (isDead(*currEntityPtr))
             {
