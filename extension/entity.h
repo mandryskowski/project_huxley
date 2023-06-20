@@ -86,6 +86,7 @@ typedef struct Player
     bool throws_mines;
     
     bool isInDialogue;
+    bool canEnterDialogue;
     double lastSkip;
 
     int screenShakeFramesLeft;
@@ -106,6 +107,8 @@ bool isNotAMonster(Entity *entity);
 bool isProjectile(Entity *);
 
 bool isMine(Entity *);
+
+bool isNPC(Entity *);
 
 bool isDead(Entity *);
 

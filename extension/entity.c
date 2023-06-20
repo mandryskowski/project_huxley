@@ -34,6 +34,11 @@ bool isDead(Entity *entity)
     return entity->HP <= 0;
 }
 
+bool isNPC(Entity *entity) 
+{
+    return !isProjectile(entity) && entity->faction == ALLY;
+}
+
 void killEntity(Entity *entity)
 {
     entity->HP = -1;
