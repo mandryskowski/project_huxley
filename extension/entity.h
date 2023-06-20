@@ -74,6 +74,11 @@ typedef struct Dialogue
     bool isSkippable;
 } Dialogue;
 
+typedef struct Npc
+{
+    Dialogue *dialogue;
+} Npc;
+
 typedef struct Player
 {
     Entity *entity;
@@ -86,6 +91,7 @@ typedef struct Player
     bool throws_mines;
     
     bool isInDialogue;
+    bool canEnterDialogue;
     double lastSkip;
 
     int screenShakeFramesLeft;
@@ -113,11 +119,15 @@ bool isPickable(Entity *);
 
 bool isKatsu(Entity *);
 
+bool isNPC(Entity *);
+
+bool isItem(Entity *);
+
+bool isInteractable(Entity *);
+
 void killEntity(Entity *);
 
 void handle_attack(Entity *, Entity *, AttackType);
-
-Dialogue* newDialogue(void);
 
 void shooter_spawn_attack(Entity *attacker);
 

@@ -67,8 +67,9 @@ void updateDialogue(GameState* state)
     {
         if (glfwGetKey(state->window, GLFW_KEY_SPACE))
         {  
-                state->player->isInDialogue = false;
+            state->player->isInDialogue = false;
         }
+
         else if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
         {
             state->guiState->dialogue->isSkippable = true;
@@ -97,8 +98,33 @@ void updateDialogue(GameState* state)
     }
 }
 
+void updateDialogueState(GameState* state)
+{
+    if(state->player->canEnterDialogue)
+    {
+        if(glfwGetKey(state->window, GLFW_KEY_Q))
+        {
+            state->player->entity->velocity = (Vec2d){0, 0};
+            state->player->isInDialogue = true;
+            state->guiState->dialogue->dialogueIndex = 0;
+            state->player->lastSkip = glfwGetTime();
+            state->player->canEnterDialogue = false;
+        }
+    }
+
+    else
+    {
+        fprintf(stderr, "Entity cannot enter dialogue\n");
+        exit(0);
+    }
+}
+
 void handleEvents(GameState* state)
 {
+    if(state->player->canEnterDialogue)
+    {
+        updateDialogueState(state);
+    }
 
     if(state->player->isInDialogue)
     {
@@ -202,7 +228,7 @@ void updateLogic(GameState* state, double dt)
 
     handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
 
-    if (glfwGetKey(state->window, GLFW_KEY_Q) && !state->player->active_item->cooldown_left &&
+    if (glfwGetKey(state->window, GLFW_KEY_F) && !state->player->active_item->cooldown_left &&
             !isEmpty(state->player->prev_positions))
     {
         state->player->active_item->item_active(state->player);
@@ -299,9 +325,10 @@ void gameLoop(GameState* gState)
     Player *player;
     player = Entity_construct_player();
     gState->player = player;
-    gState->player->isInDialogue = true;
+    gState->player->isInDialogue = false;
+    gState->player->canEnterDialogue = false;
     gState->currentLevel = construct_level(player, 6);
-    gState->guiState->dialogue = newDialogue();
+    gState->guiState->dialogue = NULL;
 
     initRenderState(gState, gState->rState);
 
