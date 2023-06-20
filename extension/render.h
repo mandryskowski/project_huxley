@@ -19,7 +19,9 @@ typedef struct RenderState
     Mesh isoMesh, isoMesh2;
     Mesh quadMesh;
     int shader;
-    uint tileAtlas, characterAtlas, isoTileAtlas, isoCharacterAtlas, itemAtlas;
+    uint tileAtlas, characterAtlas, isoTileAtlas, isoCharacterAtlas, isoItemAtlas;
+
+    uint uiItemAtlas;
 
     bool renderIsometric;
     bool bDebugHitboxes;
@@ -39,5 +41,7 @@ Vec2d getIsoPos(Vec2d mapPos, Vec2i roomSize);
 
 void render(GameState*, RenderState*);
 void renderIsometric(GameState*, RenderState*);
+
+void disposeOfRender(RenderState*);
 
 #endif // RENDER_H
