@@ -152,12 +152,13 @@ void update_cooldowns(GameState* state)
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
         (*entity)->hit_animation = max((*entity)->hit_animation - 1, 0);
     }
-    state->player->active_item->cooldown_left = max(state->player->active_item->cooldown_left - 1, 0);
+    if (state->player->active_item)
+        state->player->active_item->cooldown_left = max(state->player->active_item->cooldown_left - 1, 0);
 }
 
 void erase_dead(Room *room)
 {
-    Entity **to_add= calloc(room->entity_cnt,8);
+    Entity **to_add = calloc(room->entity_cnt * 2,8);
     int to_add_cnt = 0;
     for (int i = 1; i < room->entity_cnt; i++)
     {
@@ -186,11 +187,10 @@ void erase_dead(Room *room)
             room->entity_cnt--;
         }
     }
+
     for (Entity **entity = to_add; *entity; entity++)
     {
-        printf("%d xdd\n", room->entity_cnt);
         room->entities[room->entity_cnt++] = *entity;
-        entity++;
     }
     free(to_add);
 }

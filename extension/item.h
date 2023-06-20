@@ -6,23 +6,22 @@
 typedef void (*passive)(Player *);
 typedef void (*active)(Player *);
 
-typedef enum
+typedef enum ItemType
 {
-
+    BOOM_BOOTS, OVERCLOCKING_MODULE, CLONING_MODULE, ATTACK_MODULE, REBOUND_MODULE, HOLOGRAPHIC_MODULE, RESILIENCE_MODULE,
+    ROCKET_BOOTS, JETPACK, STOPWATCH
 } ItemType;
 
 typedef struct Item
 {
     Dialogue *dialogue;
     int textureID;
-//    char *name;
-//    char *description;
     passive item_passive;
     active item_active;
     int active_cooldown;
     int cooldown_left;
 } Item;
 
-Item *construct_stopwatch();
+Item *get_item(ItemType type);
 
 #endif //ARMV8_25_ITEM_H

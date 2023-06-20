@@ -7,6 +7,7 @@
 #include <stdbool.h>
 
 typedef struct Item Item;
+typedef enum ItemType ItemType;
 typedef struct Entity Entity;
 typedef struct Animation Animation;
 
@@ -105,6 +106,7 @@ typedef struct Player
 Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
 Entity *construct_katsu(Vec2d pos, Room *room);
 Entity *construct_coin(Vec2d pos, Room *room);
+Entity *construct_item(ItemType itemType, Vec2d pos);
 Player *Entity_construct_player();
 
 bool isNotAMonster(Entity *entity);

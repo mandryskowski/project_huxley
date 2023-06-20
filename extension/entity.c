@@ -322,7 +322,7 @@ Player *Entity_construct_player()
             .attack_func = player_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
 
     *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0,
-                        .screenShakeFramesLeft = 0, .throws_mines = false, .prev_positions = createQueue(), .active_item = construct_stopwatch()};
+                        .screenShakeFramesLeft = 0, .throws_mines = false, .prev_positions = createQueue(), .active_item = NULL};
 
     return player;
 }
@@ -362,6 +362,16 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
     monster->textureID = getMonsterTextureID(type);
 
     return monster;
+}
+
+Entity *construct_item(ItemType itemType, Vec2d pos)
+{
+    Item *item = get_item(itemType);
+    Entity *entity = calloc(1, sizeof(Entity));
+
+    *entity = (Entity){.specific_data = item, .pos = pos, .attack_func = item_action, .maxHP = INT_MAX - 1, .HP = INT_MAX - 1, .textureID = item->textureID};
+
+    return entity;
 }
 
 bool isMine(Entity *entity)

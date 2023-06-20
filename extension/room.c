@@ -5,6 +5,7 @@
 #include "state.h"
 #include "entity.h"
 #include "level.h"
+#include "item.h"
 
 TileType getTile(Vec2i vec, GameState *state)
 {
@@ -75,7 +76,12 @@ Room *construct_room(char *filename , RoomType type)
 
     if (room->type == ITEM_ROOM)
     {
-        room->entities[room->entity_cnt++] =
+        room->entities[room->entity_cnt++] = construct_item(rand() % 10, (Vec2d){room->size.x / 2, room->size.y / 2});
+    }
+
+    if (room->type == BOSS_ROOM)
+    {
+        printf("%d entity cnt\n", room->entity_cnt);
     }
 
     fclose(file);
