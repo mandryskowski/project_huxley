@@ -23,6 +23,7 @@ Room *construct_room(char *filename , RoomType type)
     room->entity_cnt = 1;
     room->tiles = malloc(width * sizeof(Tile*));
     room->visited = false;
+    room->type = type;
 
     for (int x = 0; x < width; x++)
     {

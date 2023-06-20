@@ -178,6 +178,7 @@ void mine_death(Entity *attacker)
         }
     }
 
+    
     playSoundAtPos(SOUND_EXPLODE, attacker->pos);
 
     // small amount of screen shake
@@ -262,7 +263,7 @@ Player *Entity_construct_player()
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
             .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
 
-    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0, .screenShakeFramesLeft = 0};
+    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0, .screenShakeFramesLeft = 0, .fadeToBlack = 0};
 
     return player;
 }
@@ -356,7 +357,7 @@ Entity *construct_katsu(Vec2d pos, Room *room)
 Entity *construct_coin(Vec2d pos, Room *room)
 {
     Entity * katsu = calloc(1, sizeof(Entity));
-    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .textureID = 0, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1,
+    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .textureID = 0, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .textureID = 8,
     .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .room = room};
     return katsu;
 }

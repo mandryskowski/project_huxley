@@ -50,11 +50,182 @@ bool sliderDoubleN(char* label, double* ptr, uint n, double min, double max)
     return igSliderScalarN(label, ImGuiDataType_Double, ptr, n, &min, &max, NULL, 0);
 }
 
+void gui_options_window(GameState* gState, RenderState* rState)
+{
+    if (igSliderFloat("Volume", &gState->aState->volume, 0.0, 1.0, NULL, 0))
+    {
+        refreshAudioVolume();
+        playSound(SOUND_SHOOT);
+    }
+    igSliderInt2("Resolution", &rState->resolution, 1, 2048, NULL, 0);
+    igCheckbox("VSync?", &rState->VSync);
+
+    if (igBeginListBox("Audio device", (ImVec2){0,0}))
+    {
+        char* s = (char *)alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+        static int current_audio_idx = 0;
+        int i = 0;
+        while (*s != NULL)
+        {
+            if (igSelectable_Bool(s, current_audio_idx, 0, (ImVec2){0,0}))
+            {
+                printf("Selected audio device %s \n", s);
+                current_audio_idx = i;
+
+                cleanupAudio(gState->aState);
+                initAudio(gState->aState, s);
+            }
+            i++;
+            s += strlen(s) + 1;
+        }
+
+        igEndListBox();
+    }
+}
+
+void guiTextCentered(char* text)
+{
+    ImVec2 windowSize;
+    igGetWindowSize(&windowSize);
+    ImVec2 textSize;
+    igCalcTextSize(&textSize, text, NULL, false, 0.0);
+
+    igSetCursorPosX((windowSize.x - textSize.x) * 0.5f);
+    igText(text);
+}
+
+bool guiButtonCentered(char* text, ImVec2 size)
+{
+    if (size.x == 0 && size.y == 0)
+    {
+      igCalcTextSize(&size, text, NULL, false, 0.0);
+    }
+    ImVec2 avail;
+    igGetContentRegionAvail(&avail);
+
+    igSetCursorPosX((avail.x - size.x - igGetStyle()->FramePadding.x * 2.0f) * 0.5f);
+    return igButton(text, size);
+}
+
+void gui_credits_window(GameState* gState, RenderState* rState)
+{
+    igText("Michal Andryskowski");
+    igText("Bogdan Gavra");
+    igText("Kuba Lapinski");
+    igText("Vlad Marchis");
+    igText("Matthew Baugh (Project mentor)");
+}
+
+void gui_menu_window(GameState* gState, RenderState* rState)
+{
+    igPushStyleVar_Vec2(ImGuiStyleVar_ItemSpacing, (ImVec2){0.0f, 64.0f});
+    guiTextCentered("The DOC's Legacy: Konstantinos' Destiny");
+
+    ImVec2 buttonSize = (ImVec2){igGetIO()->DisplaySize.x * 0.5, igGetIO()->DisplaySize.y * 0.15};
+
+    if (guiButtonCentered("Play", buttonSize))
+    {
+        gState->guiState->menu = GUI_GAME;
+    }
+    if (guiButtonCentered("Options", buttonSize))
+    {
+        gState->guiState->menu = GUI_OPTIONS_MAIN_MENU;
+    }
+    if (guiButtonCentered("Credits", buttonSize))
+    {
+        gState->guiState->menu = GUI_CREDITS_MAIN_MENU;
+    }
+    if (guiButtonCentered("Quit game", buttonSize))
+    {
+        glfwSetWindowShouldClose(gState->window, true);
+    }
+
+    igPopStyleVar(1);
+}
+
+
+void gui_main_menu_update(GameState* gState, RenderState* rState)
+{
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    igNewFrame();
+    igSetNextWindowPos((ImVec2){0,0}, ImGuiCond_Always, (ImVec2){0,0});
+    igSetNextWindowSize(igGetIO()->DisplaySize, ImGuiCond_Always);
+    igBegin("Main menu", NULL, ImGuiWindowFlags_NoTitleBar);
+
+    switch (gState->guiState->menu)
+    {
+        case GUI_MAIN_MENU: gui_menu_window(gState, rState); break;
+        case GUI_OPTIONS_MAIN_MENU:
+        {
+            gui_options_window(gState, rState);
+            if (igButton("Save and exit", (ImVec2){0,0}))
+            {
+                gState->guiState->menu =  GUI_MAIN_MENU;
+            }
+            break;
+        }
+        case GUI_OPTIONS_GAME:
+        {
+            gui_options_window(gState, rState);
+            if (igButton("Save and exit", (ImVec2){0,0}))
+            {
+                gState->guiState->menu =  GUI_MAIN_GAME;
+            }
+            break;
+        }
+
+        case GUI_CREDITS_MAIN_MENU:
+        {
+            gui_credits_window(gState, rState);
+            if (igButton("Save and exit", (ImVec2){0,0}))
+            {
+                gState->guiState->menu = GUI_MAIN_MENU;
+            }
+            break;
+        }
+        case GUI_MAIN_GAME:
+            if (guiButtonCentered("Options", (ImVec2){igGetIO()->DisplaySize.x * 0.5, igGetIO()->DisplaySize.y * 0.15}))
+            {
+                gState->guiState->menu = GUI_OPTIONS_GAME;   
+            }
+            if (guiButtonCentered("Close", (ImVec2){igGetIO()->DisplaySize.x * 0.5, igGetIO()->DisplaySize.y * 0.15}))
+            {
+                gState->guiState->menu = GUI_GAME;
+            }
+            if (guiButtonCentered("Return to main menu", (ImVec2){igGetIO()->DisplaySize.x * 0.5, igGetIO()->DisplaySize.y * 0.15}))
+            {
+                gState->guiState->menu = GUI_MAIN_MENU;
+            }
+            if (guiButtonCentered("Exit to desktop", (ImVec2){igGetIO()->DisplaySize.x * 0.5, igGetIO()->DisplaySize.y * 0.15}))
+            {
+                glfwSetWindowShouldClose(gState->window, GLFW_TRUE);
+            }
+            
+            break;
+    }
+   
+
+    igEnd();
+}
+
+void gui_ingame_menu_update(GameState* gState, RenderState* rState)
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    igNewFrame();
+
+    igBegin("In-game menu", NULL, 0);
+    igEnd();
+}
+
 void gui_update(GameState* gState, RenderState* rState)
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
+
 
     if (gState->player->entity->HP <= 0)
     {
@@ -78,7 +249,7 @@ void gui_update(GameState* gState, RenderState* rState)
     igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0,0,0,0});
 
     // Items
-    {
+    if (gState->player->fadeToBlack != 1.0) {
         igBegin("Items", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
         ImVec2 lol;
         igSetWindowSize_Vec2((ImVec2){0,0}, 0);
@@ -89,7 +260,7 @@ void gui_update(GameState* gState, RenderState* rState)
         {
             double minSize = min(igGetIO()->DisplaySize.x, igGetIO()->DisplaySize.y);
             
-            igImage((void*)(intptr_t)gState->rState->itemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(i % 4) * 0.25, (i / 4) * 0.25}, (ImVec2){(double)(i % 4) * 0.25 + 0.25, (i / 4) * 0.25 + 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,1,0.5});
+            igImage((void*)(intptr_t)gState->rState->uiItemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(i % 4) * 0.25, (i / 4) * 0.25}, (ImVec2){(double)(i % 4) * 0.25 + 0.25, (i / 4) * 0.25 + 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,1,0.5});
             igSameLine(0, minSize * 0.0125);
         }
         igEnd();
@@ -180,32 +351,6 @@ void gui_update(GameState* gState, RenderState* rState)
             arr++;
         }
         igTreePop();
-    }
-
-    if (igBeginListBox("Audio device", (ImVec2){0,0}))
-    {
-    char* s = (char *)alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
-    static int current_audio_idx = 0;
-    int i = 0;
-    while (*s != NULL)
-    {
-     //printf("lista audio: %s \n", s);
-
-     if (igSelectable_Bool(s, current_audio_idx, 0, (ImVec2){0,0}))
-     {
-        printf("Wybrano %s \n", s);
-        current_audio_idx = i;
-
-        cleanupAudio(gState->aState);
-        initAudio(gState->aState, s);
-     }
-     i++;
-     s += strlen(s) + 1;
-    }
-    
-    
-
-    igEndListBox();
     }
 
     igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);

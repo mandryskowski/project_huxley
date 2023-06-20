@@ -23,6 +23,15 @@ void errorCallback(int code, const char* str)
     printf("Error %d: %s \n", code, str);
 }
 
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
+    {
+        GameState* state = glfwGetWindowUserPointer(window);
+        state->guiState->menu = (state->guiState->menu == GUI_GAME) ? GUI_MAIN_GAME : GUI_GAME;
+    }
+}
+
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
     GameState* gState = (GameState*)glfwGetWindowUserPointer(window);
@@ -98,7 +107,6 @@ void updateDialogue(GameState* state)
 
 void handleEvents(GameState* state)
 {
-
     if(state->player->isInDialogue)
     {
         updateDialogue(state);
@@ -129,7 +137,7 @@ void update_cooldowns(GameState* state)
 
 void erase_dead(Room *room)
 {
-    Entity **to_add= calloc(room->entity_cnt,8);
+    Entity **to_add= calloc(room->entity_cnt * 2,sizeof(Entity*));
     int to_add_cnt = 0;
     for (int i = 1; i < room->entity_cnt; i++)
     {
@@ -142,11 +150,11 @@ void erase_dead(Room *room)
             }
             if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity))
             {
-                if (rand() % 5 == 0)
+                if (rand() %1  == 0)
                 {
                 to_add[to_add_cnt++] = construct_katsu((*entity)->pos, room);
                 }
-                if (rand() % 7 == 0)
+                if (rand() % 1== 0)
                 {
                     to_add[to_add_cnt++] = construct_coin((*entity)->pos, room);
                 }
@@ -158,11 +166,10 @@ void erase_dead(Room *room)
             room->entity_cnt--;
         }
     }
+
     for (Entity **entity = to_add; *entity; entity++)
     {
-        printf("%d xdd\n", room->entity_cnt);
         room->entities[room->entity_cnt++] = *entity;
-        entity++;
     }
     free(to_add);
 }
@@ -229,7 +236,7 @@ void updateAnimations(GameState* state, Entity** entities, size_t entity_cnt)
         state->player->screenShakeFramesLeft--;
 }
 
-void initGame(GameState* state)
+void initGame(GameState* gState)
 {
     glfwInit();
     glfwSetErrorCallback(errorCallback);
@@ -239,18 +246,18 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_FALSE);
-    state->window = glfwCreateWindow(1512, 1037, "Huxley game", NULL, NULL);
+    gState->window = glfwCreateWindow(1512, 1037, "Huxley game", NULL, NULL);
 
-    if (state->window == NULL)
+    if (gState->window == NULL)
     {
         printf("GLFW error.\n");
         exit(-1);
     }
 
-    GUIState* guiState = calloc(1, sizeof(GUIState));
-    state->guiState = guiState;
+    gState->guiState = calloc(1, sizeof(GUIState));
+    gState->guiState->menu = GUI_MAIN_MENU;
 
-    glfwMakeContextCurrent(state->window);
+    glfwMakeContextCurrent(gState->window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -258,33 +265,58 @@ void initGame(GameState* state)
         exit(-1);
     }
 
-    gui_init(state);
+    gui_init(gState);
 
-    state->rState = malloc(sizeof(RenderState));
-    *state->rState = RenderState_construct();
-
-    glfwSetWindowUserPointer(state->window, state);
-    glfwGetWindowSize(state->window, &state->rState->resolution.x, &state->rState->resolution.y);
-    glfwSetFramebufferSizeCallback(state->window, framebufferSizeCallback);
-    glfwSetScrollCallback(state->window, scrollCallback);
+    gState->rState = malloc(sizeof(RenderState));
+    *gState->rState = RenderState_construct();
+    AudioState *aState = calloc(1, sizeof(AudioState));
+    aState->volume = 1.0;
+    initAudio(aState, NULL);
+    gState->aState = aState;
 }
 
 void renderGame(GameState* gState, RenderState* rState)
 {
-   glfwSwapInterval(0);
+    glfwSwapInterval(0);
     render(gState, rState);
     gui_render();
     glfwSwapBuffers(gState->window);
 }
+
+void menuLoop(GameState* gState)
+{
+    while (gState->guiState->menu != GUI_GAME)
+    {
+        glfwPollEvents();
+
+        if (glfwWindowShouldClose(gState->window))
+        {
+            return;
+        }
+
+        gui_main_menu_update(gState, gState->rState);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        gui_render();
+        glfwSwapBuffers(gState->window);
+    }
+
+    gameLoop(gState);
+}
 void gameLoop(GameState* gState)
 {
+    glfwSetWindowUserPointer(gState->window, gState);
+    glfwGetWindowSize(gState->window, &gState->rState->resolution.x, &gState->rState->resolution.y);
+    glfwSetFramebufferSizeCallback(gState->window, framebufferSizeCallback);
+
+
+
+    glfwSetScrollCallback(gState->window, scrollCallback);
+    glfwSetKeyCallback(gState->window, keyCallback);
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
     double timeAccumulator = 0.0;
-
-    AudioState aState;
-    initAudio(&aState, NULL);
-    gState->aState = &aState;
 
 
     Player *player;
@@ -303,7 +335,7 @@ void gameLoop(GameState* gState)
 
     glfwSwapInterval(gState->rState->VSync);
 
-    while (!glfwWindowShouldClose(gState->window))
+    while (!glfwWindowShouldClose(gState->window) && gState->guiState->menu != GUI_MAIN_MENU)
     {
         glfwPollEvents();
 
@@ -324,7 +356,7 @@ void gameLoop(GameState* gState)
 
             timeAccumulator -= timestep;
         }
-        gui_update(gState, gState->rState);
+        gState->guiState->menu == GUI_GAME ? gui_update(gState, gState->rState) : gui_main_menu_update(gState, gState->rState);
 
         GLenum err = glGetError();
         if (err)
@@ -335,6 +367,15 @@ void gameLoop(GameState* gState)
         renderGame(gState, gState->rState);
     }
 
-    gui_terminate(gState);
-    glfwTerminate();
+    disposeOfGame(gState);
+}
+void disposeOfGame(GameState* gState)
+{
+    glfwSetKeyCallback(gState->window, NULL);
+    free(gState->currentLevel);
+    free(gState->player);
+    disposeOfRender(gState->rState);
+
+    //free(gState->rState);
+    //free(gState->aState);
 }

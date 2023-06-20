@@ -21,7 +21,7 @@ RenderState RenderState_construct()
 {
     return (RenderState){.bDebugHitboxes = false, .VSync = false, .renderIsometric = true,
                          .characterAtlas = loadAtlas("character.png", 1, 1), .legacyGridMesh = Mesh_construct(), .isoMesh = Mesh_construct(), .isoMesh2 = Mesh_construct(), .quadMesh = Mesh_construct(), .shader = 0, .tileAtlas = loadAtlas("textures.png", 1, 4),
-                         .isoTileAtlas = loadAtlas("isoatlas.png", 4, 4), .isoCharacterAtlas = loadAtlas("isocharacter.png", 2, 6), .itemAtlas = loadTexture("isoItems.png"),
+                         .isoTileAtlas = loadAtlas("isoatlas.png", 4, 4), .isoCharacterAtlas = loadAtlas("isocharacter.png", 2, 6), .uiItemAtlas = loadTexture("isoItems.png"), .isoItemAtlas = loadAtlas("isoItems.png", 4, 4),
                          .resolution = (Vec2i){2048, 2048}, .backgroundColor = (Vec4d){0.2, 0.2, 0.2, 1.0}};
 }
 
@@ -134,6 +134,16 @@ typedef struct Vertex
     int tileDepth;
 } Vertex;
 
+void disposeOfMesh(Mesh* mesh)
+{
+    glDeleteBuffers(1, &mesh->VBO);
+    glDeleteVertexArrays(1, &mesh->VAO);
+
+    mesh->VAO = 0;
+    mesh->VBO = 0;
+    mesh->vertexCount = 0;
+}
+
 Mesh initGridMesh(GameState* gameState, Vertex* verts, uint width, uint height)
 { 
     Vec2d offsets[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f},  // bottom right triangle
@@ -230,7 +240,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
 
             if (isTileTypeOnFloor(type))
             {
-
+                verts = initIsoMeshHelperQuad(x, y, &outMesh, verts, offsets, quadPos, getTileTextureID(TILE_FLOOR), type);
             }
 
             if (type == TILE_FLOOR && x + 1 < width && gameState->currentLevel->currentRoom->tiles[x+1][y].type == TILE_WALL)
@@ -340,8 +350,7 @@ void refreshRoom(GameState* gState, RenderState* rState)
     {
         if (rState->legacyGridMesh.vertexCount != 0)
         {
-            glDeleteBuffers(1, &rState->legacyGridMesh.VBO);
-            glDeleteVertexArrays(1, &rState->legacyGridMesh.VAO);
+            disposeOfMesh(&rState->legacyGridMesh);
         }
         Vertex gridVerts[gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6];
         rState->legacyGridMesh = initGridMesh(gState, gridVerts, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
@@ -353,8 +362,7 @@ void refreshRoom(GameState* gState, RenderState* rState)
 
         if (rState->isoMesh2.vertexCount != 0)
         {
-            glDeleteBuffers(1, &rState->isoMesh2.VBO);
-            glDeleteVertexArrays(1, &rState->isoMesh2.VAO);
+            disposeOfMesh(&rState->isoMesh2);
         }
         rState->isoMesh2 = rState->isoMesh;
         
@@ -469,11 +477,9 @@ void renderMinimap(GameState* gState, RenderState* rState)
             Mat3f resultant = Mat3f_multiply(viewMat, miniMapMat);
             glUniformMatrix3fv(glGetUniformLocation(rState->shader, "viewMat"), 1, GL_FALSE, resultant.d);
             glUniform1i(glGetUniformLocation(rState->shader, "materialType"), 1);
-            double checkerboardColour = ((x + y) % 2) * 0.25 + 0.5;
-            float col[4] = {checkerboardColour, checkerboardColour, checkerboardColour, 0.51};
-            float unvisitedCol[4] = {0.5, 0.0, 0.0, 0.51};
-            float curRoomCol[4] = {1.0, 1.0, 0.0, 0.51};
-            glUniform4fv(glGetUniformLocation(rState->shader, "unColor"), 1, (Vec2i_equals(gState->currentLevel->currRoomCoords, (Vec2i){x,y})) ? curRoomCol : (roomVisited(gState->currentLevel->map[x][y]) ? col : unvisitedCol));
+            Vec4d curRoomCol = (Vec4d){1.0, 1.0, 0.0, 0.51};
+            Vec4f displayCol = Vec4d_to_Vec4f((Vec2i_equals(gState->currentLevel->currRoomCoords, (Vec2i){x,y})) ? curRoomCol : getRoomMinimapColor(map[x][y]->type, roomVisited(map[x][y]), (Vec2i){x, y}));
+            glUniform4fv(glGetUniformLocation(rState->shader, "unColor"), 1, &displayCol);
             glBindVertexArray(rState->quadMesh.VAO);
             glDrawArrays(GL_TRIANGLES, 0, rState->quadMesh.vertexCount);
             viewMat = Mat3f_multiply(Mat3f_construct((Vec2d){2, 0}, (Vec2d){1,1}), viewMat);
@@ -534,6 +540,7 @@ void render(GameState* gState, RenderState* state)
     glUniform1i(glGetUniformLocation(state->shader, "materialType"), 0);
     glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);
     glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);
+    glUniform1f(glGetUniformLocation(state->shader, "unDiscardThreshold"), 0.5f);
     Mat3f viewMat;
    
     if (state->renderIsometric)
@@ -561,8 +568,8 @@ void render(GameState* gState, RenderState* state)
                 //  glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), (offset.x != 0 ? gState->currentLevel->prevRoom->size.x : gState->currentLevel->prevRoom->size.y) + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2 - (offset.x + offset.y));               
                 glUniform1i(glGetUniformLocation(state->shader, "customDepth"), max(1 + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2, 0));          
  renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1) - sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) - sizeDiff.y / 2.0 * abs(offset.x)}, offset);
-  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);    
-    glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);    
+                glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);    
+                glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);    
             }
     
 
@@ -578,7 +585,7 @@ void render(GameState* gState, RenderState* state)
 
     for(Entity** ent = entities; *ent != NULL; ent++)
     {
-        Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(getIsoOrGridPos(gState, state, (*ent)->pos), (Vec2d){1.0f, 1.0f}), viewMat);
+        Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(getIsoOrGridPos(gState, state, (*ent)->pos), isPickable(*ent) ? (Vec2d){0.3f, 0.3f} : (Vec2d){1.0f, 1.0f}), viewMat);
         glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), Vec2d_rotate((*ent)->velocity, 45.0).x < EPSILON);
 
         Vec2d modelOffset = (Vec2d){0,0};
@@ -608,15 +615,17 @@ void render(GameState* gState, RenderState* state)
         int entityTexID = (*ent)->textureID;
         glUniform1i(glGetUniformLocation(state->shader, "unTexId"), entityTexID);
 
-        glBindTexture(GL_TEXTURE_2D_ARRAY, state->renderIsometric ? state->isoCharacterAtlas : state->characterAtlas);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, state->renderIsometric ? (isPickable(*ent) ? state->isoItemAtlas : state->isoCharacterAtlas) : state->characterAtlas);
         glBindVertexArray(state->quadMesh.VAO);
 
         // outline render
         {
             glDisable(GL_DEPTH_TEST);
             
-            const float allyColour[4] = {0.1f, 1.0f, 0.2f, 1.0f}, enemyColour[4] = {0.55f, 0.1f, 0.1f, 1.0f}, neutralColour[4] = {0.4f, 0.4f, 0.4f, 1.0f};
+            const float allyColour[4] = {0.1f, 1.0f, 0.2f, 1.0f}, enemyColour[4] = {0.55f, 0.1f, 0.1f, 1.0f}, neutralColour[4] = {0.4f, 0.4f, 0.4f, 1.0f}, neutralYellowColour[4] = {0.4f, 0.4f, 0.0f, 1.0f};
             const float *thisColour = isProjectile(*ent) ? neutralColour : ((*ent)->faction == ALLY) ? (allyColour) : (enemyColour);
+            if (isPickable(*ent))
+                thisColour = neutralYellowColour;
 
             Vec4d thisColourVec = (Vec4d){.x = thisColour[0], .y = thisColour[1], .z = thisColour[2], .w = thisColour[3]};
             Vec4f mixed = Vec4d_to_Vec4f(Vec4d_lerp(((*ent)->HP > 0) ? thisColourVec : (Vec4d){1,1,1,1}, dmgColour, hitColouring * (((*ent)->HP > 0) ? 0.8 : 1.0)));
@@ -639,7 +648,7 @@ void render(GameState* gState, RenderState* state)
 
             glDepthMask(GL_FALSE);
 
-            glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, shadowMat.d);
+            glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, shadowMat.d);             
             glUniform1i(glGetUniformLocation(state->shader, "materialType"), 6);
             glUniform1f(glGetUniformLocation(state->shader, "shadowSize"), shadowSize);
             glUniform1f(glGetUniformLocation(state->shader, "shadowStrength"), shadowStrength);
@@ -655,7 +664,7 @@ void render(GameState* gState, RenderState* state)
         glUniform1f(glGetUniformLocation(state->shader, "unDiscardThreshold"), 0.1f);
         Vec4f dmgColourf = Vec4d_to_Vec4f(Vec4d_lerp((Vec4d){1,1,1,1}, dmgColour, hitColouring));
         dmgColourf.w = ((*ent)->HP > 0) ? 1.0 : hitColouring;
-         glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, &dmgColourf);
+        glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, &dmgColourf);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
@@ -680,10 +689,31 @@ void render(GameState* gState, RenderState* state)
 
     glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), 0);
 
+
+
     renderMinimap(gState, state);
+
+    // Fade to black
+    glDisable(GL_DEPTH_TEST);
+    {
+        gState->player->fadeToBlack = isDead(gState->player->entity) * (1.0 - gState->player->entity->hit_animation / 30.0);
+        Vec4f black = (Vec4f){0, 0, 0, gState->player->fadeToBlack};
+        glUniform1i(glGetUniformLocation(state->shader, "materialType"), 1);
+        glUniform1f(glGetUniformLocation(state->shader, "unDiscardThreshold"), 0.0f);
+        glUniform4fv(glGetUniformLocation(state->shader, "unColor"), 1, &black);
+
+        Mat3f identity = Mat3f_construct((Vec2d){0,0}, (Vec2d){1,1});
+        glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, identity.d);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+    glEnable(GL_DEPTH_TEST);
 }
 
-void renderIsometric(GameState*, RenderState*)
+void disposeOfRender(RenderState* rState)
 {
-
+    disposeOfMesh(&rState->isoMesh);
+    if (rState->isoMesh2.vertexCount != 0) disposeOfMesh(&rState->isoMesh2);
+    disposeOfMesh(&rState->legacyGridMesh);
+    disposeOfMesh(&rState->quadMesh);
 }
