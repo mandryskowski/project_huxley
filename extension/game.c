@@ -81,6 +81,19 @@ void updateDialogue(GameState* state)
 
                 if(state->guiState->dialogue->dialogueIndex == state->guiState->dialogue->dialogueSize)
                 {
+                    if (isItem(state->guiState->dialogue->creator))
+                    {
+                        Item *item = state->guiState->dialogue->creator->specific_data;
+                        state->player->items[state->player->items_cnt++] = item;
+                        if (item->item_passive){
+                            item->item_passive(state->player);
+                        }
+                        if (item->item_active){
+                            state->player->active_item = item;
+                        }
+                        killEntity(state->guiState->dialogue->creator);
+
+                    }
                     state->player->isInDialogue = false;
                     return;
                 }
@@ -228,8 +241,8 @@ void updateLogic(GameState* state, double dt)
 
     handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
 
-    if (glfwGetKey(state->window, GLFW_KEY_F) && !state->player->active_item->cooldown_left &&
-            !isEmpty(state->player->prev_positions))
+    if (glfwGetKey(state->window, GLFW_KEY_F) && state->player->active_item &&
+    !state->player->active_item->cooldown_left && !isEmpty(state->player->prev_positions))
     {
         state->player->active_item->item_active(state->player);
         state->player->active_item->cooldown_left = state->player->active_item->active_cooldown;

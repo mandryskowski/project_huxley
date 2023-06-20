@@ -96,7 +96,7 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
 
         Entity *other = *otherPtr;
 
-        if(isInteractable(other) && Vec2d_metric_distance(currEntity->pos, other->pos) < 1.4
+        if(isInteractable(other) && Vec2d_metric_distance(currEntity->pos, other->pos) < 3
          && !state->player->isInDialogue)
         {
             state->player->canEnterDialogue = true;

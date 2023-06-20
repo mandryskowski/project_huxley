@@ -304,6 +304,7 @@ void construct_mysterious_character(Entity* monster)
 {
     Npc *npc = calloc(1, sizeof(Npc));
     npc->dialogue = mysterious_character_Dialogue();
+    npc->dialogue->creator = monster;
     *monster =  (Entity) {.ATK = 0, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 100, .maxHP = 60, .specific_data = npc,
@@ -315,6 +316,7 @@ Player *Entity_construct_player()
 {
     Player *player = calloc(sizeof(Player), 1);
     Entity *entity = calloc(sizeof(Entity), 1);
+    Item **items = calloc(sizeof(Item *), 20);
 
     *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
@@ -322,7 +324,7 @@ Player *Entity_construct_player()
             .attack_func = player_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
 
     *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0,
-                        .screenShakeFramesLeft = 0, .throws_mines = false, .prev_positions = createQueue(), .active_item = NULL};
+                        .screenShakeFramesLeft = 0, .throws_mines = false, .prev_positions = createQueue(), .active_item = NULL, .items = items};
 
     return player;
 }
@@ -368,6 +370,7 @@ Entity *construct_item(ItemType itemType, Vec2d pos)
 {
     Item *item = get_item(itemType);
     Entity *entity = calloc(1, sizeof(Entity));
+    item->dialogue->creator = entity;
 
     *entity = (Entity){.specific_data = item, .pos = pos, .attack_func = item_action, .maxHP = INT_MAX - 1, .HP = INT_MAX - 1, .textureID = item->textureID};
 

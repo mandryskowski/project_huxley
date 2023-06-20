@@ -73,6 +73,8 @@ typedef struct Dialogue
     int dialogueIndex;
     double skipCooldown;
     bool isSkippable;
+
+    Entity *creator;
 } Dialogue;
 
 typedef struct Npc
@@ -97,6 +99,7 @@ typedef struct Player
 
     int screenShakeFramesLeft;
     int coins;
+    int items_cnt;
 
     Item **items;
     Item *active_item;
