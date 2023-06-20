@@ -14,6 +14,7 @@
 #include "level.h"
 #include "animation.h"
 #include "audio.h"
+#include "item.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,8 +76,9 @@ void updateDialogue(GameState* state)
     {
         if (glfwGetKey(state->window, GLFW_KEY_SPACE))
         {  
-                state->player->isInDialogue = false;
+            state->player->isInDialogue = false;
         }
+
         else if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
         {
             state->guiState->dialogue->isSkippable = true;
@@ -101,6 +103,27 @@ void updateDialogue(GameState* state)
     else
     {
         fprintf(stderr, "Entity is not in dialogue\n");
+        exit(0);
+    }
+}
+
+void updateDialogueState(GameState* state)
+{
+    if(state->player->canEnterDialogue)
+    {
+        if(glfwGetKey(state->window, GLFW_KEY_Q))
+        {
+            state->player->entity->velocity = (Vec2d){0, 0};
+            state->player->isInDialogue = true;
+            state->guiState->dialogue->dialogueIndex = 0;
+            state->player->lastSkip = glfwGetTime();
+            state->player->canEnterDialogue = false;
+        }
+    }
+
+    else
+    {
+        fprintf(stderr, "Entity cannot enter dialogue\n");
         exit(0);
     }
 }
@@ -133,12 +156,15 @@ void update_cooldowns(GameState* state)
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
         (*entity)->hit_animation = max((*entity)->hit_animation - 1, 0);
     }
+    if (state->player->active_item)
+        state->player->active_item->cooldown_left = max(state->player->active_item->cooldown_left - 1, 0);
 }
 
 void erase_dead(Room *room)
 {
-    Entity **to_add= calloc(room->entity_cnt * 2,sizeof(Entity*));
+    Entity **to_add= calloc(room->entity_cnt * 2, sizeof(Entity*));
     int to_add_cnt = 0;
+
     for (int i = 1; i < room->entity_cnt; i++)
     {
         Entity **entity = room->entities + i;
@@ -200,13 +226,20 @@ void updateLogic(GameState* state, double dt)
         }
     }
 
-    if (!Vec2d_zero(state->player->entity->attack_velocity)) {
-        if (state->player->entity->cooldown_left == 0)
-        {
-            playSound(SOUND_SHOOT);
-        }
-        handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
+    if (state->player->entity->cooldown_left == 0 && !Vec2d_zero(state->player->entity->attack_velocity))
+    {
+        playSound(SOUND_SHOOT);
     }
+
+    handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
+
+    if (glfwGetKey(state->window, GLFW_KEY_F) && !state->player->active_item->cooldown_left &&
+            !isEmpty(state->player->prev_positions))
+    {
+        state->player->active_item->item_active(state->player);
+        state->player->active_item->cooldown_left = state->player->active_item->active_cooldown;
+    }
+
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
         if (!Vec2d_zero((*entity)->attack_velocity))
@@ -322,9 +355,10 @@ void gameLoop(GameState* gState)
     Player *player;
     player = Entity_construct_player();
     gState->player = player;
-    gState->player->isInDialogue = true;
+    gState->player->isInDialogue = false;
+    gState->player->canEnterDialogue = false;
     gState->currentLevel = construct_level(player, 6);
-    gState->guiState->dialogue = newDialogue();
+    gState->guiState->dialogue = NULL;
 
     initRenderState(gState, gState->rState);
 

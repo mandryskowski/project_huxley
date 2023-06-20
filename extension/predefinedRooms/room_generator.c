@@ -79,23 +79,66 @@ void put_tiles(Room* room, Mode mode)
 
 }
 
-Room *generate_empty_room(int seed, Mode mode)
+Room *generate_empty_item_room()
 {
     Room *room = malloc(sizeof(Room));
 
-//    if (seed == -1)
-//    {
-//        srand(time(NULL));
-//    }
-//    else
-//    {
-//        srand(seed);
-//    }
+    int height = 10;
+    int width = 10;
+
+    Tile** tiles = calloc(height, sizeof(Tile*));
+    MonsterType **monsters = calloc(height, sizeof(MonsterType *));
+    for(int i=0;i<height;i++)
+    {
+        tiles[i] = calloc(width, sizeof(Tile));
+        if(tiles[i] == NULL) {exit(EXIT_FAILURE);}
+    }
+    if(tiles == NULL) {exit(EXIT_FAILURE);}
+
+    room->tiles = tiles;
+    room->size.y = height;
+    room->size.x = width;
+
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            room->tiles[i][0].type = TILE_FLOOR;
+            room->tiles[i][width - 1].type = TILE_FLOOR;
+        }
+    }
+
+    for (int i = 0; i < height; i++)
+    {
+        room->tiles[i][0].type = TILE_WALL;
+        room->tiles[i][width - 1].type = TILE_WALL;
+    }
+    for (int i = 0; i < width; i++)
+    {
+        room->tiles[0][i].type = TILE_WALL;
+        room->tiles[height - 1][i].type = TILE_WALL;
+    }
+
+    room->tiles[width / 2 - 1][height / 2 - 1].type = TILE_BARRIER;
+    room->tiles[width / 2 - 1][height / 2].type = TILE_BARRIER;
+    room->tiles[width / 2][height / 2 - 1].type = TILE_BARRIER;
+    room->tiles[width / 2][height / 2].type = TILE_BARRIER;
+
+    return room;
+}
+
+Room *generate_empty_room(Mode mode, RoomType type)
+{
+    if (type == ITEM_ROOM)
+    {
+        return generate_empty_item_room();
+    }
+
+    Room *room = malloc(sizeof(Room));
 
     //SETTING SIZE
     int height = rand() % 5 * 2 + 20;
     int width = rand() % 5 * 2 + 20;
-    printf("height is %d and width is %d\n", height, width);
 
     //Allocating tile mem.
     Tile** tiles = calloc(height, sizeof(Tile*));
@@ -169,10 +212,10 @@ void room_to_file(Room* room, MonsterType** monsters)
     fclose(file);
 }
 
-void generate_room()
+void generate_room(int type)
 {
-    Room *room = generate_empty_room(-1, INSANE);
-    MonsterType** monsters = spawn_monsters(room, INSANE);
+    Room *room = generate_empty_room(INSANE, type);
+    MonsterType** monsters = spawn_monsters(room, INSANE, type);
     room_to_file(room, monsters);
     printf("new room generated\n");
 }

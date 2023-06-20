@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "level.h"
 #include "util.h"
+#include "item.h"
 
 void playerMovement(GameState* state, double dt)
 {
@@ -76,22 +77,44 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     Vec2d currEntityNewPos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt));
     Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntityNewPos);
 
+    state->player->canEnterDialogue = false;
 
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
+        //printf("%d %d %d %d %d\n", (otherPtr == currEntityPtr), (*otherPtr)->faction, isDead(*otherPtr), isProjectile(*otherPtr), isMine(*otherPtr));
         if (otherPtr == currEntityPtr || isDead(*otherPtr) ||
         ((isProjectile(*otherPtr) || isProjectile(*currEntityPtr)) && (*otherPtr)->faction == (*currEntityPtr)->faction)
         || (isProjectile(*otherPtr) && isProjectile(*currEntityPtr)) || (isMine(*otherPtr) && (*otherPtr)->faction == (*currEntityPtr)->faction) )
         {
             continue;
         }
+
+        if (isInteractable(*otherPtr) && entity != currEntityPtr)
+        {
+            continue;
+        }
+
         Entity *other = *otherPtr;
+
+        if(isInteractable(other) && Vec2d_metric_distance(currEntity->pos, other->pos) < 1.4
+         && !state->player->isInDialogue)
+        {
+            state->player->canEnterDialogue = true;
+            state->guiState->dialogue = isNPC(other) ? ((Npc *)other->specific_data)->dialogue : ((Item *)other->specific_data)->dialogue;
+            continue;
+        }
 
         Rectangle otherHitbox = rectangle_Vec2d(other->hitbox, other->pos);
 
-        if (currEntityPtr == entity && isPickable(other))
+        if (isPickable(other))
         {
-            if (isKatsu(other) && currEntity->HP == currEntity->maxHP)
+            if (currEntityPtr == entity){
+                if (isKatsu(other) && currEntity->HP == currEntity->maxHP)
+                {
+                    continue;
+                }
+            }
+            else
             {
                 continue;
             }
@@ -250,9 +273,11 @@ void move(GameState* state, Entity** entity, double dt)
         }
     }
 
+    push(state->player->prev_positions, state->player->entity->pos);
     if (isOutOfBounds(Vec2d_to_Vec2i(state->player->entity->pos), state->currentLevel->currentRoom))
     {
         state->renderNewRoom = true;
+        clearQueue(state->player->prev_positions);
     }
 }
 

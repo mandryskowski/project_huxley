@@ -6,6 +6,6 @@
 #include "../game_math.h"
 #include "generator_attributes.h"
 
-MonsterType **spawn_monsters(Room* room, Mode mode);
+MonsterType **spawn_monsters(Room* room, Mode mode, RoomType type);
 
 #endif //MONSTER_SPAWNER_H
