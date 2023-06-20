@@ -233,7 +233,14 @@ void gui_update(GameState* gState, RenderState* rState)
         igEnd();
     }
 
-    if(gState->player->isInDialogue)
+    //printf("%d\n", gState->player->canEnterDialogue);
+    if(gState->player->canEnterDialogue)
+    {
+        igBegin("Dialogue prompt", NULL, 0);
+        igText("Press \"Q\" to interact...", NULL, 0);
+        igEnd();
+    }
+    else if(gState->player->isInDialogue)
     {
         //igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_FirstUseEver, (ImVec2){100, 100});
         igBegin(gState->guiState->dialogue->title, NULL, 0);
@@ -328,6 +335,7 @@ void gui_update(GameState* gState, RenderState* rState)
             {
                 igText("Position %f %f", (*arr)->pos.x, (*arr)->pos.y);
                 igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
+                igText("Entity cnt: %d", gState->currentLevel->currentRoom->entity_cnt);
                 sliderDoubleN("Hitbox Left Bottom", &(*arr)->hitbox.bottomLeft, 2, -1.0f, 1.0f);
                 sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
                 sliderDoubleN("attack_Velocity", &(*arr)->attack_velocity, 2, 0.0, 5.0);

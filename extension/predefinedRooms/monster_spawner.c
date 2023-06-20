@@ -67,8 +67,9 @@ void put_monsters(MonsterType** monsters, Room* room, Mode mode)
     }
 }
 
-MonsterType **spawn_monsters(Room* room, Mode mode)
+MonsterType **spawn_monsters(Room* room, Mode mode, RoomType type)
 {
+
     //Allocating monsters mem.
     MonsterType** monsters = calloc(room->size.y, sizeof(MonsterType*));
     for(int i = 0; i < room->size.y; i++)
@@ -77,6 +78,18 @@ MonsterType **spawn_monsters(Room* room, Mode mode)
         if(monsters[i] == NULL) {exit(EXIT_FAILURE);}
     }
     if(monsters == NULL) {exit(EXIT_FAILURE);}
+
+    if (type == ITEM_ROOM)
+    {
+        for (int i = 0; i < room->size.y; i++)
+        {
+            for (int j = 0; j < room->size.x; j++)
+            {
+                monsters[i][j] = NOT_MONSTER;
+            }
+        }
+        return monsters;
+    }
 
     put_monsters(monsters, room, mode);
 

@@ -236,7 +236,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
                                             Vec2d_scale(yOffset, y));
             TileType type = gameState->currentLevel->currentRoom->tiles[x][y].type;
 
-            int texID = getTileTextureID(type);
+            int texID = gameState->currentLevel->currentRoom->tiles[x][y].textureID;
 
             if (isTileTypeOnFloor(type))
             {

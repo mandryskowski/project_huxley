@@ -67,7 +67,7 @@ clean:
 ########################Project files########################
 
 # Here you add the names of header-source file pairs. E.g. gameControl adds gameControl.h and gameControl.c
-_GAME_SOURCE_HEADER_PAIRS = game game_math room render audio assets entity movement gui pathfind util level pqueue animation haskell tinywav/tinywav predefinedRooms/room_generator predefinedRooms/monster_spawner predefinedRooms/structure_builder\
+_GAME_SOURCE_HEADER_PAIRS = game game_math room render audio assets entity movement gui pathfind util level pqueue animation haskell tinywav/tinywav predefinedRooms/room_generator predefinedRooms/monster_spawner predefinedRooms/structure_builder queue item\
 
 # Here on the other hand you add just the headers.
 _GAME_JUST_HEADERS = state.h

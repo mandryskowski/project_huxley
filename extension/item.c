@@ -1,6 +1,7 @@
 #include "item.h"
+#include <stdlib.h>
 
-void flying(Player *player)
+void flight(Player *player)
 {
     player->entity->canFly = true;
 }
@@ -25,37 +26,124 @@ void extra_bullet(Player *player)
     player->entity->attack_modifier += 1;
 }
 
-//void random_mine_spawn(Player *player)
-//{
-//    player->entity->attack_func =
-//}
-
-Item construct_jetpack()
+void time_travel(Player *player)
 {
-    return (Item){.textureID = 0, .name = "jetpack", .item_passive = flying, .description = "Grants flying to konstantinos"};
+    player->entity->pos = pop(player->prev_positions);
 }
 
-Item construct_boots()
+void max_health_increase(Player *player)
 {
-    return (Item){.textureID = 0, .name = "boots", .item_passive = movement_speed_increase, .description = "Grants more movement speed"};
+    player->entity->maxHP += 20;
 }
 
-Item construct_nano_cooling_system()
+void bouncy_projectiles(Player *player)
 {
-    return (Item){.textureID = 0, .name = "Nano Cooling System", .item_passive = movement_speed_increase, .description = "Reduces cool-down of attacks"};
+    player->entity->projectileStats.bounces = 2;
 }
 
-Item construct_bigger_breadboards()
+void piercing(Player *player)
 {
-    return (Item){.textureID = 0, .name = "Bigger breadboards", .item_passive = movement_speed_increase, .description = "Increases attack damage"};
+    player->entity->projectileStats.pierces = 100;
+}
+
+void bomb_trail(Player *player)
+{
+    player->throws_mines = true;
+}
+
+Dialogue *construct_description(char *title, char *description)
+{
+    Dialogue *dialogue = calloc(1, sizeof(Dialogue));
+    dialogue->title = title;
+    dialogue->dialogueLines = calloc(1, sizeof(Dialogue *));
+    *dialogue->dialogueLines = description;
+    return dialogue;
+}
+
+Item construct_boom_boots()
+{
+    return (Item){.textureID = 12, .dialogue = construct_description("Boom Boots", "Become the bomber"), .item_passive = bomb_trail};
 }
 
 Item construct_overclocking_module()
 {
-    return (Item){.textureID = 0, .name = "Overclocking module", .item_passive = movement_speed_increase, .description = "konstantinos throws one more breadboard"};
+    return (Item){.textureID = 13, .dialogue = construct_description("Overclocking module", "Attack cooldown decreased"), .item_passive = attack_cooldown_decrease};
 }
 
-Item construct_unstable_mines()
+Item construct_multishot()
 {
-    return (Item){.textureID = 0, .name = "Unstable mines", .item_passive = movement_speed_increase, .description = "Randomly throws mines that detonate after 5s"};
+    return (Item){.textureID = 14, .dialogue = construct_description("Cloning module", "Increases the number of projectiles shot per action"), .item_passive = extra_bullet};
+}
+
+Item construct_attack_module()
+{
+    return (Item){.textureID = 15, .dialogue = construct_description("Attack module", "Projectiles deal more damage"), .item_passive = attack_damage_increase};
+}
+
+Item construct_bouncy_projectile()
+{
+    return (Item){.textureID = 8, .dialogue = construct_description("Rebound module", "Projectiles bounce of walls"), .item_passive = bouncy_projectiles};
+}
+
+Item construct_piercing()
+{
+    return (Item){.textureID = 9, .dialogue = construct_description("Holographic module", "Projectiles can now pass through enemies"), .item_passive = piercing};
+}
+
+Item construct_max_health()
+{
+    return (Item){.textureID = 10, .dialogue = construct_description("Resilience module", "Maximum health increased"), .item_passive = max_health_increase};
+}
+
+Item construct_speedy_gonzales()
+{
+    return (Item){.textureID = 4, .dialogue = construct_description("Rocket boots", "Speed increased"), .item_passive = movement_speed_increase};
+}
+
+Item construct_jetpack()
+{
+    return (Item){.textureID = 9, .dialogue = construct_description("Jetpack", "Rule the skies"), .item_passive = flight};
+}
+
+Item construct_stopwatch()
+{
+    return (Item){.textureID = 11, .item_active = time_travel, .active_cooldown = 300,
+            .dialogue = construct_description("Mysterious hourglass", "Who knows?")};
+}
+
+Item *get_item(ItemType type){
+    Item *item = calloc(1, sizeof(Item));
+    switch (type) {
+        case BOOM_BOOTS:
+            *item = construct_boom_boots();
+            break;
+        case OVERCLOCKING_MODULE:
+            *item = construct_overclocking_module();
+            break;
+        case CLONING_MODULE:
+            *item = construct_multishot();
+            break;
+        case ATTACK_MODULE:
+            *item = construct_attack_module();
+            break;
+        case REBOUND_MODULE:
+            *item = construct_bouncy_projectile();
+            break;
+        case HOLOGRAPHIC_MODULE:
+            *item = construct_piercing();
+            break;
+        case RESILIENCE_MODULE:
+            *item = construct_max_health();
+            break;
+        case ROCKET_BOOTS:
+            *item = construct_speedy_gonzales();
+            break;
+        case JETPACK:
+            *item = construct_jetpack();
+            break;
+        case STOPWATCH:
+            *item = construct_stopwatch();
+    }
+
+    return item;
 }

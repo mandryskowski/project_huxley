@@ -23,7 +23,7 @@ typedef enum
 
 typedef enum RoomType
 {
-    NORMAL_ROOM, BOSS_ROOM, SHOP_ROOM, QUEST_ROOM, NOT_ROOM
+    NORMAL_ROOM, BOSS_ROOM, SHOP_ROOM, QUEST_ROOM, ITEM_ROOM, NOT_ROOM
 } RoomType;
 
 typedef struct Tile

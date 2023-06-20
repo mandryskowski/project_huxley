@@ -3,8 +3,11 @@
 
 #include "game_math.h"
 #include "room.h"
+#include "queue.h"
 #include <stdbool.h>
 
+typedef struct Item Item;
+typedef enum ItemType ItemType;
 typedef struct Entity Entity;
 typedef struct Animation Animation;
 
@@ -72,27 +75,43 @@ typedef struct Dialogue
     bool isSkippable;
 } Dialogue;
 
+typedef struct Npc
+{
+    Dialogue *dialogue;
+} Npc;
+
 typedef struct Player
 {
     Entity *entity;
     double acceleration_const; // between 0 and 1.
     double movement_swing; // between 0 and 1.
     Vec2d cameraSize; // number of tiles visible on the x and y isometric diagonal centred around the player.
+
+    Queue *prev_positions;
+
+    bool throws_mines;
     
     bool isInDialogue;
+    bool canEnterDialogue;
     double lastSkip;
 
     int screenShakeFramesLeft;
+    double fadeToBlack; // alpha value for fade to black (0 means fully bright, 1 means fully black).
+
     int coins;
 
-    double fadeToBlack; // alpha value for fade to black (0 means fully bright, 1 means fully black).
+    Item **items;
+    Item *active_item;
 } Player;
 
 
 Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
 Entity *construct_katsu(Vec2d pos, Room *room);
 Entity *construct_coin(Vec2d pos, Room *room);
+Entity *construct_item(ItemType itemType, Vec2d pos);
 Player *Entity_construct_player();
+
+bool isNotAMonster(Entity *entity);
 
 bool isProjectile(Entity *);
 
@@ -104,11 +123,15 @@ bool isPickable(Entity *);
 
 bool isKatsu(Entity *);
 
+bool isNPC(Entity *);
+
+bool isItem(Entity *);
+
+bool isInteractable(Entity *);
+
 void killEntity(Entity *);
 
 void handle_attack(Entity *, Entity *, AttackType);
-
-Dialogue* newDialogue(void);
 
 void shooter_spawn_attack(Entity *attacker);
 

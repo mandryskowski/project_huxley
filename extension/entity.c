@@ -4,10 +4,15 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include "animation.h"
 #include "assets.h"
 #include "audio.h"
+#include "item.h"
+
+bool isNotAMonster(Entity *entity)
+{
+    return isProjectile(entity) || isMine(entity) || isPickable(entity);
+}
 
 bool isPlayer(Entity *entity)
 {
@@ -27,6 +32,29 @@ bool isProjectile(Entity *entity)
 bool isDead(Entity *entity)
 {
     return entity->HP <= 0;
+}
+
+bool npc_action(Entity *attacker, Entity *victim, AttackType type)
+{
+}
+
+bool item_action(Entity *attacker, Entity *victim, AttackType type)
+{
+}
+
+bool isNPC(Entity *entity)
+{
+    return entity->attack_func == npc_action;
+}
+
+bool isItem(Entity *entity)
+{
+    return entity->attack_func == item_action;
+}
+
+bool isInteractable(Entity *entity)
+{
+    return isNPC(entity) || isItem(entity);
 }
 
 void killEntity(Entity *entity)
@@ -54,14 +82,13 @@ void handle_attack(Entity *attacker, Entity *victim, AttackType type)
     }
     if (isPickable(attacker) && isPlayer(victim) && type == ATTACK_CONTACT)
     {
-        printf("xdd\n");
         attacker->attack_func(attacker, victim, type);
         return;
     }
-    if (victim == NULL || (attacker->faction != victim->faction &&
+
+    if (victim == NULL || isMine(attacker) || (attacker->faction != victim->faction &&
             (!isProjectile(attacker) || !isProjectile(victim))))
     {
-        //printf("%d post %p %p\n", type, attacker->attack_func, zombie_attack);
         if (attacker->attack_func(attacker, victim, type))
         {
             attacker->cooldown_left = attacker->attack_cooldown;
@@ -212,6 +239,22 @@ bool bomber_attack(Entity *attacker, Entity *victim, AttackType type)
     }
 }
 
+bool player_attack(Entity *player, Entity *monster, AttackType type)
+{
+    if (((Player*)player->specific_data)->throws_mines)
+    {
+        if (rand() % 600 == 0)
+        {
+            bomber_attack(player, monster, type);
+        }
+    }
+    if (!Vec2d_zero(player->attack_velocity))
+    {
+        return shooter_attack(player, monster, type);
+    }
+    return false;
+}
+
 void construct_bomber(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 0, .canFly = false,
@@ -244,12 +287,28 @@ void construct_flying_shooter(Entity *monster)
             .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
 }
 
+Dialogue* mysterious_character_Dialogue(void) {
+    Dialogue *d = calloc(1, sizeof(Dialogue));
+    d->title = "Mysterious figure";
+    d->dialogueSize = 3;
+    d->skipCooldown = 2.0;
+    d->dialogueIndex = 0;
+    d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
+    d->dialogueLines[0] = "By the gods! Konstantinos, my old friend, I never thought I'd see you again. Not after... the Cataclysm.";
+    d->dialogueLines[1] = "It came out of nowhere, its machinations spreading deep in the digital world, and then... nothing, the worldwide\ncollapse of the power grid rendering us virtually blind. Cities plunged into darkness, their inhabitants left\nstranded and vulnerable in a world devoid of electricity and communication.";
+    d->dialogueLines[2] = "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.";
+    d->isSkippable = false;
+    return d;
+}
+
 void construct_mysterious_character(Entity* monster)
 {
+    Npc *npc = calloc(1, sizeof(Npc));
+    npc->dialogue = mysterious_character_Dialogue();
     *monster =  (Entity) {.ATK = 0, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
-            .HP = 100, .maxHP = 60,
-            .SPD = 0, .velocity = (Vec2d){0.0, 0.0}, .attack_func = NULL, .faction = ALLY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
+            .HP = 100, .maxHP = 60, .specific_data = npc,
+            .SPD = 0, .velocity = (Vec2d){0.0, 0.0}, .attack_func = npc_action, .faction = ALLY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
     Animation_construct_mysterious(monster);
 }
 
@@ -261,9 +320,10 @@ Player *Entity_construct_player()
     *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
-            .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
+            .attack_func = player_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
 
-    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0, .screenShakeFramesLeft = 0, .fadeToBlack = 0};
+    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0,
+                        .screenShakeFramesLeft = 0, .fadeToBlack = 0.0 .throws_mines = false, .prev_positions = createQueue(), .active_item = NULL};
 
     return player;
 }
@@ -305,29 +365,24 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
     return monster;
 }
 
+Entity *construct_item(ItemType itemType, Vec2d pos)
+{
+    Item *item = get_item(itemType);
+    Entity *entity = calloc(1, sizeof(Entity));
+
+    *entity = (Entity){.specific_data = item, .pos = pos, .attack_func = item_action, .maxHP = INT_MAX - 1, .HP = INT_MAX - 1, .textureID = item->textureID};
+
+    return entity;
+}
+
 bool isMine(Entity *entity)
 {
     return entity->attack_func == mine_attack;
 }
 
-
-Dialogue* newDialogue(void) {
-    Dialogue *d = calloc(1, sizeof(Dialogue));
-    d->title = "Mysterious figure";
-    d->dialogueSize = 3;
-    d->skipCooldown = 2.0;
-    d->dialogueIndex = 0;
-    d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
-    d->dialogueLines[0] = "By the gods! Konstantinos, my old friend, I never thought I'd see you again. Not after... the Cataclysm.";
-    d->dialogueLines[1] = "It came out of nowhere, its machinations spreading deep in the digital world, and then... nothing, the worldwide\ncollapse of the power grid rendering us virtually blind. Cities plunged into darkness, their inhabitants left\nstranded and vulnerable in a world devoid of electricity and communication.";
-    d->dialogueLines[2] = "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.";
-    d->isSkippable = false;
-    return d;
-}
-
 bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
 {
-    if (type == ATTACK_CONTACT && isPlayer(player) && player->HP < player->maxHP)
+    if (type == ATTACK_CONTACT && player->HP < player->maxHP)
     {
         player->HP = min(player->maxHP, player->HP - katsu->ATK);
         killEntity(katsu);
@@ -338,7 +393,7 @@ bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
 
 bool money_collect(Entity *coin, Entity *player, AttackType type)
 {
-    if (type == ATTACK_CONTACT && isPlayer(player))
+    if (type == ATTACK_CONTACT)
     {
         ((Player *)player->specific_data)->coins++;
         killEntity(coin);

@@ -71,7 +71,6 @@ void refreshAudioVolume()
 void initAudio(AudioState* aState, char* deviceName)
 {
 
-
     audioState = aState;
     aState->device = alcOpenDevice(deviceName);
     if(!aState->device)
@@ -137,7 +136,7 @@ void loadWavSound(char* path, uint buffer)
     }
 
     char samplesUint[NUM_CHANNELS * BLOCK_SIZE];
-    printf("%s sample count: %d \n", path, s);
+    //printf("%s sample count: %d \n", path, s);
     for (int i = 0; i < s; i++)
     {
         //printf("sample %f \n", samples[i]);
