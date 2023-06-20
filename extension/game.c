@@ -153,10 +153,6 @@ void erase_dead(Room *room)
                     to_add[to_add_cnt++] = construct_coin((*entity)->pos, room);
                 }
             }
-            if ((*entity)->soundSource != 0)
-            {
-                removeSoundSource((*entity)->soundSource);
-            }
 
             free(*entity);
             *entity = NULL;
@@ -201,7 +197,7 @@ void updateLogic(GameState* state, double dt)
 
     if (state->player->entity->cooldown_left == 0 && !Vec2d_zero(state->player->entity->attack_velocity))
     {
-        playSoundAtSource(state->aState, state->player->entity->soundSource, SOUND_SHOOT);
+        playSound(SOUND_SHOOT);
     }
 
     handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
@@ -296,13 +292,12 @@ void gameLoop(GameState* gState)
     double timeAccumulator = 0.0;
 
     AudioState aState;
-    initAudio(&aState, NULL, true);
+    initAudio(&aState, NULL);
     gState->aState = &aState;
 
 
     Player *player;
     player = Entity_construct_player();
-    player->entity->soundSource = addSoundSource(SOUND_SHOOT);
     gState->player = player;
     gState->player->isInDialogue = true;
     gState->currentLevel = construct_level(player, 6);
@@ -329,6 +324,7 @@ void gameLoop(GameState* gState)
             handleEvents(gState);
             updateLogic(gState, timestep);
             updateAnimations(gState, gState->currentLevel->currentRoom->entities, gState->currentLevel->currentRoom->entity_cnt);
+            setListenerPos(gState->player->entity->pos);
             if (gState->renderNewRoom)
             {
                 refreshRoom(gState, gState->rState);

@@ -3,7 +3,7 @@
 #include "AL/alc.h"
 #include "tinywav/tinywav.h"
 #include "game_math.h"
-
+#include "render.h" // for iso pos
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,22 +22,26 @@ char* getSoundPath(SoundType type)
     }
 }
 
-void removeSoundSource(uint source)
+void playSound(SoundType type)
 {
-    audioState->usedSoundSources[source] = false;
-    printf("removed source %d \n", source);
+    float pos[3];
+    alGetListenerfv(AL_POSITION, pos);
+    alSourcei(playSoundAtPos(type, (Vec2d){0,0}), AL_SOURCE_RELATIVE, AL_TRUE);
 }
 
-uint addSoundSource(SoundType type)
+Vec2d getIsoAudioPos(Vec2d mapPos)
 {
+    Vec2d xOffset = Vec2d_scale((Vec2d){2.0, 1.0}, mapPos.x);
+    Vec2d yOffset = Vec2d_scale((Vec2d){-2.0, 1.0}, mapPos.y);
+    return Vec2d_add(xOffset, yOffset);
+}
+
+uint playSoundAtPos(SoundType type, Vec2d position)
+{
+    position = getIsoAudioPos(position);
     uint id;
     for (int i = 0; i < MAX_SOUND_SOURCES; i++)
     {
-        if (audioState->usedSoundSources[i])
-        {
-            continue;
-        }
-
         ALint sourceState;
         alGetSourcei(audioState->soundSources[i], AL_SOURCE_STATE, &sourceState);
         if (sourceState != AL_PLAYING)
@@ -46,28 +50,21 @@ uint addSoundSource(SoundType type)
             break;
         }
     }
-    playSoundAtSource(audioState, id, type);
-    audioState->usedSoundSources[id] = true;
-    return id;
+    alSourcei(audioState->soundSources[id], AL_BUFFER, audioState->soundBuffers[type]); 
+    alSourcei(audioState->soundSources[id], AL_SOURCE_RELATIVE, AL_FALSE);  
+    alSource3f(audioState->soundSources[id], AL_POSITION, position.x, position.y, 0);
+    alSourcePlay(audioState->soundSources[id]);
+
+    return audioState->soundSources[id];
+}
+void setListenerPos(Vec2d position)
+{
+    position = getIsoAudioPos(position);
+    alListener3f(AL_POSITION, position.x, position.y, 0.0);
 }
 
-void playSoundAtSource(AudioState* aState, uint source, SoundType type)
+void initAudio(AudioState* aState, char* deviceName)
 {
-    //printf("sound %d id %d \n", type, source);
-    alSourcei(aState->soundSources[source], AL_BUFFER, aState->soundBuffers[type]);   
-    alSourcePlay(aState->soundSources[source]);
-}
-
-void initAudio(AudioState* aState, char* deviceName, bool firstInit)
-{
-    if (firstInit)
-    {
-        for (int i = 0; i < MAX_SOUND_SOURCES; i++)
-        {
-            aState->usedSoundSources[i] = false;
-        }
-    }
-
 
     audioState = aState;
     aState->device = alcOpenDevice(deviceName);
@@ -97,7 +94,7 @@ void initAudio(AudioState* aState, char* deviceName, bool firstInit)
         loadWavSound(getSoundPath(i), aState->soundBuffers[i]);
     }
  
-    addSoundSource(SOUND_EXPLODE);
+    playSound(SOUND_EXPLODE);
 
 }
 
