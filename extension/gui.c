@@ -62,6 +62,7 @@ void gui_update(GameState* gState, RenderState* rState)
         igEnd();
     }
 
+    //printf("%d\n", gState->player->canEnterDialogue);
     if(gState->player->canEnterDialogue)
     {
         igBegin("Dialogue prompt", NULL, 0);

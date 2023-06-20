@@ -8,9 +8,10 @@ typedef void (*active)(Player *);
 
 typedef struct Item
 {
+    Dialogue *dialogue;
     int textureID;
-    char *name;
-    char *description;
+//    char *name;
+//    char *description;
     passive item_passive;
     active item_active;
     int active_cooldown;
