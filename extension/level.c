@@ -17,19 +17,19 @@ void jump_to_next_room(GameState *state)
     printf("roomChange!\n");
     Vec2i direction = {0, 0};
     Vec2d playerPos = state->player->entity->pos;
-    if (playerPos.x < 2)
+    if (playerPos.x < 1)
     {
         direction = (Vec2i){-1, 0};
     }
-    if (playerPos.y < 2)
+    if (playerPos.y < 1)
     {
         direction = (Vec2i){0, -1};
     }
-    if (playerPos.x + 2 > state->currentLevel->currentRoom->size.x)
+    if (playerPos.x + 1 > state->currentLevel->currentRoom->size.x)
     {
         direction = (Vec2i){1, 0};
     }
-    if (playerPos.y + 2 > state->currentLevel->currentRoom->size.y)
+    if (playerPos.y + 1 > state->currentLevel->currentRoom->size.y)
     {
         direction = (Vec2i){0, 1};
     }
@@ -94,21 +94,21 @@ void create_door(Room *room, int site)
 {
     switch (site) {
         case 0:
-            room->tiles[0][room->size.y / 2] = (Tile){TILE_DOOR, 9};
-            room->tiles[0][room->size.y / 2 + 1] = (Tile){TILE_DOOR, 10};
+            room->tiles[0][room->size.y / 2 - 1] = (Tile){TILE_DOOR, 9};
+            room->tiles[0][room->size.y / 2] = (Tile){TILE_DOOR, 10};
             break;
         case 1:
             printf("%d %d xd\n", room->size.x, room->size.y);
-            room->tiles[room->size.x / 2][0] = (Tile){TILE_DOOR, 10};
-            room->tiles[room->size.x / 2 + 1][0] = (Tile){TILE_DOOR, 9};
+            room->tiles[room->size.x / 2 - 1][0] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->size.x / 2][0] = (Tile){TILE_DOOR, 9};
             break;
         case 2:
-            room->tiles[room->size.x - 1][room->size.y / 2] = (Tile){TILE_DOOR, 10};
-            room->tiles[room->size.x - 1][room->size.y / 2 + 1] = (Tile){TILE_DOOR, 9};
+            room->tiles[room->size.x - 1][room->size.y / 2 - 1] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->size.x - 1][room->size.y / 2] = (Tile){TILE_DOOR, 9};
             break;
         case 3:
-            room->tiles[room->size.x / 2][room->size.y - 1] = (Tile){TILE_DOOR, 9};
-            room->tiles[room->size.x / 2 + 1][room->size.y - 1] = (Tile){TILE_DOOR, 10};
+            room->tiles[room->size.x / 2 - 1][room->size.y - 1] = (Tile){TILE_DOOR, 9};
+            room->tiles[room->size.x / 2][room->size.y - 1] = (Tile){TILE_DOOR, 10};
             break;
         default:
             perror("Error in create_door xd");
@@ -172,7 +172,7 @@ Level *construct_level(Player *player, int room_number)
     *level->currentRoom->entities = player->entity;
     player->entity->room = level->currentRoom;
     level->currentRoom->visited = true;
-    player->entity->pos = (Vec2d){10, 10};
+    player->entity->pos = (Vec2d){2, 2};
 
     bool boss_room = false;
     bool item_room = false;
@@ -217,7 +217,8 @@ Level *construct_level(Player *player, int room_number)
         {
             if (level->map[i][j])
             {
-                printf("%d %d room exiosts\n", i, j);
+                printf("%d %d room exists of type: %d\n", i, j);
+
                 for (int k = 0; k < 4; k++)
                 {
                     Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);

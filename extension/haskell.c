@@ -132,10 +132,17 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
     }
 }
 
+void haskell_death(Entity* attacker)
+{
+    // small amount of screen shake
+    Player* playerData = ((Player*)attacker->room->entities[0]->specific_data);
+    playerData->screenShakeFramesLeft = max(playerData->screenShakeFramesLeft, 75);
+}
+
 void construct_haskell(Entity *monster)
 {
     *monster = (Entity) {.ATK = 10, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-1, -1}, (Vec2d){1, 1}},
             .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .projectileStats = (ProjectileStats){0, 0},
-            .attack_func = haskell_attack, .faction = ENEMY, .attack_SPD = 6, .attack_cooldown = 20, .currentAnimation = NULL};
+            .attack_func = haskell_attack, .death_func = haskell_death, .faction = ENEMY, .attack_SPD = 6, .attack_cooldown = 20, .currentAnimation = NULL};
 }
