@@ -1,7 +1,7 @@
 #include "item.h"
 #include <stdlib.h>
 
-void flying(Player *player)
+void flight(Player *player)
 {
     player->entity->canFly = true;
 }
@@ -36,29 +36,64 @@ void time_travel(Player *player)
     player->entity->pos = pop(player->prev_positions);
 }
 
-Item construct_jetpack()
+void max_health_increase(Player *player)
 {
-    return (Item){.textureID = 0, .name = "jetpack", .item_passive = flying, .description = "Grants flying to konstantinos"};
+    player->entity->maxHP += 20;
 }
 
-Item construct_boots()
+void bouncy_projectiles(Player *player)
 {
-    return (Item){.textureID = 0, .name = "boots", .item_passive = movement_speed_increase, .description = "Grants more movement speed"};
+    player->entity->projectileStats->bounces = 2;
 }
 
-Item construct_nano_cooling_system()
+void piercing(Player *player)
 {
-    return (Item){.textureID = 0, .name = "Nano Cooling System", .item_passive = movement_speed_increase, .description = "Reduces cool-down of attacks"};
+    player->entity->projectileStats->pierces = 100;
 }
 
-Item construct_bigger_breadboards()
+void bomb_trail(Player *player)
 {
-    return (Item){.textureID = 0, .name = "Bigger breadboards", .item_passive = movement_speed_increase, .description = "Increases attack damage"};
+    //player->entity->leavesBombs = true;
+}
+
+Item construct_boom_boots()
+{
+    return (Item){.textureID = 0, .name = "Boom Boots", .item_passive = bomb_trail, .description = "Become the bomber"};
 }
 
 Item construct_overclocking_module()
 {
-    return (Item){.textureID = 0, .name = "Overclocking module", .item_passive = movement_speed_increase, .description = "konstantinos throws one more breadboard"};
+    return (Item){.textureID = 1, .name = "Overclocking module", .item_passive = attack_cooldown_decrease, .description = "Attack cooldown decreased"};
+}
+
+Item construct_multishot()
+{
+    return (Item){.textureID = 2, .name = "Cloning module", .item_passive = extra_bullet, .description = "Increases the number of projectiles shot per action"};
+}
+
+Item construct_attack_module()
+{
+    return (Item){.textureID = 3, .name = "Attack module", .item_passive = attack_damage_increase, .description = "Projectiles deal more damage"};
+}
+
+Item construct_bouncy_projectile()
+{
+    return (Item){.textureID = 4, .name = "Rebound module", .item_passive = bouncy_projectiles, .description = "Projectiles bounce of walls"};
+}
+
+Item construct_piercing()
+{
+    return (Item){.textureID = 5, .name = "Holographic module", .item_passive = piercing, .description = "Projectiles can now pass through enemies"};
+}
+
+Item construct_max_health()
+{
+    return (Item){.textureID = 6, .name = "Resilience module", .item_passive = max_health_increase, .description = "Maximum health increased"};
+}
+
+Item construct_speedy_gonzales()
+{
+    return (Item){.textureID = 8, .name = "Rocket boots", .item_passive = movement_speed_increase, .description = "Speed increased"};
 }
 
 Item construct_unstable_mines()
@@ -71,4 +106,9 @@ Item *construct_stopwatch()
     Item *stopwatch = malloc(sizeof(Item));
     *stopwatch = (Item){.textureID = 0, .item_active = time_travel, .active_cooldown = 300};
     return stopwatch;
+}
+
+Item construct_jetpack()
+{
+    return (Item){.textureID = 9, .name = "Jetpack", .item_passive = flight, .description = "Rule the skies"};
 }
