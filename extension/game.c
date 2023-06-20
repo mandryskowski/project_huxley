@@ -14,6 +14,7 @@
 #include "level.h"
 #include "animation.h"
 #include "audio.h"
+#include "item.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -125,6 +126,7 @@ void update_cooldowns(GameState* state)
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
         (*entity)->hit_animation = max((*entity)->hit_animation - 1, 0);
     }
+    state->player->active_item->cooldown_left = max(state->player->active_item->cooldown_left - 1, 0);
 }
 
 void erase_dead(Room *room)
@@ -197,13 +199,20 @@ void updateLogic(GameState* state, double dt)
         }
     }
 
-    if (!Vec2d_zero(state->player->entity->attack_velocity)) {
-        if (state->player->entity->cooldown_left == 0)
-        {
-            playSoundAtSource(state->aState, state->player->entity->soundSource, SOUND_SHOOT);
-        }
-        handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
+    if (state->player->entity->cooldown_left == 0 && !Vec2d_zero(state->player->entity->attack_velocity))
+    {
+        playSoundAtSource(state->aState, state->player->entity->soundSource, SOUND_SHOOT);
     }
+
+    handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
+
+    if (glfwGetKey(state->window, GLFW_KEY_Q) && !state->player->active_item->cooldown_left &&
+            !isEmpty(state->player->prev_positions))
+    {
+        state->player->active_item->item_active(state->player);
+        state->player->active_item->cooldown_left = state->player->active_item->active_cooldown;
+    }
+
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
         if (!Vec2d_zero((*entity)->attack_velocity))

@@ -53,7 +53,7 @@ uint addSoundSource(SoundType type)
 
 void playSoundAtSource(AudioState* aState, uint source, SoundType type)
 {
-    printf("sound %d id %d \n", type, source);
+    //printf("sound %d id %d \n", type, source);
     alSourcei(aState->soundSources[source], AL_BUFFER, aState->soundBuffers[type]);   
     alSourcePlay(aState->soundSources[source]);
 }
@@ -133,7 +133,7 @@ void loadWavSound(char* path, uint buffer)
     }
 
     char samplesUint[NUM_CHANNELS * BLOCK_SIZE];
-    printf("%s sample count: %d \n", path, s);
+    //printf("%s sample count: %d \n", path, s);
     for (int i = 0; i < s; i++)
     {
         //printf("sample %f \n", samples[i]);
