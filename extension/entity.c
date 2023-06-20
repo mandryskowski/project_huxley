@@ -219,7 +219,7 @@ bool player_attack(Entity *player, Entity *monster, AttackType type)
 {
     if (((Player*)player->specific_data)->throws_mines)
     {
-        if (rand() % 30 == 0)
+        if (rand() % 600 == 0)
         {
             bomber_attack(player, monster, type);
         }

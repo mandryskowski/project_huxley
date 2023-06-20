@@ -6,6 +6,11 @@
 typedef void (*passive)(Player *);
 typedef void (*active)(Player *);
 
+typedef enum
+{
+
+} ItemType;
+
 typedef struct Item
 {
     int textureID;

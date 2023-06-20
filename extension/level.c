@@ -148,7 +148,7 @@ Level *construct_level(Player *player, int room_number)
         shuffle(to_add, to_add_end - to_add, sizeof(Vec2i));
         if (i)
         {
-            generate_room();
+            generate_room(NORMAL_ROOM);
             level->map[to_add->x][to_add->y] = construct_room("predefinedRooms/new_room", NORMAL_ROOM);
         }
         for (int j = 0; j < 4; j++)
@@ -174,7 +174,8 @@ Level *construct_level(Player *player, int room_number)
     level->currentRoom->visited = true;
     player->entity->pos = (Vec2d){10, 10};
 
-    Vec2i boss_room = {0, 0};
+    bool boss_room = false;
+    bool item_room = false;
     for (int i = 0; i < map_width; i++)
     {
         for (int j = 0; j < map_width; j++)
@@ -193,13 +194,22 @@ Level *construct_level(Player *player, int room_number)
                 }
                 if (neighbours == 1)
                 {
-                    boss_room = (Vec2i){i, j};
+                    if (!boss_room)
+                    {
+                        boss_room = true;
+                        level->map[i][j] = construct_room("predefinedRooms/haskell_room", BOSS_ROOM);
+                    }
+                    else if (!item_room)
+                    {
+                        printf("item room\n");
+                        item_room = true;
+                        generate_room(ITEM_ROOM);
+                        level->map[i][j] = construct_room("predefinedRooms/new_room", ITEM_ROOM);
+                    }
                 }
             }
         }
     }
-
-    level->map[boss_room.x][boss_room.y] = construct_room("predefinedRooms/haskell_room", BOSS_ROOM);
 
     for (int i = 0; i < map_width; i++)
     {
