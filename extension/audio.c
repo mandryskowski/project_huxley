@@ -63,6 +63,11 @@ void setListenerPos(Vec2d position)
     alListener3f(AL_POSITION, position.x, position.y, 0.0);
 }
 
+void refreshAudioVolume()
+{
+    alListenerf(AL_GAIN, audioState->volume);
+}
+
 void initAudio(AudioState* aState, char* deviceName)
 {
 
@@ -94,7 +99,8 @@ void initAudio(AudioState* aState, char* deviceName)
         loadWavSound(getSoundPath(i), aState->soundBuffers[i]);
     }
  
-    playSound(SOUND_EXPLODE);
+    refreshAudioVolume();
+    playSound(SOUND_SHOOT);
 
 }
 
