@@ -28,6 +28,8 @@ uint loadTexture(char* filename)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 
+    stbi_image_free(data);
+
     return tex;
 }
 
@@ -116,5 +118,25 @@ uint getMonsterTextureID(MonsterType type)
         case NOT_MONSTER:
         default:
             return 0;
+    }
+}
+
+Vec4d grayValueToColor(double val, double alpha)
+{
+    return (Vec4d){val, val, val, alpha};
+}
+
+Vec4d getRoomMinimapColor(RoomType type, bool visited, Vec2i roomCoords)
+{
+    double checkerboardColor = ((roomCoords.x + roomCoords.y) % 2);
+    switch (type)
+    {
+        case NORMAL_ROOM: return visited ? grayValueToColor(checkerboardColor * 0.15 + 0.75, 0.51) : grayValueToColor(checkerboardColor * 0.1 + 0.3, 0.51);
+        case BOSS_ROOM: return visited ? grayValueToColor(checkerboardColor * 0.15 + 0.75, 0.51) : (Vec4d){0.5, 0.0, 0.0, 0.51};
+        case SHOP_ROOM: return visited ? (Vec4d){0.5, 1.0, 0.0, 0.51} : (Vec4d){0.25, 0.5, 0.0, 0.51};
+        case QUEST_ROOM: return visited ? (Vec4d){1.0, 1.0, 0.0, 0.51} : (Vec4d){0.5, 0.5, 0.0, 0.51};
+        default:
+        case NOT_ROOM: return (Vec4d){0, 0, 0, 0.51};
+
     }
 }
