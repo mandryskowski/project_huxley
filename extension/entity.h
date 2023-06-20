@@ -84,6 +84,8 @@ typedef struct Player
 
     int screenShakeFramesLeft;
     int coins;
+
+    double fadeToBlack; // alpha value for fade to black (0 means fully bright, 1 means fully black).
 } Player;
 
 

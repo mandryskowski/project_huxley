@@ -21,7 +21,7 @@ typedef enum
     TILE_LAST = TILE_DOOR
 } TileType;
 
-typedef enum
+typedef enum RoomType
 {
     NORMAL_ROOM, BOSS_ROOM, SHOP_ROOM, QUEST_ROOM, NOT_ROOM
 } RoomType;
