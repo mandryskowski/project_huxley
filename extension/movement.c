@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "level.h"
 #include "util.h"
+#include "item.h"
 
 void playerMovement(GameState* state, double dt)
 {
@@ -76,7 +77,7 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     Vec2d currEntityNewPos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt));
     Rectangle currHitbox = rectangle_Vec2d(currEntity->hitbox, currEntityNewPos);
 
-    bool canEnterDialogue = false;
+    state->player->canEnterDialogue = false;
 
     for (Entity **otherPtr = entity; *otherPtr; otherPtr++)
     {
@@ -87,11 +88,19 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
         {
             continue;
         }
+
+        if (isInteractable(*otherPtr) && entity != currEntityPtr)
+        {
+            continue;
+        }
+
         Entity *other = *otherPtr;
 
-        if(isNPC(other) && Vec2d_metric_distance(currEntity->pos, other->pos) < 1.4)
+        if(isInteractable(other) && Vec2d_metric_distance(currEntity->pos, other->pos) < 1.4
+         && !state->player->isInDialogue)
         {
-            canEnterDialogue = true;
+            state->player->canEnterDialogue = true;
+            state->guiState->dialogue = isNPC(other) ? ((Npc *)other->specific_data)->dialogue : ((Item *)other->specific_data)->dialogue;
             continue;
         }
 
@@ -138,8 +147,6 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
             break;
         }
     }
-
-    state->player->canEnterDialogue = canEnterDialogue & (!state->player->isInDialogue);
 
     for (Rectangle *obstacle = obstacles; obstacle->topRight.x; obstacle++)
     {
