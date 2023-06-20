@@ -1,4 +1,5 @@
 #include "item.h"
+#include <stdlib.h>
 
 void flight(Player *player)
 {
@@ -23,6 +24,16 @@ void attack_damage_increase(Player *player)
 void extra_bullet(Player *player)
 {
     player->entity->attack_modifier += 1;
+}
+
+void random_mine_spawn(Player *player)
+{
+    player->throws_mines = true;
+}
+
+void time_travel(Player *player)
+{
+    player->entity->pos = pop(player->prev_positions);
 }
 
 void max_health_increase(Player *player)
@@ -83,6 +94,18 @@ Item construct_max_health()
 Item construct_speedy_gonzales()
 {
     return (Item){.textureID = 8, .name = "Rocket boots", .item_passive = movement_speed_increase, .description = "Speed increased"};
+}
+
+Item construct_unstable_mines()
+{
+    return (Item){.textureID = 0, .name = "Unstable mines", .item_passive = movement_speed_increase, .description = "Randomly throws mines that detonate after 5s"};
+}
+
+Item *construct_stopwatch()
+{
+    Item *stopwatch = malloc(sizeof(Item));
+    *stopwatch = (Item){.textureID = 0, .item_active = time_travel, .active_cooldown = 300};
+    return stopwatch;
 }
 
 Item construct_jetpack()

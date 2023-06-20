@@ -13,6 +13,8 @@
 #include "util.h"
 #include "level.h"
 #include "animation.h"
+#include "audio.h"
+#include "item.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,12 +151,14 @@ void update_cooldowns(GameState* state)
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
         (*entity)->hit_animation = max((*entity)->hit_animation - 1, 0);
     }
+    state->player->active_item->cooldown_left = max(state->player->active_item->cooldown_left - 1, 0);
 }
 
 void erase_dead(Room *room)
 {
-    int entity_cnt = room->entity_cnt;
-    for (int i = 1; i < entity_cnt; i++)
+    Entity **to_add= calloc(room->entity_cnt,8);
+    int to_add_cnt = 0;
+    for (int i = 1; i < room->entity_cnt; i++)
     {
         Entity **entity = room->entities + i;
         if (*entity && isDead(*entity) && !(*entity)->hit_animation)
@@ -163,12 +167,31 @@ void erase_dead(Room *room)
             {
                 (*entity)->death_func(*entity);
             }
+            if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity))
+            {
+                if (rand() % 5 == 0)
+                {
+                to_add[to_add_cnt++] = construct_katsu((*entity)->pos, room);
+                }
+                if (rand() % 7 == 0)
+                {
+                    to_add[to_add_cnt++] = construct_coin((*entity)->pos, room);
+                }
+            }
+
             free(*entity);
             *entity = NULL;
             swap(entity, (room->entities + room->entity_cnt - 1));
             room->entity_cnt--;
         }
     }
+    for (Entity **entity = to_add; *entity; entity++)
+    {
+        printf("%d xdd\n", room->entity_cnt);
+        room->entities[room->entity_cnt++] = *entity;
+        entity++;
+    }
+    free(to_add);
 }
 
 static int frame_cnt = 0;
@@ -192,28 +215,28 @@ void updateLogic(GameState* state, double dt)
                 continue;
             }
 
-            //Vec2d_print((*other)->pos);
-            //printf("  ");
-            //Vec2d_print(velocities[index]);
-            //printf(" %d, speed %f\n", index, (*other)->SPD);
             (*other)->velocity = *(velocities+index);
             index++;
         }
-//        for (Entity **p = arr+1; *p; p++)
-//        {
-//            Vec2d_print((*p)->velocity);
-//            printf(" ");
-//            Vec2d_print((*p)->pos);
-//            printf("%d velocity pos post pathfind\n", p - arr - 1);
-//        }
     }
 
-    if (!Vec2d_zero(state->player->entity->attack_velocity)) {
-        handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
+    if (state->player->entity->cooldown_left == 0 && !Vec2d_zero(state->player->entity->attack_velocity))
+    {
+        playSound(SOUND_SHOOT);
     }
+
+    handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
+
+    if (glfwGetKey(state->window, GLFW_KEY_Q) && !state->player->active_item->cooldown_left &&
+            !isEmpty(state->player->prev_positions))
+    {
+        state->player->active_item->item_active(state->player);
+        state->player->active_item->cooldown_left = state->player->active_item->active_cooldown;
+    }
+
     for (Entity **entity = state->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {
-        //if (!Vec2d_zero((*entity)->attack_velocity))
+        if (!Vec2d_zero((*entity)->attack_velocity))
             handle_attack(*entity, state->player->entity, SPAWN_ENTITY);
     }
 
@@ -249,8 +272,8 @@ void initGame(GameState* state)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    GLFW_COCOA_RETINA_FRAMEBUFFER;
-    state->window = glfwCreateWindow(3840, 2075, "Huxley game", glfwGetPrimaryMonitor(), NULL);
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_FALSE);
+    state->window = glfwCreateWindow(1512, 1037, "Huxley game", NULL, NULL);
 
     if (state->window == NULL)
     {
@@ -275,8 +298,8 @@ void initGame(GameState* state)
     *state->rState = RenderState_construct();
 
     glfwSetWindowUserPointer(state->window, state);
-    glfwGetFramebufferSize(state->window, &state->rState->resolution.x, &state->rState->resolution.y);
-    glfwSetWindowSizeCallback(state->window, framebufferSizeCallback);
+    glfwGetWindowSize(state->window, &state->rState->resolution.x, &state->rState->resolution.y);
+    glfwSetFramebufferSizeCallback(state->window, framebufferSizeCallback);
     glfwSetScrollCallback(state->window, scrollCallback);
 }
 
@@ -291,6 +314,12 @@ void gameLoop(GameState* gState)
 {
     const double timestep = 1.0 / 60.0;
     double lastUpdateTime = glfwGetTime();
+    double timeAccumulator = 0.0;
+
+    AudioState aState;
+    initAudio(&aState, NULL);
+    gState->aState = &aState;
+
 
     Player *player;
     player = Entity_construct_player();
@@ -314,18 +343,21 @@ void gameLoop(GameState* gState)
         glfwPollEvents();
 
         double deltaTime = glfwGetTime() - lastUpdateTime;
-        if (deltaTime >= timestep)
+        timeAccumulator += deltaTime;
+        lastUpdateTime = glfwGetTime();
+        while (timeAccumulator >= timestep)
         {
-            
             handleEvents(gState);
-            updateLogic(gState, deltaTime);
+            updateLogic(gState, timestep);
             updateAnimations(gState, gState->currentLevel->currentRoom->entities, gState->currentLevel->currentRoom->entity_cnt);
-            lastUpdateTime = glfwGetTime();
+            setListenerPos(gState->player->entity->pos);
             if (gState->renderNewRoom)
             {
                 refreshRoom(gState, gState->rState);
                 //printf("xdd\n");
             }
+
+            timeAccumulator -= timestep;
         }
         gui_update(gState, gState->rState);
 

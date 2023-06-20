@@ -3,6 +3,7 @@
 #include "game_math.h"
 #include <time.h>
 #include <stdlib.h>
+#include <math.h>
 #include "animation.h"
 
 int attack_cycle_left = 0;
@@ -65,6 +66,36 @@ void spawn_monsters_attack(Entity *haskell, Entity *victim)
 
 }
 
+bool haskell_jump_animation_update(Animation* anim)
+{
+    bool logic = animLogicDouble(anim);
+    printf("yo %f %d\n", *(double*)anim->curVal, logic);
+    if (logic)
+        *((double*)anim->curVal) *= 0.5;
+    if (*(double*)anim->curVal <= pow (0.5, 20.0))
+    {
+        *(double*)anim->curVal = 0.0;
+    }
+    return false;
+}
+
+Animation* Animation_construct_haskell_jump_animation(Entity* ent)
+{
+    Animation* anim = malloc(sizeof(Animation));
+    anim->startVal = malloc(sizeof(double));
+    anim->endVal = malloc(sizeof(double));
+    *((double*)anim->startVal) = ent->renderOffset.y = 1.0;
+    *((double*)anim->endVal) = 0.0;
+    anim->framesLeftUntilUpdate = anim->framesPerUpdate = 1;
+    printf("konstruckja\n");
+
+    anim->curVal = &ent->renderOffset.y;
+
+    anim->animFunc = haskell_jump_animation_update;
+
+    return anim;
+}
+
 bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
 {
     switch (type) {
@@ -72,13 +103,15 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
             //printf("%d\n", attack_cycle_left);
             if (!attack_cycle_left)
             {
+                haskell->currentAnimation = NULL;
                 srand(clock());
                 int p = rand() % 10;
                 printf("%d\n", p);
-                if (p < 3)
+                if (p < 2)
                 {
                     attack = circle_attack;
                     attack_cycle_left = 6;
+                    haskell->currentAnimation = Animation_construct_haskell_jump_animation(haskell);
                 }
                 else if (p < 6)
                 {
@@ -103,6 +136,6 @@ void construct_haskell(Entity *monster)
 {
     *monster = (Entity) {.ATK = 10, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-1, -1}, (Vec2d){1, 1}},
-            .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0},
+            .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .projectileStats = (ProjectileStats){0, 0},
             .attack_func = haskell_attack, .faction = ENEMY, .attack_SPD = 6, .attack_cooldown = 20, .currentAnimation = NULL};
 }
