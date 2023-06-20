@@ -57,6 +57,7 @@ Dialogue *construct_description(char *title, char *description)
     dialogue->title = title;
     dialogue->dialogueLines = calloc(1, sizeof(Dialogue *));
     *dialogue->dialogueLines = description;
+    dialogue->dialogueSize = 1;
     return dialogue;
 }
 
