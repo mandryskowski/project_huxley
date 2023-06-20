@@ -104,6 +104,7 @@ void updateDialogueState(GameState* state)
     {
         if(glfwGetKey(state->window, GLFW_KEY_Q))
         {
+            state->player->entity->velocity = (Vec2d){0, 0};
             state->player->isInDialogue = true;
             state->guiState->dialogue->dialogueIndex = 0;
             state->player->lastSkip = glfwGetTime();
@@ -125,7 +126,7 @@ void handleEvents(GameState* state)
         updateDialogueState(state);
     }
 
-    else if(state->player->isInDialogue)
+    if(state->player->isInDialogue)
     {
         updateDialogue(state);
         return;
@@ -227,7 +228,7 @@ void updateLogic(GameState* state, double dt)
 
     handle_attack(state->player->entity, NULL, SPAWN_ENTITY);
 
-    if (glfwGetKey(state->window, GLFW_KEY_Q) && !state->player->active_item->cooldown_left &&
+    if (glfwGetKey(state->window, GLFW_KEY_F) && !state->player->active_item->cooldown_left &&
             !isEmpty(state->player->prev_positions))
     {
         state->player->active_item->item_active(state->player);
@@ -327,7 +328,7 @@ void gameLoop(GameState* gState)
     gState->player->isInDialogue = false;
     gState->player->canEnterDialogue = false;
     gState->currentLevel = construct_level(player, 6);
-    gState->guiState->dialogue = newDialogue();
+    gState->guiState->dialogue = NULL;
 
     initRenderState(gState, gState->rState);
 
