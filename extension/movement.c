@@ -35,12 +35,16 @@ Vec2d detectCollisionRect(Rectangle a, Rectangle b)
     return (Vec2d){overlapX + EPSILON, overlapY + EPSILON};
 }
 
-bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *highestAfterCollision,  Vec2d *newVelocity, Vec2d velocity)
+bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *highestAfterCollision,  Vec2d *newVelocity, Vec2d velocity, bool is_projectile)
 {
     Vec2d collisionResult = detectCollisionRect(currHitbox, otherHitbox);
     
     if (collisionResult.x > 0 && collisionResult.y > 0)
     {
+        if (highestAfterCollision == NULL)
+        {
+            return true;
+        }
         double xtime = velocity.x ? fabs(((double)collisionResult.x + EPSILON / 2) / velocity.x) : 1e9;
         double ytime = velocity.y ? fabs(((double)collisionResult.y + EPSILON / 2) / velocity.y) : 1e9;
         double timeAfterCollision = min(xtime, ytime);
@@ -58,7 +62,7 @@ bool checkForCollision(Rectangle currHitbox, Rectangle otherHitbox, double *high
                 newVelocity->x = velocity.x;
                 newVelocity->y = 0;
             }
-        }
+    }
         return true;
     }
     return false;
@@ -92,12 +96,38 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
         }
 
         Rectangle otherHitbox = rectangle_Vec2d(other->hitbox, other->pos);
+
+        if (isPickable(other))
+        {
+            if (currEntityPtr == entity){
+                if (isKatsu(other) && currEntity->HP == currEntity->maxHP)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                continue;
+            }
+        }
+
+        if (checkForCollision(rectangle_Vec2d(currEntity->hitbox, currEntity->pos), otherHitbox, NULL, NULL, (Vec2d){0, 0}, false))
+        {
+            continue;
+        }
+
+        double highestAfterCollision_prev = highestAfterCollision;
+        Vec2d prev_newVelocity = newVelocity;
         bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
-                                          &newVelocity, currEntity->velocity);
-                                          
+                                          &newVelocity, currEntity->velocity, isProjectile(currEntity));
         if (collides)
         {
             deal_collison_damage(currEntity, other);
+            if (isProjectile(currEntity) || isPickable(other))
+            {
+                highestAfterCollision = highestAfterCollision_prev;
+                newVelocity = prev_newVelocity;
+            }
             if (isDead(*currEntityPtr))
             {
                 return 0; // Entity is dead
@@ -115,7 +145,7 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
     {
         Rectangle otherHitbox = *obstacle;
         bool collides = checkForCollision(currHitbox, otherHitbox, &highestAfterCollision,
-                                          &newVelocity, currEntity->velocity);
+                                          &newVelocity, currEntity->velocity, false);
 
         if (collides)
         {
@@ -124,6 +154,21 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
                 if (currEntity->projectileStats.bounces)
                 {
                     currEntity->projectileStats.bounces--;
+                    currEntity->pos = Vec2d_add(currEntity->pos, Vec2d_scale(currEntity->velocity, dt - highestAfterCollision));
+                    Vec2d wall_vector = fabs(newVelocity.x) < EPSILON ? (Vec2d){0, 1} : (Vec2d){-1, 0};
+                    if (fabs(newVelocity.x) < EPSILON && currEntity->velocity.x < 0)
+                    {
+                        wall_vector = Vec2d_scale(wall_vector, -1);
+                    }
+                    else if (fabs(newVelocity.y) < EPSILON && currEntity->velocity.y < 0)
+                    {
+                        wall_vector = Vec2d_scale(wall_vector, -1);
+                    }
+                    double angle = angle_between_Vec2d(currEntity->velocity, wall_vector);
+                    //Vec2d_print(wall_vector);
+                    //printf(" angle %f\n", angle);
+                    currEntity->velocity = Vec2d_rotate(currEntity->velocity, 2 * angle);
+                    return highestAfterCollision;
                 }
                 else
                 {
@@ -152,6 +197,7 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
 
         if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
         {
+            //printf("xdd\n");
             continue;
         }
         if (isProjectile(currEntity))
@@ -214,11 +260,17 @@ void move(GameState* state, Entity** entity, double dt)
             }
         }
         free(obstacles);
+        if (currEntity!= entity && isOutOfBounds(Vec2d_to_Vec2i((*currEntity)->pos), state->currentLevel->currentRoom))
+        {
+            killEntity(*currEntity);
+        }
     }
 
+    push(state->player->prev_positions, state->player->entity->pos);
     if (isOutOfBounds(Vec2d_to_Vec2i(state->player->entity->pos), state->currentLevel->currentRoom))
     {
         state->renderNewRoom = true;
+        clearQueue(state->player->prev_positions);
     }
 }
 

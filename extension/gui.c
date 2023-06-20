@@ -12,6 +12,9 @@
 #include "render.h"
 #include "game_math.h"
 #include "level.h"
+#include "AL/alc.h"
+#include "audio.h"
+#include <string.h>
 
 void gui_init(GameState* gState) {
     // IMGUI_CHECKVERSION();
@@ -76,6 +79,47 @@ void gui_update(GameState* gState, RenderState* rState)
         }
         igEnd();
     }
+
+    igPushStyleColor_Vec4(ImGuiCol_WindowBg, (ImVec4){0,0,0,0});
+    igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0,0,0,0});
+
+    // Items
+    {
+        igBegin("Items", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
+        ImVec2 lol;
+        igSetWindowSize_Vec2((ImVec2){0,0}, 0);
+        igGetWindowSize(&lol);
+        igSetWindowPos_Vec2((ImVec2){igGetIO()->DisplaySize.x - lol.x, igGetIO()->DisplaySize.y - lol.y},  0);
+
+        for (int i = 0; i < 16; i++)
+        {
+            double minSize = min(igGetIO()->DisplaySize.x, igGetIO()->DisplaySize.y);
+            
+            igImage((void*)(intptr_t)gState->rState->itemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(i % 4) * 0.25, (i / 4) * 0.25}, (ImVec2){(double)(i % 4) * 0.25 + 0.25, (i / 4) * 0.25 + 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,1,0.5});
+            igSameLine(0, minSize * 0.0125);
+        }
+        igEnd();
+    }
+
+    // Health
+    {
+        igBegin("Health", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
+        ImVec2 lol;
+        igSetWindowSize_Vec2((ImVec2){0,0}, 0);
+        igGetWindowSize(&lol);
+        igSetWindowPos_Vec2((ImVec2){0, igGetIO()->DisplaySize.y - lol.y},  0);
+        
+        
+        //igPushFont();
+
+        igPushStyleColor_Vec4(ImGuiCol_Text, (ImVec4){1,0,0,1});
+        igText("%d", gState->player->entity->HP);
+        igPopStyleColor(1);
+
+        igEnd();
+    }
+
+    igPopStyleColor(2);
 
     igBegin("Game debug", NULL, 0);
 
@@ -142,6 +186,32 @@ void gui_update(GameState* gState, RenderState* rState)
             arr++;
         }
         igTreePop();
+    }
+
+    if (igBeginListBox("Audio device", (ImVec2){0,0}))
+    {
+    char* s = (char *)alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+    static int current_audio_idx = 0;
+    int i = 0;
+    while (*s != NULL)
+    {
+     //printf("lista audio: %s \n", s);
+
+     if (igSelectable_Bool(s, current_audio_idx, 0, (ImVec2){0,0}))
+     {
+        printf("Wybrano %s \n", s);
+        current_audio_idx = i;
+
+        cleanupAudio(gState->aState);
+        initAudio(gState->aState, s);
+     }
+     i++;
+     s += strlen(s) + 1;
+    }
+    
+    
+
+    igEndListBox();
     }
 
     igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);

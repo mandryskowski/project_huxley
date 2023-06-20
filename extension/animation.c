@@ -4,6 +4,7 @@
 // For NULL
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 Animation* Animation_construct()
 {
@@ -13,7 +14,7 @@ Animation* Animation_construct()
     return anim;
 }
 
-bool animLogic(Animation* anim)
+bool animLogicInt(Animation* anim)
 {
     if (--anim->framesLeftUntilUpdate > 0)
         return false;
@@ -26,7 +27,28 @@ bool animLogic(Animation* anim)
 
     printf("val %f %f %f \n", *val, *start, *end);
 
-    if (*val == *end)
+    if (abs(*val - *end) < EPSILON)
+    {
+        *val = *start;
+    }
+    return true;
+}
+
+
+bool animLogicDouble(Animation* anim)
+{
+    if (--anim->framesLeftUntilUpdate > 0)
+        return false;
+    
+    anim->framesLeftUntilUpdate = anim->framesPerUpdate;
+
+    double* val = (double*)anim->curVal;
+    double* start = (double*)anim->startVal;
+    double* end = (double*)anim->endVal;
+
+    printf("val %f %f %f %f \n", *val, *start, *end, abs(*val - *end));
+
+    if (fabs((*val) - (*end)) < EPSILON)
     {
         *val = *start;
     }
@@ -36,7 +58,7 @@ bool animLogic(Animation* anim)
 bool mysterious_animation(Animation* anim)
 {
     int* val = (int*)anim->curVal;
-    if (animLogic(anim))
+    if (animLogicInt(anim))
         (*val) += 2;
     return false;
 }

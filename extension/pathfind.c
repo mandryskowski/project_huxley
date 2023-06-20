@@ -96,7 +96,7 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
     int sz = 0, nonProjIndex = 0;
     Entity** entity = entities;
     while(*entity != NULL) {
-        if (isProjectile(*entity)) {
+        if (isNotAMonster(*entity)) {
             entity++;
 	        sz++;
             continue;
@@ -116,7 +116,7 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
     entity = entities;
     int ind2 = 0;
     while(*entity != NULL) {
-        if(isProjectile(*entity)) {
+        if(isNotAMonster(*entity)) {
             entity++; ind2++;
             continue;
         }

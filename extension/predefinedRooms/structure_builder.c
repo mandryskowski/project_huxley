@@ -8,11 +8,16 @@
 
 void patternBuilder(Room *room, Pattern pattern, Vec2i topLeft, Vec2i bottomRight, TileType type)
 {
-    int xMin = min(topLeft.x, bottomRight.x); 
+    int xMin = min(topLeft.x, bottomRight.x);
     int xMax = max(topLeft.x, bottomRight.x);
     int yMin = min(topLeft.y, bottomRight.y);
     int yMax = max(topLeft.y, bottomRight.y);
 
+    if (pattern > 1)
+    {
+        printf("%d pattern\n", pattern);
+        presetStructures(room, pattern - 1, topLeft, bottomRight, type, 90 * rand());
+    }
 
     if(pattern == FILL)
     {

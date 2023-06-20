@@ -47,7 +47,23 @@ void put_tiles(Room* room, Mode mode)
     Vec2i middle = Vec2i_middle(topLeft, bottomRight);
 
     //SEGMENTATION FAULT MEANS THERE IS NOT ENOUGH ROOM TO SPAWN THE PLAYER
-    patternBuilder(room, CHECKERED, topLeft, bottomRight, TILE_WALL);
+    int pattern_num = rand() % 4 + 1;
+    //int pattern_num = 1;
+    for (int i = 0; i < pattern_num; i++)
+    {
+        for (int j = 0; j < pattern_num; j++)
+        {
+            int res = rand() % 4 + 1;
+            int type = rand() % 3 + 1;
+            int pattern_height = (height - 5) / pattern_num - 1;
+            int pattern_width = (width - 5) / pattern_num - 1;
+            // 3->pattern_num, 18 18, 4, 4; {3, 6}{6 ,3} {8, }
+            Vec2i temp_top_left = {j * (pattern_width + 1) + 3, (i + 1) * (pattern_height + 1) + 1};
+            Vec2i temp_bottom_right = {(j + 1) * (pattern_width + 1) + 1, i * (pattern_height + 1) + 3};
+            //printf("%d %d\n", res, type);
+            patternBuilder(room, res, temp_top_left, temp_bottom_right, type);
+        }
+    }
  
     //ADDING THE OUTLINE
     for (int i = 0; i < height; i++)
@@ -63,18 +79,18 @@ void put_tiles(Room* room, Mode mode)
 
 }
 
-Room *generate_room(int seed, Mode mode)
+Room *generate_empty_room(int seed, Mode mode)
 {
     Room *room = malloc(sizeof(Room));
 
-    if (seed == -1)
-    {
-        srand(time(NULL));
-    }
-    else
-    {
-        srand(seed);
-    }
+//    if (seed == -1)
+//    {
+//        srand(time(NULL));
+//    }
+//    else
+//    {
+//        srand(seed);
+//    }
 
     //SETTING SIZE
     int height = rand() % 5 * 2 + 20;
@@ -153,9 +169,9 @@ void room_to_file(Room* room, MonsterType** monsters)
     fclose(file);
 }
 
-int main()
+void generate_room()
 {
-    Room *room = generate_room(-1, INSANE);
+    Room *room = generate_empty_room(-1, INSANE);
     MonsterType** monsters = spawn_monsters(room, INSANE);
     room_to_file(room, monsters);
     printf("new room generated\n");
