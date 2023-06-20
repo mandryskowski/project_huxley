@@ -164,6 +164,7 @@ void gui_update(GameState* gState, RenderState* rState)
             {
                 igText("Position %f %f", (*arr)->pos.x, (*arr)->pos.y);
                 igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
+                igText("Entity cnt: %d", gState->currentLevel->currentRoom->entity_cnt);
                 sliderDoubleN("Hitbox Left Bottom", &(*arr)->hitbox.bottomLeft, 2, -1.0f, 1.0f);
                 sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
                 sliderDoubleN("attack_Velocity", &(*arr)->attack_velocity, 2, 0.0, 5.0);
