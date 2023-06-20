@@ -81,6 +81,7 @@ void jump_to_next_room(GameState *state)
             state->player->entity->pos.x += x_diff;
         }
 
+        push(state->player->prev_positions, state->player->entity->pos);
         for (Entity **entity = newRoom->entities + 1; *entity; entity++)
         {
             (*entity)->cooldown_left = 180;

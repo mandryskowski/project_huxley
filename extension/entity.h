@@ -3,8 +3,10 @@
 
 #include "game_math.h"
 #include "room.h"
+#include "queue.h"
 #include <stdbool.h>
 
+typedef struct Item Item;
 typedef struct Entity Entity;
 typedef struct Animation Animation;
 
@@ -80,12 +82,19 @@ typedef struct Player
     double acceleration_const; // between 0 and 1.
     double movement_swing; // between 0 and 1.
     Vec2d cameraSize; // number of tiles visible on the x and y isometric diagonal centred around the player.
+
+    Queue *prev_positions;
+
+    bool throws_mines;
     
     bool isInDialogue;
     double lastSkip;
 
     int screenShakeFramesLeft;
     int coins;
+
+    Item **items;
+    Item *active_item;
 } Player;
 
 
@@ -93,6 +102,8 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
 Entity *construct_katsu(Vec2d pos, Room *room);
 Entity *construct_coin(Vec2d pos, Room *room);
 Player *Entity_construct_player();
+
+bool isNotAMonster(Entity *entity);
 
 bool isProjectile(Entity *);
 

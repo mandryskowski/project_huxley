@@ -4,10 +4,15 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include "animation.h"
 #include "assets.h"
 #include "audio.h"
+#include "item.h"
+
+bool isNotAMonster(Entity *entity)
+{
+    return isProjectile(entity) || isMine(entity) || isPickable(entity);
+}
 
 bool isPlayer(Entity *entity)
 {
@@ -54,14 +59,13 @@ void handle_attack(Entity *attacker, Entity *victim, AttackType type)
     }
     if (isPickable(attacker) && isPlayer(victim) && type == ATTACK_CONTACT)
     {
-        printf("xdd\n");
         attacker->attack_func(attacker, victim, type);
         return;
     }
-    if (victim == NULL || (attacker->faction != victim->faction &&
+
+    if (victim == NULL || isMine(attacker) || (attacker->faction != victim->faction &&
             (!isProjectile(attacker) || !isProjectile(victim))))
     {
-        //printf("%d post %p %p\n", type, attacker->attack_func, zombie_attack);
         if (attacker->attack_func(attacker, victim, type))
         {
             attacker->cooldown_left = attacker->attack_cooldown;
@@ -211,6 +215,22 @@ bool bomber_attack(Entity *attacker, Entity *victim, AttackType type)
     }
 }
 
+bool player_attack(Entity *player, Entity *monster, AttackType type)
+{
+    if (((Player*)player->specific_data)->throws_mines)
+    {
+        if (rand() % 30 == 0)
+        {
+            bomber_attack(player, monster, type);
+        }
+    }
+    if (!Vec2d_zero(player->attack_velocity))
+    {
+        return shooter_attack(player, monster, type);
+    }
+    return false;
+}
+
 void construct_bomber(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 0, .canFly = false,
@@ -261,9 +281,10 @@ Player *Entity_construct_player()
     *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
-            .attack_func = shooter_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
+            .attack_func = player_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
 
-    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0, .screenShakeFramesLeft = 0};
+    *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0,
+                        .screenShakeFramesLeft = 0, .throws_mines = true, .prev_positions = createQueue(), .active_item = construct_stopwatch()};
 
     return player;
 }
@@ -327,7 +348,7 @@ Dialogue* newDialogue(void) {
 
 bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
 {
-    if (type == ATTACK_CONTACT && isPlayer(player) && player->HP < player->maxHP)
+    if (type == ATTACK_CONTACT && player->HP < player->maxHP)
     {
         player->HP = min(player->maxHP, player->HP - katsu->ATK);
         killEntity(katsu);
@@ -338,7 +359,7 @@ bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
 
 bool money_collect(Entity *coin, Entity *player, AttackType type)
 {
-    if (type == ATTACK_CONTACT && isPlayer(player))
+    if (type == ATTACK_CONTACT)
     {
         ((Player *)player->specific_data)->coins++;
         killEntity(coin);

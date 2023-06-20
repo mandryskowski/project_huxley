@@ -89,9 +89,15 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
 
         Rectangle otherHitbox = rectangle_Vec2d(other->hitbox, other->pos);
 
-        if (currEntityPtr == entity && isPickable(other))
+        if (isPickable(other))
         {
-            if (isKatsu(other) && currEntity->HP == currEntity->maxHP)
+            if (currEntityPtr == entity){
+                if (isKatsu(other) && currEntity->HP == currEntity->maxHP)
+                {
+                    continue;
+                }
+            }
+            else
             {
                 continue;
             }
@@ -250,9 +256,11 @@ void move(GameState* state, Entity** entity, double dt)
         }
     }
 
+    push(state->player->prev_positions, state->player->entity->pos);
     if (isOutOfBounds(Vec2d_to_Vec2i(state->player->entity->pos), state->currentLevel->currentRoom))
     {
         state->renderNewRoom = true;
+        clearQueue(state->player->prev_positions);
     }
 }
 
