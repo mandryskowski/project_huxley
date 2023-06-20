@@ -5,6 +5,7 @@
 typedef struct ALCdevice ALCdevice;
 typedef struct ALCcontext ALCcontext;
 typedef unsigned int uint;
+typedef struct Vec2d Vec2d;
 
 #define MAX_SOUND_SOURCES 256
 
@@ -23,14 +24,13 @@ typedef struct AudioState
 
     uint soundBuffers[SOUND_LAST + 1];
     uint soundSources[MAX_SOUND_SOURCES];
-    bool usedSoundSources[MAX_SOUND_SOURCES];
 } AudioState;
 
-uint addSoundSource(SoundType type);
-void removeSoundSource(uint);
-void playSoundAtSource(AudioState*, uint source, SoundType type);
+void playSound(SoundType type);
+uint playSoundAtPos(SoundType, Vec2d position);
+void setListenerPos(Vec2d position);
 
-void initAudio(AudioState*, char* deviceName, bool firstInit);
+void initAudio(AudioState*, char* deviceName);
 void cleanupAudio(AudioState*);
 
 void loadWavSound(char* path, uint buffer);

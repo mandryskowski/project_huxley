@@ -197,7 +197,7 @@ void gui_update(GameState* gState, RenderState* rState)
         current_audio_idx = i;
 
         cleanupAudio(gState->aState);
-        initAudio(gState->aState, s, false);
+        initAudio(gState->aState, s);
      }
      i++;
      s += strlen(s) + 1;

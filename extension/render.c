@@ -167,11 +167,11 @@ Vec2d getIsoPos(Vec2d mapPos, Vec2i roomSize)
     //width = 2;
    // height = 2;
     Vec2d tileSize = (Vec2d){1.0, 1.0};
-    Vec2d xOffset = (Vec2d){tileSize.x * -mulx, tileSize.y * -muly};
-    Vec2d yOffset = (Vec2d){tileSize.x * mulx , -tileSize.y * muly};
+    Vec2d xOffset = (Vec2d){tileSize.x * mulx, tileSize.y * muly};
+    Vec2d yOffset = (Vec2d){tileSize.x * -mulx , tileSize.y * muly};
 
-    return Vec2d_add(Vec2d_scale(xOffset, roomSize.x - 0.5 - mapPos.x), 
-                     Vec2d_scale(yOffset, roomSize.y - 0.5 - mapPos.y));
+    return Vec2d_add(Vec2d_scale(xOffset, -0.5 + mapPos.x), 
+                     Vec2d_scale(yOffset, -0.5 + mapPos.y));
 }
 
 Vec2d getIsoVec(Vec2d vec)
@@ -211,8 +211,8 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
     //width = 2;
    // height = 2;
     Vec2d tileSize = (Vec2d){1.0, 1.0};
-    Vec2d xOffset = (Vec2d){tileSize.x * -mulx, tileSize.y * -muly};
-    Vec2d yOffset = (Vec2d){tileSize.x * mulx , -tileSize.y * muly};
+    Vec2d xOffset = (Vec2d){tileSize.x * mulx, tileSize.y * muly};
+    Vec2d yOffset = (Vec2d){tileSize.x * -mulx , tileSize.y * muly};
 
     Mesh outMesh = Mesh_construct();
 
@@ -222,8 +222,8 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
         {
             if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
                 ;//continue;
-            const Vec2d quadPos = Vec2d_add(Vec2d_scale(xOffset, (width - 1 - x)), 
-                                            Vec2d_scale(yOffset, (height - 1 - y)));
+            const Vec2d quadPos = Vec2d_add(Vec2d_scale(xOffset, x), 
+                                            Vec2d_scale(yOffset, y));
             TileType type = gameState->currentLevel->currentRoom->tiles[x][y].type;
 
             int texID = getTileTextureID(type);
@@ -239,7 +239,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
                 {
                     int tileDepth = (x + y) + 1;
 
-                    *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x * tileSize.x, offsets[i].y * tileSize.y}, quadPos),
+                    *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x, offsets[i].y}, quadPos),
                                     .texCoord = Vec2d_add((Vec2d){0.5, 0.5}, Vec2d_scale(offsets[i], 0.5)),
                                     .textureID = 5,
                                     .tileDepth = tileDepth + ((type == TILE_WALL) ?  0 : 1)};
@@ -269,7 +269,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
                 }
             }
 
-            if (type == TILE_WALL && x + 1 < width && y > 0 && gameState->currentLevel->currentRoom->tiles[x+1][y-1].type == TILE_WALL)
+            if (type == TILE_WALL && x + 1 < width && y > 0 && gameState->currentLevel->currentRoom->tiles[x+1][y-1].type == TILE_WALL && gameState->currentLevel->currentRoom->tiles[x][y-1].type == TILE_FLOOR)
             {
                 verts = initIsoMeshHelperQuad(x, y, &outMesh, verts, offsets, quadPos, 6, type);
             }
@@ -280,7 +280,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
             {
                 int tileDepth = (x + y) + 1;
 
-                *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x * tileSize.x, offsets[i].y * tileSize.y}, quadPos),
+                *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x, offsets[i].y}, quadPos),
                                   .texCoord = Vec2d_add((Vec2d){0.5, 0.5}, Vec2d_scale(offsets[i], 0.5)),
                                   .textureID = texID,
                                   .tileDepth = tileDepth + ((type == TILE_WALL) ?  0 : 1)};
@@ -551,16 +551,18 @@ void render(GameState* gState, RenderState* state)
             {       
                 //glDepthFunc(GL_GEQUAL);
                 glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), (offset.x != 0 ? gState->currentLevel->currentRoom->size.x : gState->currentLevel->currentRoom->size.y) + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2 - (offset.x + offset.y));               
-                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1)  + sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) +  sizeDiff.y / 2.0 * abs(offset.x)}, offset);
+                renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1)  - sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->currentRoom->size.y - 1) - sizeDiff.y / 2.0 * abs(offset.x)}, offset);
                 glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);   
                 viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0}, (Vec2d){0,0});
             }
             else
             {
                 viewMat = renderIsoGrid(gState, state, &state->isoMesh, (Vec2d){0,0}, (Vec2d){0,0});
+                //  glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), (offset.x != 0 ? gState->currentLevel->prevRoom->size.x : gState->currentLevel->prevRoom->size.y) + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2 - (offset.x + offset.y));               
                 glUniform1i(glGetUniformLocation(state->shader, "customDepth"), max(1 + (offset.x != 0 ? sizeDiff.y : sizeDiff.x) / 2, 0));          
- renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->currentRoom->size.x - 1) + sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->currentRoom->size.y - 1) +  sizeDiff.y / 2.0 * abs(offset.x)}, offset);
-  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);     
+ renderIsoGrid(gState, state, &state->isoMesh2, (Vec2d){-offset.x * (gState->currentLevel->prevRoom->size.x - 1) - sizeDiff.x / 2.0 * abs(offset.y), -offset.y * (gState->currentLevel->prevRoom->size.y - 1) - sizeDiff.y / 2.0 * abs(offset.x)}, offset);
+  glUniform1i(glGetUniformLocation(state->shader, "customDepth"), -1);    
+    glUniform1i(glGetUniformLocation(state->shader, "depthOffset"), -1);    
             }
     
 
@@ -596,7 +598,11 @@ void render(GameState* gState, RenderState* state)
             Vec2d hitboxSize = Vec2d_add((*ent)->hitbox.topRight, Vec2d_scale((*ent)->hitbox.bottomLeft, -1.0f));
             Vec2d hitboxPos = Vec2d_add((*ent)->hitbox.bottomLeft, Vec2d_scale(hitboxSize, 0.5f));
             Vec2d absoluteHitboxPos = Vec2d_add((*ent)->pos, hitboxPos);
-        glUniform1i(glGetUniformLocation(state->shader, "customDepth"),absoluteHitboxPos.x +  absoluteHitboxPos.y + 1 );
+
+            // We set the entity's depth to minimal (0) when it's at a left/bottom edge of the room since we want it to render on top of the neighbour room.
+            float entDepth = (floor(absoluteHitboxPos.x) == 0 || floor(absoluteHitboxPos.y) == 0) ? 0 : (absoluteHitboxPos.x +  absoluteHitboxPos.y + 1);
+
+            glUniform1i(glGetUniformLocation(state->shader, "customDepth"), entDepth);
         }
 
         int entityTexID = (*ent)->textureID;
