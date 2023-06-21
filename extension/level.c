@@ -125,7 +125,7 @@ Level *construct_level(Player *player, int room_number)
 
     bool visited[map_width][map_width];
     level->map = calloc(sizeof(Room **), map_width);
-
+    level->size = (Vec2i){map_width, map_width};
 
     for (int i = 0; i < map_width; i++)
     {
@@ -239,4 +239,22 @@ Level *construct_level(Player *player, int room_number)
     printf("\n");
 
     return level;
+}
+
+void free_level(Level *level)
+{
+    for (int width = 0; width < level->size.x; width++)
+    {
+        for (int height = 0; height < level->size.y; height++)
+        {
+            if (level->map[width][height])
+            {
+                free_room(level->map[width][height]);
+            }
+        }
+        free(level->map[width]);
+    }
+
+    free(level->map);
+    free(level);
 }

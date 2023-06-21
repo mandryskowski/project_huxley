@@ -45,4 +45,5 @@ typedef struct Room
 TileType getTile(Vec2i vec, GameState *state);
 Room *construct_room(char *filename, RoomType type);
 bool isClear(Room *room);
+void free_room(Room *room);
 #endif // ROOM_H

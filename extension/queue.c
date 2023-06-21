@@ -74,7 +74,7 @@ void clearQueue(Queue* queue)
 
 
 // Function to free the memory allocated for the queue
-void freeQueue(Queue* queue)
+void free_queue(Queue* queue)
 {
     clearQueue(queue);
     free(queue);

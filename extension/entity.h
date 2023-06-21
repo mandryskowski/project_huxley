@@ -138,4 +138,8 @@ void handle_attack(Entity *, Entity *, AttackType);
 
 void shooter_spawn_attack(Entity *attacker);
 
+void free_player(Player *player);
+void free_entity(Entity *entity);
+void free_item_entity_leaving_item_data(Entity *entity);
+
 #endif // ENTITY_H
