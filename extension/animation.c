@@ -77,3 +77,11 @@ Animation* Animation_construct_mysterious(Entity* entity)
 
     return anim;
 }
+
+void free_animation(Animation* anim)
+{
+    free(anim->startVal);
+    free(anim->endVal);
+    free(anim->curVal);
+    free(anim);
+}
