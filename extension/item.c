@@ -1,5 +1,7 @@
 #include "item.h"
+#include "entity.h"
 #include <stdlib.h>
+#include <string.h>
 
 void flight(Player *player)
 {
@@ -54,9 +56,13 @@ void bomb_trail(Player *player)
 Dialogue *construct_description(char *title, char *description)
 {
     Dialogue *dialogue = calloc(1, sizeof(Dialogue));
-    dialogue->title = title;
+    dialogue->title = calloc(1, strlen(title) + 1);
+    strcpy(dialogue->title, title);
+
     dialogue->dialogueLines = calloc(1, sizeof(Dialogue *));
-    *dialogue->dialogueLines = description;
+
+    *dialogue->dialogueLines = calloc(1, strlen(description) + 1);
+    strcpy(*dialogue->dialogueLines, description);
     dialogue->dialogueSize = 1;
     return dialogue;
 }
@@ -147,6 +153,19 @@ Item *get_item(ItemType type){
     }
 
     return item;
+}
+
+Item *cpy_item(Item *item)
+{
+    Item *item_cpy = malloc(sizeof(Item));
+    item_cpy->dialogue = cpy_dialogue(item->dialogue);
+    item_cpy->textureID = item->textureID;
+    item_cpy->item_passive = item->item_passive;
+    item_cpy->item_active = item->item_active;
+    item_cpy->cooldown_left = item->cooldown_left;
+    item_cpy->active_cooldown = item->active_cooldown;
+
+    return item_cpy;
 }
 
 void free_item(Item *item)

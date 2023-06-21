@@ -24,6 +24,8 @@ typedef struct Item
 
 Item *get_item(ItemType type);
 
+Item *cpy_item(Item *item);
+
 void free_item(Item *item);
 
 #endif //ARMV8_25_ITEM_H

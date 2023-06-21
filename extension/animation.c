@@ -82,6 +82,5 @@ void free_animation(Animation* anim)
 {
     free(anim->startVal);
     free(anim->endVal);
-    free(anim->curVal);
     free(anim);
 }

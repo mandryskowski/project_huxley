@@ -92,7 +92,7 @@ void updateDialogue(GameState* state)
                 {
                     if (isItem(state->guiState->dialogue->creator))
                     {
-                        Item *item = state->guiState->dialogue->creator->specific_data;
+                        Item *item = cpy_item(state->guiState->dialogue->creator->specific_data);
                         if (item->item_passive){
                             state->player->items[state->player->items_cnt++] = item;
                             item->item_passive(state->player);
@@ -100,7 +100,14 @@ void updateDialogue(GameState* state)
                         if (item->item_active){
                             state->player->active_item = item;
                         }
-                        killEntity(state->guiState->dialogue->creator);
+
+                        for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
+                        {
+                            if (isItem(*entity))
+                            {
+                                killEntity(*entity);
+                            }
+                        }
                     }
                     state->player->isInDialogue = false;
                     return;
@@ -203,14 +210,8 @@ void erase_dead(Room *room)
                 }
             }
 
-            if (isItem(*entity))
-            {
-                free_item_entity_leaving_item_data(*entity);
-            }
-            else
-            {
-                free_entity(*entity);
-            }
+            free_entity(*entity);
+
             *entity = NULL;
             swap(entity, (room->entities + room->entity_cnt - 1));
             room->entity_cnt--;
@@ -421,6 +422,9 @@ void gameLoop(GameState* gState)
         {
             printf("GL error %d\n", err);
         }
+
+        if (deltaTime > 1)
+            printf("%f lag\n", deltaTime);
 
         renderGame(gState, gState->rState);
     }

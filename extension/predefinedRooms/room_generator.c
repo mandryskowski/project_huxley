@@ -79,12 +79,21 @@ void put_tiles(Room* room, Mode mode)
 
 }
 
-Room *generate_empty_item_room()
+void set_pedestal(Room *room, Vec2i top_left)
+{
+    room->tiles[top_left.y][top_left.x].type = TILE_BARRIER;
+    room->tiles[top_left.y][top_left.x + 1].type = TILE_BARRIER;
+    room->tiles[top_left.y + 1][top_left.x].type = TILE_BARRIER;
+    room->tiles[top_left.y + 1][top_left.x + 1].type = TILE_BARRIER;
+}
+
+Room *generate_empty_item_room(RoomType type)
 {
     Room *room = malloc(sizeof(Room));
+    room->type = type;
 
     int height = 10;
-    int width = 10;
+    int width = type == ITEM_ROOM ? 10 : 20;
 
     Tile** tiles = calloc(height, sizeof(Tile*));
     MonsterType **monsters = calloc(height, sizeof(MonsterType *));
@@ -119,19 +128,26 @@ Room *generate_empty_item_room()
         room->tiles[height - 1][i].type = TILE_WALL;
     }
 
-    room->tiles[width / 2 - 1][height / 2 - 1].type = TILE_BARRIER;
-    room->tiles[width / 2 - 1][height / 2].type = TILE_BARRIER;
-    room->tiles[width / 2][height / 2 - 1].type = TILE_BARRIER;
-    room->tiles[width / 2][height / 2].type = TILE_BARRIER;
+    if (type == ITEM_ROOM)
+    {
+        set_pedestal(room ,(Vec2i){room->size.x / 2 - 1, room->size.y / 2 - 1});
+    }
+
+    else
+    {
+        set_pedestal(room ,(Vec2i){room->size.x / 2 - 1 - 5, room->size.y / 2 - 1});
+        set_pedestal(room ,(Vec2i){room->size.x / 2 - 1, room->size.y / 2 - 1});
+        set_pedestal(room ,(Vec2i){room->size.x / 2 - 1 + 5, room->size.y / 2 - 1});
+    }
 
     return room;
 }
 
 Room *generate_empty_room(Mode mode, RoomType type)
 {
-    if (type == ITEM_ROOM)
+    if (type == ITEM_ROOM || type == SHOP_ROOM)
     {
-        return generate_empty_item_room();
+        return generate_empty_item_room(type);
     }
 
     Room *room = malloc(sizeof(Room));

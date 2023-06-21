@@ -79,7 +79,7 @@ MonsterType **spawn_monsters(Room* room, Mode mode, RoomType type)
     }
     if(monsters == NULL) {exit(EXIT_FAILURE);}
 
-    if (type == ITEM_ROOM)
+    if (type == ITEM_ROOM || type == SHOP_ROOM)
     {
         for (int i = 0; i < room->size.y; i++)
         {
@@ -88,6 +88,11 @@ MonsterType **spawn_monsters(Room* room, Mode mode, RoomType type)
                 monsters[i][j] = NOT_MONSTER;
             }
         }
+        if (type == SHOP_ROOM)
+        {
+            monsters[8][10] = MYSTERIOUS_CHARACTER;
+        }
+
         return monsters;
     }
 
