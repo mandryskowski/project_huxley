@@ -615,7 +615,7 @@ void render(GameState* gState, RenderState* state)
         int entityTexID = (*ent)->textureID;
         glUniform1i(glGetUniformLocation(state->shader, "unTexId"), entityTexID);
 
-        glBindTexture(GL_TEXTURE_2D_ARRAY, state->renderIsometric ? (isPickable(*ent) ? state->isoItemAtlas : state->isoCharacterAtlas) : state->characterAtlas);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, state->renderIsometric ? (isPickable(*ent) || isItem(*ent) ? state->isoItemAtlas : state->isoCharacterAtlas) : state->characterAtlas);
         glBindVertexArray(state->quadMesh.VAO);
 
         // outline render

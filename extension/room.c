@@ -100,3 +100,19 @@ bool isClear(Room *room)
 
     return true;
 }
+
+void free_room(Room *room)
+{
+    for (int i = 0; i < room->size.x; i++)
+    {
+        free(room->tiles[i]);
+    }
+    free(room->tiles);
+
+    for (Entity **pEntity = room->entities + 1; *pEntity; pEntity++)
+    {
+        free_entity(*pEntity);
+    }
+    free(room->entities);
+    free(room);
+}

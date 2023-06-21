@@ -44,5 +44,4 @@ typedef struct GameState
     AudioState* aState;
 } GameState;
 
-
 #endif // STATE_H
