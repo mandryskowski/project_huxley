@@ -43,6 +43,7 @@ typedef struct Room
 } Room;
 
 TileType getTile(Vec2i vec, GameState *state);
+void add_items_to_shop(Room *room);
 Room *construct_room(char *filename, RoomType type);
 bool isClear(Room *room);
 void free_room(Room *room);

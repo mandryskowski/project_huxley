@@ -61,7 +61,7 @@ Dialogue *construct_description(char *title, char *description)
 
     dialogue->dialogueLines = calloc(1, sizeof(Dialogue *));
 
-    *dialogue->dialogueLines = calloc(1, strlen(description) + 1);
+    *dialogue->dialogueLines = calloc(1, strlen(description) + 30);
     strcpy(*dialogue->dialogueLines, description);
     dialogue->dialogueSize = 1;
     return dialogue;
@@ -69,56 +69,56 @@ Dialogue *construct_description(char *title, char *description)
 
 Item construct_boom_boots()
 {
-    return (Item){.textureID = 12, .dialogue = construct_description("Boom Boots", "Become the bomber"), .item_passive = bomb_trail};
+    return (Item){.type = BOOM_BOOTS, .textureID = 12, .dialogue = construct_description("Boom Boots", "Become the bomber"), .item_passive = bomb_trail};
 }
 
 Item construct_overclocking_module()
 {
-    return (Item){.textureID = 13, .dialogue = construct_description("Overclocking module", "Attack cooldown decreased"), .item_passive = attack_cooldown_decrease};
+    return (Item){.type = OVERCLOCKING_MODULE, .textureID = 13, .dialogue = construct_description("Overclocking module", "Attack cooldown decreased"), .item_passive = attack_cooldown_decrease};
 }
 
 Item construct_multishot()
 {
-    return (Item){.textureID = 14, .dialogue = construct_description("Cloning module", "Increases the number of projectiles shot per action"), .item_passive = extra_bullet};
+    return (Item){.type = CLONING_MODULE, .textureID = 14, .dialogue = construct_description("Cloning module", "Increases the number of projectiles shot per action"), .item_passive = extra_bullet};
 }
 
 Item construct_attack_module()
 {
-    return (Item){.textureID = 15, .dialogue = construct_description("Attack module", "Projectiles deal more damage"), .item_passive = attack_damage_increase};
+    return (Item){.type = ATTACK_MODULE, .textureID = 15, .dialogue = construct_description("Attack module", "Projectiles deal more damage"), .item_passive = attack_damage_increase};
 }
 
 Item construct_bouncy_projectile()
 {
-    return (Item){.textureID = 8, .dialogue = construct_description("Rebound module", "Projectiles bounce of walls"), .item_passive = bouncy_projectiles};
+    return (Item){.type = REBOUND_MODULE, .textureID = 8, .dialogue = construct_description("Rebound module", "Projectiles bounce of walls"), .item_passive = bouncy_projectiles};
 }
 
 Item construct_piercing()
 {
-    return (Item){.textureID = 9, .dialogue = construct_description("Holographic module", "Projectiles can now pass through enemies"), .item_passive = piercing};
+    return (Item){.type = HOLOGRAPHIC_MODULE, .textureID = 9, .dialogue = construct_description("Holographic module", "Projectiles can now pass through enemies"), .item_passive = piercing};
 }
 
 Item construct_max_health() 
 {
-    return (Item){.textureID = 10, .dialogue = construct_description("Resilience module", "Maximum health increased"), .item_passive = max_health_increase};
+    return (Item){.type = RESILIENCE_MODULE, .textureID = 10, .dialogue = construct_description("Resilience module", "Maximum health increased"), .item_passive = max_health_increase};
 }
 
 Item construct_speedy_gonzales()
 {
-    return (Item){.textureID = 4, .dialogue = construct_description("Rocket boots", "Speed increased"), .item_passive = movement_speed_increase};
+    return (Item){.type = ROCKET_BOOTS, .textureID = 4, .dialogue = construct_description("Rocket boots", "Speed increased"), .item_passive = movement_speed_increase};
 }
 
 Item construct_jetpack()
 {
-    return (Item){.textureID = 9, .dialogue = construct_description("Jetpack", "Rule the skies"), .item_passive = flight};
+    return (Item){.type = JETPACK, .textureID = 9, .dialogue = construct_description("Jetpack", "Rule the skies"), .item_passive = flight};
 }
 
 Item construct_stopwatch()
 {
-    return (Item){.textureID = 7, .item_active = time_travel, .active_cooldown = 300,
+    return (Item){.type = STOPWATCH, .textureID = 7, .item_active = time_travel, .active_cooldown = 300,
             .dialogue = construct_description("Mysterious hourglass", "Who knows?")};
 }
 
-Item *get_item(ItemType type){
+Item *get_item(ItemType type, int cost){
     Item *item = calloc(1, sizeof(Item));
     switch (type) {
         case BOOM_BOOTS:
@@ -152,24 +152,20 @@ Item *get_item(ItemType type){
             *item = construct_stopwatch();
     }
 
+    item->cost = cost;
+    if (cost > 0) {
+        sprintf(*item->dialogue->dialogueLines, "%s\n\ncost: %d rubber ducks", *item->dialogue->dialogueLines , cost);
+    }
     return item;
 }
 
 Item *cpy_item(Item *item)
 {
-    Item *item_cpy = malloc(sizeof(Item));
-    item_cpy->dialogue = cpy_dialogue(item->dialogue);
-    item_cpy->textureID = item->textureID;
-    item_cpy->item_passive = item->item_passive;
-    item_cpy->item_active = item->item_active;
-    item_cpy->cooldown_left = item->cooldown_left;
-    item_cpy->active_cooldown = item->active_cooldown;
-
-    return item_cpy;
+    return get_item(item->type, 0);
 }
 
 void free_item(Item *item)
 {
-    free(item->dialogue);
+    free_dialogue(item->dialogue);
     free(item);
 }
