@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "animation.h"
 #include "assets.h"
 #include "audio.h"
@@ -290,14 +291,34 @@ void construct_flying_shooter(Entity *monster)
 
 Dialogue* mysterious_character_Dialogue(void) {
     Dialogue *d = calloc(1, sizeof(Dialogue));
-    d->title = "Mysterious figure";
+    d->title = calloc(1, 20);
+    strcpy(d->title, "Mysterious figure");
     d->dialogueSize = 3;
     d->skipCooldown = 2.0;
     d->dialogueIndex = 0;
     d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
-    d->dialogueLines[0] = "By the gods! Konstantinos, my old friend, I never thought I'd see you again. Not after... the Cataclysm.";
-    d->dialogueLines[1] = "It came out of nowhere, its machinations spreading deep in the digital world, and then... nothing, the worldwide\ncollapse of the power grid rendering us virtually blind. Cities plunged into darkness, their inhabitants left\nstranded and vulnerable in a world devoid of electricity and communication.";
-    d->dialogueLines[2] = "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.";
+    d->dialogueLines[0] = calloc(1, sizeof("By the gods! Konstantinos, my old friend, I never thought I'd see you again. Not after... the Cataclysm.") + 1);
+    strcpy(d->dialogueLines[0], "By the gods! Konstantinos, my old friend, I never thought I'd see you again. Not after... the Cataclysm.");
+    d->dialogueLines[1] = calloc(1, sizeof("It came out of nowhere, its machinations spreading deep in the digital world, and then... nothing, the worldwide\ncollapse of the power grid rendering us virtually blind. Cities plunged into darkness, their inhabitants left\nstranded and vulnerable in a world devoid of electricity and communication.") + 1);
+    strcpy(d->dialogueLines[1], "It came out of nowhere, its machinations spreading deep in the digital world, and then... nothing, the worldwide\ncollapse of the power grid rendering us virtually blind. Cities plunged into darkness, their inhabitants left\nstranded and vulnerable in a world devoid of electricity and communication.");
+    d->dialogueLines[2] = calloc(1, sizeof("Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.") + 1);
+    strcpy(d->dialogueLines[2], "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.");
+    d->isSkippable = false;
+    return d;
+}
+
+Dialogue* shopkeeper_dialogue(void) {
+    Dialogue *d = calloc(1, sizeof(Dialogue));
+    d->title = calloc(1, 20);
+    strcpy(d->title, "Mysterious figure");
+    d->dialogueSize = 2;
+    d->skipCooldown = 2.0;
+    d->dialogueIndex = 0;
+    d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
+    d->dialogueLines[0] = calloc(1, sizeof("Enter, weary survivor, and gaze upon the remnants of a shattered world.\n Within these scorched walls, the wares of a bygone era await your trembling hands.\n Behold the irony, for it was the very intelligence that birthed the apocalypse, and now,\n here you stand, seeking solace in the artifacts birthed by that very chaos.") + 1);
+    strcpy(d->dialogueLines[0], "Enter, weary survivor, and gaze upon the remnants of a shattered world.\n Within these scorched walls, the wares of a bygone era await your trembling hands.\n Behold the irony, for it was the very intelligence that birthed the apocalypse, and now,\n here you stand, seeking solace in the artifacts birthed by that very chaos.");
+    d->dialogueLines[1] = calloc(1, sizeof("And fear not, for in this desolate wasteland, a glimmer of hope remains.\n Should you find yourself unsatisfied with the treasures before you,\n I offer you a chance to reshape destiny itself. For a price, I can unleash the wheel of fate,\n allowing you to reroll the threads of possibility and uncover new paths.\n But be warned, such power comes with a cost,\n and the consequences of your choices may echo through the remnants of this shattered realm."));
+    strcpy(d->dialogueLines[1], "And fear not, for in this desolate wasteland, a glimmer of hope remains.\n Should you find yourself unsatisfied with the treasures before you,\n I offer you a chance to reshape destiny itself. For a price, I can unleash the wheel of fate,\n allowing you to reroll the threads of possibility and uncover new paths.\n But be warned, such power comes with a cost,\n and the consequences of your choices may echo through the remnants of this shattered realm.");
     d->isSkippable = false;
     return d;
 }
@@ -305,7 +326,7 @@ Dialogue* mysterious_character_Dialogue(void) {
 void construct_mysterious_character(Entity* monster)
 {
     Npc *npc = calloc(1, sizeof(Npc));
-    npc->dialogue = mysterious_character_Dialogue();
+    npc->dialogue = monster->room->type != SHOP_ROOM ? mysterious_character_Dialogue() : shopkeeper_dialogue();
     npc->dialogue->creator = monster;
     *monster =  (Entity) {.ATK = 0, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
@@ -335,6 +356,8 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
 {
     Entity *monster = calloc(1, sizeof(Entity));
 
+    monster->room = room;
+
     switch (type)
     {
         case ZOMBIE:
@@ -361,9 +384,9 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
             exit(0);
     }
 
-    monster->room = room;
     monster->pos = pos;
     monster->textureID = getMonsterTextureID(type);
+    monster->room = room;
 
     return monster;
 }
@@ -426,8 +449,35 @@ bool isKatsu(Entity *entity)
     return entity->attack_func == katsu_heal;
 }
 
+Dialogue *cpy_dialogue(Dialogue *dialogue)
+{
+    Dialogue *dialogue_cpy = malloc(sizeof(Dialogue));
+
+    dialogue_cpy->title = calloc(1, sizeof(dialogue->title) + 1);
+    strcpy(dialogue_cpy->title, dialogue->title);
+    dialogue_cpy->creator = dialogue->creator;
+    dialogue_cpy->dialogueSize = dialogue->dialogueSize;
+    dialogue_cpy->dialogueIndex = dialogue->dialogueIndex;
+    dialogue_cpy->isSkippable = dialogue->isSkippable;
+    dialogue_cpy->skipCooldown = dialogue_cpy->skipCooldown;
+
+    dialogue_cpy->dialogueLines = calloc(dialogue_cpy->dialogueSize, sizeof(char *));
+    for (int i = 0; i < dialogue->dialogueSize; i++)
+    {
+        dialogue_cpy->dialogueLines[i] = calloc(1, strlen(dialogue->dialogueLines[i]) + 1);
+        strcpy(dialogue_cpy->dialogueLines[i], dialogue->dialogueLines[i]);
+    }
+
+    return dialogue_cpy;
+}
+
 void free_dialogue(Dialogue *dialogue)
 {
+    free(dialogue->title);
+    for (int i = 0; i < dialogue->dialogueSize; i++)
+    {
+        free(dialogue->dialogueLines[i]);
+    }
     free(dialogue->dialogueLines);
     free(dialogue);
 }
@@ -436,15 +486,6 @@ void free_npc(Npc *npc)
 {
     free_dialogue(npc->dialogue);
     free(npc);
-}
-
-void free_item_entity_leaving_item_data(Entity *entity)
-{
-    if (entity->currentAnimation)
-    {
-        free_animation(entity->currentAnimation);
-    }
-    free(entity);
 }
 
 void free_player(Player *player)

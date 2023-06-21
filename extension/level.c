@@ -176,6 +176,7 @@ Level *construct_level(Player *player, int room_number)
 
     bool boss_room = false;
     bool item_room = false;
+    bool shop_room = false;
     for (int i = 0; i < map_width; i++)
     {
         for (int j = 0; j < map_width; j++)
@@ -205,6 +206,13 @@ Level *construct_level(Player *player, int room_number)
                         item_room = true;
                         generate_room(ITEM_ROOM);
                         level->map[i][j] = construct_room("predefinedRooms/new_room", ITEM_ROOM);
+                    }
+                    else if (!shop_room)
+                    {
+                        printf("shop room\n");
+                        shop_room = true;
+                        generate_room(SHOP_ROOM);
+                        level->map[i][j] = construct_room("predefinedRooms/new_room", SHOP_ROOM);
                     }
                 }
             }

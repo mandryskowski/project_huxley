@@ -19,7 +19,7 @@ int tile_type_to_textureID(TileType tileType, RoomType roomType, int x, int y, R
         case TILE_FLOOR:
             return 12;
         case TILE_BARRIER:
-            return roomType == ITEM_ROOM ? 11 : 15;
+            return roomType == ITEM_ROOM || roomType == SHOP_ROOM ? 11 : 15;
         case TILE_DOOR:
         {
             int non_zero = x && x != room->size.x - 1 ? x - room->size.x / 2 : y - room->size.y / 2;
@@ -77,6 +77,27 @@ Room *construct_room(char *filename , RoomType type)
     if (room->type == ITEM_ROOM)
     {
         room->entities[room->entity_cnt++] = construct_item(rand() % 10, (Vec2d){room->size.x / 2, room->size.y / 2});
+    }
+
+    if (room->type == SHOP_ROOM)
+    {
+        ItemType item1 = rand() % 10, item2 = rand() % 10, item3 = rand() % 10;
+        Vec2d pos1 = (Vec2d){room->size.x / 2, room->size.y / 2 - 5};
+        Vec2d pos2 = (Vec2d){room->size.x / 2, room->size.y / 2};
+        Vec2d pos3 = (Vec2d){room->size.x / 2, room->size.y / 2 + 5};
+
+        while (item2 == item1)
+        {
+            item2 = rand() % 10;
+        }
+        while (item3 == item1 || item3 == item2)
+        {
+            item2 = rand() % 10;
+        }
+
+        room->entities[room->entity_cnt++] = construct_item(item1, pos1);
+        room->entities[room->entity_cnt++] = construct_item(item2, pos2);
+        room->entities[room->entity_cnt++] = construct_item(item3, pos3);
     }
 
     if (room->type == BOSS_ROOM)
