@@ -76,7 +76,7 @@ Room *construct_room(char *filename , RoomType type)
 
     if (room->type == ITEM_ROOM)
     {
-        room->entities[room->entity_cnt++] = construct_item(rand() % 10, (Vec2d){room->size.x / 2, room->size.y / 2});
+        room->entities[room->entity_cnt++] = construct_item(rand() % 10, (Vec2d){room->size.x / 2 - 0.01, room->size.y / 2 - 0.01});
     }
 
     if (room->type == SHOP_ROOM)
