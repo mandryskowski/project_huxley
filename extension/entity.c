@@ -373,7 +373,7 @@ Entity *construct_item(ItemType itemType, Vec2d pos)
     Entity *entity = calloc(1, sizeof(Entity));
     item->dialogue->creator = entity;
 
-    *entity = (Entity){.specific_data = item, .pos = pos, .attack_func = item_action, .maxHP = INT_MAX - 1, .HP = INT_MAX - 1, .textureID = item->textureID};
+    *entity = (Entity){.specific_data = item, .pos = pos, .attack_func = item_action, .maxHP = INT_MAX - 1, .HP = INT_MAX - 1, .textureID = item->textureID, .renderOffset = (Vec2d){0.0, 0.7}, .canFly = true};
 
     return entity;
 }
@@ -408,14 +408,14 @@ Entity *construct_katsu(Vec2d pos, Room *room)
 {
     Entity * katsu = calloc(1, sizeof(Entity));
     *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = katsu_heal, .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
-                      .pos = pos, .textureID = 10, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .room = room};
+                      .pos = pos, .textureID = 11, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .room = room};
     return katsu;
 }
 
 Entity *construct_coin(Vec2d pos, Room *room)
 {
     Entity * katsu = calloc(1, sizeof(Entity));
-    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .textureID = 0, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .textureID = 8,
+    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .textureID = 6,
     .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .room = room};
     return katsu;
 }
