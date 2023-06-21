@@ -111,7 +111,7 @@ typedef struct Player
 Entity *construct_monster(Vec2d pos, MonsterType type, Room *room);
 Entity *construct_katsu(Vec2d pos, Room *room);
 Entity *construct_coin(Vec2d pos, Room *room);
-Entity *construct_item(ItemType itemType, Vec2d pos);
+Entity *construct_item(ItemType itemType, Vec2d pos, int cost);
 Player *Entity_construct_player();
 
 bool isNotAMonster(Entity *entity);
@@ -138,7 +138,7 @@ void handle_attack(Entity *, Entity *, AttackType);
 
 void shooter_spawn_attack(Entity *attacker);
 
-Dialogue *cpy_dialogue(Dialogue *dialogue);
+void free_dialogue(Dialogue *dialogue);
 
 void free_player(Player *player);
 void free_entity(Entity *entity);

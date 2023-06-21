@@ -12,6 +12,27 @@ TileType getTile(Vec2i vec, GameState *state)
     return state->currentLevel->currentRoom->tiles[vec.x][vec.y].type;
 }
 
+void add_items_to_shop(Room *room)
+{
+    ItemType item1 = rand() % 10, item2 = rand() % 10, item3 = rand() % 10;
+    Vec2d pos1 = (Vec2d){room->size.x / 2 - 0.01, room->size.y / 2 - 5 - 0.01};
+    Vec2d pos2 = (Vec2d){room->size.x / 2 - 0.01, room->size.y / 2 - 0.01};
+    Vec2d pos3 = (Vec2d){room->size.x / 2 - 0.01, room->size.y / 2 + 5 - 0.01};
+
+    while (item2 == item1)
+    {
+        item2 = rand() % 10;
+    }
+    while (item3 == item1 || item3 == item2)
+    {
+        item3 = rand() % 10;
+    }
+
+    room->entities[room->entity_cnt++] = construct_item(item1, pos1, rand() % 5 + 5);
+    room->entities[room->entity_cnt++] = construct_item(item2, pos2, rand() % 5 + 5);
+    room->entities[room->entity_cnt++] = construct_item(item3, pos3, rand() % 5 + 5);
+}
+
 int tile_type_to_textureID(TileType tileType, RoomType roomType, int x, int y, Room *room)
 {
     switch (tileType)
@@ -76,28 +97,12 @@ Room *construct_room(char *filename , RoomType type)
 
     if (room->type == ITEM_ROOM)
     {
-        room->entities[room->entity_cnt++] = construct_item(rand() % 10, (Vec2d){room->size.x / 2 - 0.01, room->size.y / 2 - 0.01});
+        room->entities[room->entity_cnt++] = construct_item(rand() % 10, (Vec2d){room->size.x / 2 - 0.01, room->size.y / 2 - 0.01}, 0);
     }
 
     if (room->type == SHOP_ROOM)
     {
-        ItemType item1 = rand() % 10, item2 = rand() % 10, item3 = rand() % 10;
-        Vec2d pos1 = (Vec2d){room->size.x / 2, room->size.y / 2 - 5};
-        Vec2d pos2 = (Vec2d){room->size.x / 2, room->size.y / 2};
-        Vec2d pos3 = (Vec2d){room->size.x / 2, room->size.y / 2 + 5};
-
-        while (item2 == item1)
-        {
-            item2 = rand() % 10;
-        }
-        while (item3 == item1 || item3 == item2)
-        {
-            item2 = rand() % 10;
-        }
-
-        room->entities[room->entity_cnt++] = construct_item(item1, pos1);
-        room->entities[room->entity_cnt++] = construct_item(item2, pos2);
-        room->entities[room->entity_cnt++] = construct_item(item3, pos3);
+        add_items_to_shop(room);
     }
 
     if (room->type == BOSS_ROOM)

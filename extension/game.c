@@ -92,23 +92,54 @@ void updateDialogue(GameState* state)
                 {
                     if (isItem(state->guiState->dialogue->creator))
                     {
-                        Item *item = cpy_item(state->guiState->dialogue->creator->specific_data);
-                        if (item->item_passive){
-                            state->player->items[state->player->items_cnt++] = item;
-                            item->item_passive(state->player);
-                        }
-                        if (item->item_active){
-                            state->player->active_item = item;
-                        }
-
-                        for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
+                        if (((Item *)state->guiState->dialogue->creator->specific_data)->cost <= state->player->coins)
                         {
-                            if (isItem(*entity))
-                            {
-                                killEntity(*entity);
+                            state->player->coins -= ((Item *)state->guiState->dialogue->creator->specific_data)->cost;
+                            Item *item = cpy_item(state->guiState->dialogue->creator->specific_data);
+                            if (item->item_passive){
+                                state->player->items[state->player->items_cnt++] = item;
+                                item->item_passive(state->player);
                             }
+                            if (item->item_active){
+                                state->player->active_item = item;
+                            }
+
+                            for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
+                            {
+                                if (isItem(*entity))
+                                {
+                                    killEntity(*entity);
+                                }
+                            }
+                            //TODO:: buy audio
+                        }
+                        else
+                        {
+                            //TODO:: fail to buy audio
                         }
                     }
+                    else if (state->currentLevel->currentRoom->type == SHOP_ROOM)
+                    {
+                        const int reroll_cost = 2;
+                        if (state->player->coins >= reroll_cost)
+                        {
+                            state->player->coins -= reroll_cost;
+                            for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
+                            {
+                                if (isItem(*entity))
+                                {
+                                    killEntity(*entity);
+                                }
+                            }
+                            add_items_to_shop(state->currentLevel->currentRoom);
+                            //TODO:: reroll audio
+                        }
+                        else
+                        {
+                            //TODO:: fail to reroll audio
+                        }
+                    }
+
                     state->player->isInDialogue = false;
                     return;
                 }

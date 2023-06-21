@@ -266,7 +266,19 @@ void gui_update(GameState* gState, RenderState* rState)
         igText(gState->guiState->dialogue->dialogueLines[gState->guiState->dialogue->dialogueIndex], NULL, 0);
         if(gState->guiState->dialogue->isSkippable)
         {
-           igText("\nPress \"E\" to continue...", NULL, 0);
+            if (gState->guiState->dialogue->dialogueIndex + 1 == gState->guiState->dialogue->dialogueSize
+                && (gState->currentLevel->currentRoom->type == SHOP_ROOM) && isNPC(gState->guiState->dialogue->creator))
+            {
+                igText("\nPress \"E\" to reroll items...(otherwise press space)", NULL, 0);
+            }
+            else if (isItem(gState->guiState->dialogue->creator))
+            {
+                igText("\nPress \"E\" to pickup item...(otherwise press space)", NULL, 0);
+            }
+            else
+            {
+                igText("\nPress \"E\" to continue...", NULL, 0);
+            }
         }
 
         igSetWindowSize_Vec2((ImVec2){0,0}, ImGuiCond_Always);

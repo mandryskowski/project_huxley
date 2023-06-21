@@ -20,9 +20,11 @@ typedef struct Item
     active item_active;
     int active_cooldown;
     int cooldown_left;
+    int cost;
+    ItemType type;
 } Item;
 
-Item *get_item(ItemType type);
+Item *get_item(ItemType type, int cost);
 
 Item *cpy_item(Item *item);
 

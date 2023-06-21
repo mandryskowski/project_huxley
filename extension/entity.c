@@ -196,7 +196,7 @@ void mine_death(Entity *attacker)
     Rectangle mine_hitbox = (Rectangle){{attacker->pos.x - 1, attacker->pos.y - 1}, {attacker->pos.x + 2, attacker->pos.y + 2}};
     for (Entity **entity = attacker->room->entities; *entity; entity++)
     {
-        if (isProjectile(*entity) || isPickable(*entity) || isMine(*entity))
+        if (isProjectile(*entity) || isPickable(*entity) || isMine(*entity) || isItem(*entity) || isNPC(*entity))
         {
             continue;
         }
@@ -312,7 +312,7 @@ Dialogue* shopkeeper_dialogue(void) {
     d->title = calloc(1, 20);
     strcpy(d->title, "Mysterious figure");
     d->dialogueSize = 2;
-    d->skipCooldown = 2.0;
+    d->skipCooldown = 0.2;
     d->dialogueIndex = 0;
     d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
     d->dialogueLines[0] = calloc(1, sizeof("Enter, weary survivor, and gaze upon the remnants of a shattered world.\n Within these scorched walls, the wares of a bygone era await your trembling hands.\n Behold the irony, for it was the very intelligence that birthed the apocalypse, and now,\n here you stand, seeking solace in the artifacts birthed by that very chaos.") + 1);
@@ -391,9 +391,9 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
     return monster;
 }
 
-Entity *construct_item(ItemType itemType, Vec2d pos)
+Entity *construct_item(ItemType itemType, Vec2d pos, int cost)
 {
-    Item *item = get_item(itemType);
+    Item *item = get_item(itemType, cost);
     Entity *entity = calloc(1, sizeof(Entity));
     item->dialogue->creator = entity;
 
@@ -447,28 +447,6 @@ Entity *construct_coin(Vec2d pos, Room *room)
 bool isKatsu(Entity *entity)
 {
     return entity->attack_func == katsu_heal;
-}
-
-Dialogue *cpy_dialogue(Dialogue *dialogue)
-{
-    Dialogue *dialogue_cpy = malloc(sizeof(Dialogue));
-
-    dialogue_cpy->title = calloc(1, sizeof(dialogue->title) + 1);
-    strcpy(dialogue_cpy->title, dialogue->title);
-    dialogue_cpy->creator = dialogue->creator;
-    dialogue_cpy->dialogueSize = dialogue->dialogueSize;
-    dialogue_cpy->dialogueIndex = dialogue->dialogueIndex;
-    dialogue_cpy->isSkippable = dialogue->isSkippable;
-    dialogue_cpy->skipCooldown = dialogue_cpy->skipCooldown;
-
-    dialogue_cpy->dialogueLines = calloc(dialogue_cpy->dialogueSize, sizeof(char *));
-    for (int i = 0; i < dialogue->dialogueSize; i++)
-    {
-        dialogue_cpy->dialogueLines[i] = calloc(1, strlen(dialogue->dialogueLines[i]) + 1);
-        strcpy(dialogue_cpy->dialogueLines[i], dialogue->dialogueLines[i]);
-    }
-
-    return dialogue_cpy;
 }
 
 void free_dialogue(Dialogue *dialogue)
