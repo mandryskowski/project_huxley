@@ -7,7 +7,7 @@
 
 uint loadTexture(char* filename)
 {
-    stbi_set_flip_vertically_on_load(0);
+    stbi_set_flip_vertically_on_load(1);
     int imgWidth, imgHeight, imgChannels;
     unsigned char* data = stbi_load(filename, &imgWidth, &imgHeight, &imgChannels, 0);
 
@@ -133,10 +133,25 @@ Vec4d getRoomMinimapColor(RoomType type, bool visited, Vec2i roomCoords)
     {
         case NORMAL_ROOM: return visited ? grayValueToColor(checkerboardColor * 0.15 + 0.75, 0.51) : grayValueToColor(checkerboardColor * 0.1 + 0.3, 0.51);
         case BOSS_ROOM: return visited ? grayValueToColor(checkerboardColor * 0.15 + 0.75, 0.51) : (Vec4d){0.5, 0.0, 0.0, 0.51};
-        case SHOP_ROOM: return visited ? (Vec4d){0.5, 1.0, 0.0, 0.51} : (Vec4d){0.25, 0.5, 0.0, 0.51};
+        case ITEM_ROOM: case SHOP_ROOM: return visited ? (Vec4d){0.5, 1.0, 0.0, 0.51} : (Vec4d){0.25, 0.5, 0.0, 0.51};
         case QUEST_ROOM: return visited ? (Vec4d){1.0, 1.0, 0.0, 0.51} : (Vec4d){0.5, 0.5, 0.0, 0.51};
         default:
         case NOT_ROOM: return (Vec4d){0, 0, 0, 0.51};
 
     }
 }
+
+
+/*EntityTextureInformation getEntityTexInfo(Entity* ent)
+{
+    if (isItem(ent))
+    {
+        return (EntityTextureInformation){.shadowOffset = (Vec2d){0.0f, -0.2f}, .shadowStrength = 4.0, .textureOffset = (Vec2d){0,0}, .textureScale = (Vec2d){0.8, 0.8}};
+    }
+    else if (isPickable(ent))
+    {
+        return (EntityTextureInformation){.shadowOffset = (Vec2d){0.0f, -0.2f}, .shadowStrength = 16.0, .textureOffset = (Vec2d){0,0}, .textureScale = (Vec2d){0.4, 0.4}};
+    }
+
+
+} */

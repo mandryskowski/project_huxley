@@ -113,6 +113,7 @@ const char fShaderSrc[] = "#version 400 core\n" \
 
 void getShadowInfo(Entity* ent, Vec2d* shadowCenterOffset, Vec2d* modelOffset, float* shadowSize)
 {
+    *shadowCenterOffset = isItem(ent) ? (Vec2d){0.0, 0.5} : (Vec2d){0.0, -0.35};
     if (ent->canFly)
     {
         *shadowCenterOffset = (Vec2d){0.0, -0.35};
@@ -205,7 +206,7 @@ Vertex* initIsoMeshHelperQuad(uint x, uint y, Mesh* outMesh, Vertex* verts, Vec2
         *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x, offsets[i].y}, quadPos),
                         .texCoord = Vec2d_add((Vec2d){0.5, 0.5}, Vec2d_scale(offsets[i], 0.5)),
                         .textureID =  textureID,
-                        .tileDepth = tileDepth + ((tileType == TILE_WALL) ?  0 : 1)};
+                        .tileDepth = tileDepth + ((tileType != TILE_FLOOR) ?  0 : 1)};
         outMesh->vertexCount++;
         verts++;
     }
@@ -245,38 +246,12 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
 
             if (type == TILE_FLOOR && x + 1 < width && gameState->currentLevel->currentRoom->tiles[x+1][y].type == TILE_WALL)
             {
-                for (int i = 0; i < 6; i++)
-                {
-                    int tileDepth = (x + y) + 1;
-
-                    *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x, offsets[i].y}, quadPos),
-                                    .texCoord = Vec2d_add((Vec2d){0.5, 0.5}, Vec2d_scale(offsets[i], 0.5)),
-                                    .textureID = 5,
-                                    .tileDepth = tileDepth + ((type == TILE_WALL) ?  0 : 1)};
-                    outMesh.vertexCount++;
-                                    //.textureID = gameState->currentLevel->currentRoom->tiles[x][y].textureID};
-                                    //.textureID = y * 16 + x};
-                    //printf("tcoord %f %f\n", verts->texCoord.x, verts->texCoord.y);
-                    verts++;
-                }
+                verts = initIsoMeshHelperQuad(x, y, &outMesh, verts, offsets, quadPos, 5, type);
             }
 
             if (type == TILE_FLOOR && y + 1 < height && gameState->currentLevel->currentRoom->tiles[x][y+1].type == TILE_WALL)
             {
-                for (int i = 0; i < 6; i++)
-                {
-                    int tileDepth = (x + y) + 1;
-
-                    *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x * tileSize.x, offsets[i].y * tileSize.y}, quadPos),
-                                    .texCoord = Vec2d_add((Vec2d){0.5, 0.5}, Vec2d_scale(offsets[i], 0.5)),
-                                    .textureID = 4,
-                                    .tileDepth = tileDepth + ((type == TILE_WALL) ?  0 : 1)};
-                    outMesh.vertexCount++;
-                                    //.textureID = gameState->currentLevel->currentRoom->tiles[x][y].textureID};
-                                    //.textureID = y * 16 + x};
-                    //printf("tcoord %f %f\n", verts->texCoord.x, verts->texCoord.y);
-                    verts++;
-                }
+                verts = initIsoMeshHelperQuad(x, y, &outMesh, verts, offsets, quadPos, 4, type);
             }
 
             if (type == TILE_WALL && x + 1 < width && y > 0 && gameState->currentLevel->currentRoom->tiles[x+1][y-1].type == TILE_WALL && gameState->currentLevel->currentRoom->tiles[x][y-1].type == TILE_FLOOR)
@@ -285,21 +260,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
             }
 
             
-
-            for (int i = 0; i < 6; i++)
-            {
-                int tileDepth = (x + y) + 1;
-
-                *verts = (Vertex){.position = Vec2d_add((Vec2d){offsets[i].x, offsets[i].y}, quadPos),
-                                  .texCoord = Vec2d_add((Vec2d){0.5, 0.5}, Vec2d_scale(offsets[i], 0.5)),
-                                  .textureID = texID,
-                                  .tileDepth = tileDepth + ((type == TILE_WALL) ?  0 : 1)};
-                outMesh.vertexCount++;
-                                  //.textureID = gameState->currentLevel->currentRoom->tiles[x][y].textureID};
-                                  //.textureID = y * 16 + x};
-                //printf("tcoord %f %f\n", verts->texCoord.x, verts->texCoord.y);
-                verts++;
-            }
+            verts = initIsoMeshHelperQuad(x, y, &outMesh, verts, offsets, quadPos, texID, type);
            // printf("vert (%d %d) %f %f \n", x, y,quadPos.x, quadPos.y);
         }
     }
@@ -585,7 +546,7 @@ void render(GameState* gState, RenderState* state)
 
     for(Entity** ent = entities; *ent != NULL; ent++)
     {
-        Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(getIsoOrGridPos(gState, state, (*ent)->pos), isPickable(*ent) ? (Vec2d){0.3f, 0.3f} : (Vec2d){1.0f, 1.0f}), viewMat);
+        Mat3f viewMatCharacter = Mat3f_multiply(Mat3f_construct(getIsoOrGridPos(gState, state, (*ent)->pos), (isItem(*ent)) ? (Vec2d){0.9f, 0.9f} : ((isPickable(*ent)) ? (Vec2d){0.2f, 0.2f} : (Vec2d){0.95f, 0.95f})), viewMat);
         glUniform1i(glGetUniformLocation(state->shader, "flipHorizontal"), Vec2d_rotate((*ent)->velocity, 45.0).x < EPSILON);
 
         Vec2d modelOffset = (Vec2d){0,0};
@@ -607,7 +568,7 @@ void render(GameState* gState, RenderState* state)
             Vec2d absoluteHitboxPos = Vec2d_add((*ent)->pos, hitboxPos);
 
             // We set the entity's depth to minimal (0) when it's at a left/bottom edge of the room since we want it to render on top of the neighbour room.
-            float entDepth = (floor(absoluteHitboxPos.x) == 0 || floor(absoluteHitboxPos.y) == 0) ? 0 : (absoluteHitboxPos.x +  absoluteHitboxPos.y + 1);
+            float entDepth = (floor(absoluteHitboxPos.x) == 0 || floor(absoluteHitboxPos.y) == 0) ? 0 : ((int)absoluteHitboxPos.x +  (int)absoluteHitboxPos.y + 1);
 
             glUniform1i(glGetUniformLocation(state->shader, "customDepth"), entDepth);
         }
@@ -615,7 +576,7 @@ void render(GameState* gState, RenderState* state)
         int entityTexID = (*ent)->textureID;
         glUniform1i(glGetUniformLocation(state->shader, "unTexId"), entityTexID);
 
-        glBindTexture(GL_TEXTURE_2D_ARRAY, state->renderIsometric ? (isPickable(*ent) || isItem(*ent) ? state->isoItemAtlas : state->isoCharacterAtlas) : state->characterAtlas);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, state->renderIsometric ? ((isPickable(*ent) || isItem(*ent)) ? state->isoItemAtlas : state->isoCharacterAtlas) : state->characterAtlas);
         glBindVertexArray(state->quadMesh.VAO);
 
         // outline render

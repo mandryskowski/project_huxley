@@ -13,6 +13,7 @@
 #include "game_math.h"
 #include "level.h"
 #include "AL/alc.h"
+#include "item.h"
 #include "audio.h"
 #include <string.h>
 
@@ -27,6 +28,8 @@ void gui_init(GameState* gState) {
 
     // Setup style
     igStyleColorsDark(NULL);
+    gState->guiState->titleFont = ImFontAtlas_AddFontFromFileTTF(igGetIO()->Fonts, "evil_empire.ttf", 128.0f, ImFontConfig_ImFontConfig(), ImFontAtlas_GetGlyphRangesDefault(igGetIO()->Fonts));
+    gState->guiState->defaultFont = ImFontAtlas_AddFontDefault(igGetIO()->Fonts, ImFontConfig_ImFontConfig());
 }
 
 void gui_terminate(GameState* gState) {
@@ -109,17 +112,23 @@ bool guiButtonCentered(char* text, ImVec2 size)
 
 void gui_credits_window(GameState* gState, RenderState* rState)
 {
+    //igPushFont(gState->guiState->titleFont);
     igText("Michal Andryskowski");
     igText("Bogdan Gavra");
     igText("Kuba Lapinski");
     igText("Vlad Marchis");
     igText("Matthew Baugh (Project mentor)");
+    igText("The main character's likeness is used with verbal permission of Konstantinos Gkoutzis.");
+    igText("EVIL EMPIRE font: license: Creative Commons (by) Attribution, link: https://www.fontspace.com/evil-empire-font-f41587");
+    //igPopFont();
 }
 
 void gui_menu_window(GameState* gState, RenderState* rState)
 {
     igPushStyleVar_Vec2(ImGuiStyleVar_ItemSpacing, (ImVec2){0.0f, 64.0f});
+    igSetWindowFontScale(1.0f / 1.5f);
     guiTextCentered("The DOC's Legacy: Konstantinos' Destiny");
+    igSetWindowFontScale(1.0f / 4.0f);
 
     ImVec2 buttonSize = (ImVec2){igGetIO()->DisplaySize.x * 0.5, igGetIO()->DisplaySize.y * 0.15};
 
@@ -150,9 +159,12 @@ void gui_main_menu_update(GameState* gState, RenderState* rState)
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
+
+    igSetWindowFontScale(0.5f);
     igSetNextWindowPos((ImVec2){0,0}, ImGuiCond_Always, (ImVec2){0,0});
     igSetNextWindowSize(igGetIO()->DisplaySize, ImGuiCond_Always);
     igBegin("Main menu", NULL, ImGuiWindowFlags_NoTitleBar);
+    igSetWindowFontScale(1.0f / 4.0f);
 
     switch (gState->guiState->menu)
     {
@@ -216,6 +228,7 @@ void gui_ingame_menu_update(GameState* gState, RenderState* rState)
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
 
+
     igBegin("In-game menu", NULL, 0);
     igEnd();
 }
@@ -227,6 +240,9 @@ void gui_update(GameState* gState, RenderState* rState)
     igNewFrame();
 
 
+    double minSize = min(igGetIO()->DisplaySize.x, igGetIO()->DisplaySize.y);
+
+
     if (gState->player->entity->HP <= 0)
     {
         igBegin("ur dead loser", NULL, 0);
@@ -236,19 +252,25 @@ void gui_update(GameState* gState, RenderState* rState)
     //printf("%d\n", gState->player->canEnterDialogue);
     if(gState->player->canEnterDialogue)
     {
+        igSetNextWindowSize((ImVec2){0,0}, ImGuiCond_Always);
         igBegin("Dialogue prompt", NULL, 0);
+        igSetWindowFontScale(1.0 / 6.0);
         igText("Press \"Q\" to interact...", NULL, 0);
+        igSetWindowSize_Vec2((ImVec2){0,0}, ImGuiCond_Always);
         igEnd();
     }
     else if(gState->player->isInDialogue)
     {
-        //igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_FirstUseEver, (ImVec2){100, 100});
         igBegin(gState->guiState->dialogue->title, NULL, 0);
+        igSetWindowFontScale(1.0 / 6.0);
         igText(gState->guiState->dialogue->dialogueLines[gState->guiState->dialogue->dialogueIndex], NULL, 0);
         if(gState->guiState->dialogue->isSkippable)
         {
            igText("\nPress \"E\" to continue...", NULL, 0);
         }
+
+        igSetWindowSize_Vec2((ImVec2){0,0}, ImGuiCond_Always);
+        
         igEnd();
     }
 
@@ -263,36 +285,46 @@ void gui_update(GameState* gState, RenderState* rState)
         igGetWindowSize(&lol);
         igSetWindowPos_Vec2((ImVec2){igGetIO()->DisplaySize.x - lol.x, igGetIO()->DisplaySize.y - lol.y},  0);
 
-        for (int i = 0; i < 16; i++)
+
+        for (int i = 0; i < gState->player->items_cnt; i++)
         {
-            double minSize = min(igGetIO()->DisplaySize.x, igGetIO()->DisplaySize.y);
+            int id = gState->player->items[i]->textureID;
             
-            igImage((void*)(intptr_t)gState->rState->uiItemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(i % 4) * 0.25, (i / 4) * 0.25}, (ImVec2){(double)(i % 4) * 0.25 + 0.25, (i / 4) * 0.25 + 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,1,0.5});
+            igImage((void*)(intptr_t)gState->rState->uiItemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(id % 4) * 0.25 + 0.25, (id / 4) * 0.25 + 0.25}, (ImVec2){(double)(id % 4) * 0.25, (id / 4) * 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,1,0.5});
             igSameLine(0, minSize * 0.0125);
         }
         igEnd();
     }
 
-    // Health
+    // Health and coins
     {
-        igBegin("Health", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
+        igBegin("Health and coins", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
         ImVec2 lol;
         igSetWindowSize_Vec2((ImVec2){0,0}, 0);
         igGetWindowSize(&lol);
         igSetWindowPos_Vec2((ImVec2){0, igGetIO()->DisplaySize.y - lol.y},  0);
-        
-        
-        //igPushFont();
+        int id = 10;
+        igSetWindowFontScale(1.0 / 4.0);
 
-        igPushStyleColor_Vec4(ImGuiCol_Text, (ImVec4){1,0,0,1});
+  igImage((void*)(intptr_t)gState->rState->uiItemAtlas, (ImVec2){32, 32}, (ImVec2){(double)(id % 4) * 0.25 + 0.25, (id / 4) * 0.25 + 0.25}, (ImVec2){(double)(id % 4) * 0.25, (id / 4) * 0.25}, (ImVec4){1,1,1,0.51}, (ImVec4){1,1,1,0.0});
+        igSameLine(0, 0);
+        igPushStyleColor_Vec4(ImGuiCol_Text, (ImVec4){1,0,0,0.51});
         igText("%d", gState->player->entity->HP);
         igPopStyleColor(1);
 
+id = 6;
+        igImage((void*)(intptr_t)gState->rState->uiItemAtlas, (ImVec2){32, 32}, (ImVec2){(double)(id % 4) * 0.25 + 0.25, (id / 4) * 0.25 + 0.25}, (ImVec2){(double)(id % 4) * 0.25, (id / 4) * 0.25}, (ImVec4){1,1,1,0.51}, (ImVec4){1,1,1,0.0});
+        igSameLine(0, 0);
+        igPushStyleColor_Vec4(ImGuiCol_Text, (ImVec4){1,1,0,0.51});
+        igText("%d", gState->player->coins);
+        igPopStyleColor(1);
         igEnd();
     }
 
     igPopStyleColor(2);
 
+
+    igSetCurrentFont(gState->guiState->defaultFont);
     igBegin("Game debug", NULL, 0);
 
     if (sliderDouble("1:1 Camera size", &gState->player->cameraSize.x, 1.0, 32.0))
@@ -319,7 +351,7 @@ void gui_update(GameState* gState, RenderState* rState)
             gState->currentLevel->currentRoom->entities[i]->HP = 0;
         }
     }
-    igShowMetricsWindow(NULL);
+
     if (igTreeNode_Str("Entity tree"))
     {
         Entity** arr = gState->currentLevel->currentRoom->entities;
@@ -345,7 +377,7 @@ void gui_update(GameState* gState, RenderState* rState)
                 {
                     sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
                     igCheckbox("Can fly?", &(*arr)->canFly);
-                    igSliderInt("HP", &(*arr)->HP, 0, 100, NULL, 0);
+                    igSliderInt("HP", &(*arr)->HP, 0, (*arr)->maxHP, NULL, 0);
                     igSliderInt("ATK", &(*arr)->ATK, 0, 100, NULL, 0);
                     sliderDouble("ATK speed", &(*arr)->attack_SPD, 0, 100);
                     igSliderInt("ATK cooldown", &(*arr)->attack_cooldown, 0, 100, NULL, 0);
@@ -372,4 +404,7 @@ void gui_update(GameState* gState, RenderState* rState)
     igCheckbox("VSync?", &rState->VSync);
     
     igEnd();
+
+    igShowMetricsWindow(NULL);
+    igSetCurrentFont(gState->guiState->titleFont);
 }

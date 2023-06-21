@@ -12,7 +12,8 @@ typedef struct Level Level;
 typedef struct Player Player;
 typedef struct Dialogue Dialogue;
 typedef struct RenderState RenderState;
-typedef struct AudioState AudioState; 
+typedef struct AudioState AudioState;
+typedef struct ImFont ImFont;
 
 typedef enum GUIMenu
 {
@@ -29,6 +30,8 @@ typedef struct GUIState
 {
     Dialogue* dialogue;
     GUIMenu menu;
+    ImFont* titleFont;
+    ImFont* defaultFont;
 } GUIState;
 
 typedef struct GameState
