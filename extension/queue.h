@@ -18,7 +18,7 @@ void push(Queue* queue, Vec2d data);
 Vec2d pop(Queue* queue);
 bool isEmpty(Queue *queue);
 void clearQueue(Queue* queue);
-void freeQueue(Queue* queue);
+void free_queue(Queue* queue);
 
 
 #endif //ARMV8_25_QUEUE_H

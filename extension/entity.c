@@ -8,6 +8,7 @@
 #include "assets.h"
 #include "audio.h"
 #include "item.h"
+#include "queue.h"
 
 bool isNotAMonster(Entity *entity)
 {
@@ -408,14 +409,14 @@ Entity *construct_katsu(Vec2d pos, Room *room)
 {
     Entity * katsu = calloc(1, sizeof(Entity));
     *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = katsu_heal, .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}},
-                      .pos = pos, .textureID = 10, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .room = room};
+                      .pos = pos, .textureID = 11, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .room = room};
     return katsu;
 }
 
 Entity *construct_coin(Vec2d pos, Room *room)
 {
     Entity * katsu = calloc(1, sizeof(Entity));
-    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .textureID = 0, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .textureID = 8,
+    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .textureID = 6, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1,
     .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .room = room};
     return katsu;
 }
@@ -423,4 +424,54 @@ Entity *construct_coin(Vec2d pos, Room *room)
 bool isKatsu(Entity *entity)
 {
     return entity->attack_func == katsu_heal;
+}
+
+void free_dialogue(Dialogue *dialogue)
+{
+    free(dialogue->dialogueLines);
+    free(dialogue);
+}
+
+void free_npc(Npc *npc)
+{
+    free_dialogue(npc->dialogue);
+    free(npc);
+}
+
+void free_item_entity_leaving_item_data(Entity *entity)
+{
+    if (entity->currentAnimation)
+    {
+        free_animation(entity->currentAnimation);
+    }
+    free(entity);
+}
+
+void free_player(Player *player)
+{
+    free_queue(player->prev_positions);
+    for (Item **pItem = player->items; *pItem; pItem++)
+    {
+        free(*pItem);
+    }
+    free(player->items);
+    free(player->active_item);
+    free_entity(player->entity);
+}
+
+void free_entity(Entity *entity)
+{
+    if (entity->currentAnimation)
+    {
+        free_animation(entity->currentAnimation);
+    }
+    if (isItem(entity))
+    {
+        free_item(entity->specific_data);
+    }
+    else if (isNPC(entity))
+    {
+        free_npc(entity->specific_data);
+    }
+    free(entity);
 }

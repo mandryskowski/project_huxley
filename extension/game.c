@@ -93,15 +93,14 @@ void updateDialogue(GameState* state)
                     if (isItem(state->guiState->dialogue->creator))
                     {
                         Item *item = state->guiState->dialogue->creator->specific_data;
-                        state->player->items[state->player->items_cnt++] = item;
                         if (item->item_passive){
+                            state->player->items[state->player->items_cnt++] = item;
                             item->item_passive(state->player);
                         }
                         if (item->item_active){
                             state->player->active_item = item;
                         }
                         killEntity(state->guiState->dialogue->creator);
-
                     }
                     state->player->isInDialogue = false;
                     return;
@@ -192,7 +191,7 @@ void erase_dead(Room *room)
             {
                 (*entity)->death_func(*entity);
             }
-            if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity))
+            if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity) && !isItem(*entity))
             {
                 if (rand() % 5 == 0)
                 {
@@ -204,7 +203,14 @@ void erase_dead(Room *room)
                 }
             }
 
-            free(*entity);
+            if (isItem(*entity))
+            {
+                free_item_entity_leaving_item_data(*entity);
+            }
+            else
+            {
+                free_entity(*entity);
+            }
             *entity = NULL;
             swap(entity, (room->entities + room->entity_cnt - 1));
             room->entity_cnt--;
@@ -424,8 +430,8 @@ void gameLoop(GameState* gState)
 void disposeOfGame(GameState* gState)
 {
     glfwSetKeyCallback(gState->window, NULL);
-    free(gState->currentLevel);
-    free(gState->player);
+    free_level(gState->currentLevel);
+    free_player(gState->player);
     disposeOfRender(gState->rState);
 
     //free(gState->rState);

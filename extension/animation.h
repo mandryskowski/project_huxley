@@ -23,6 +23,7 @@ Animation* Animation_construct();
 
 bool animLogicInt(Animation* anim);
 bool animLogicDouble(Animation* anim);
+void free_animation(Animation* anim);
 
 Animation* Animation_construct_mysterious(Entity* entity);
 

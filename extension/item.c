@@ -148,3 +148,9 @@ Item *get_item(ItemType type){
 
     return item;
 }
+
+void free_item(Item *item)
+{
+    free(item->dialogue);
+    free(item);
+}
