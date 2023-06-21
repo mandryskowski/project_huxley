@@ -91,7 +91,7 @@ Item construct_piercing()
     return (Item){.textureID = 9, .dialogue = construct_description("Holographic module", "Projectiles can now pass through enemies"), .item_passive = piercing};
 }
 
-Item construct_max_health()
+Item construct_max_health() 
 {
     return (Item){.textureID = 10, .dialogue = construct_description("Resilience module", "Maximum health increased"), .item_passive = max_health_increase};
 }
@@ -108,7 +108,7 @@ Item construct_jetpack()
 
 Item construct_stopwatch()
 {
-    return (Item){.textureID = 11, .item_active = time_travel, .active_cooldown = 300,
+    return (Item){.textureID = 7, .item_active = time_travel, .active_cooldown = 300,
             .dialogue = construct_description("Mysterious hourglass", "Who knows?")};
 }
 
