@@ -136,7 +136,8 @@ Vec4d getRoomMinimapColor(RoomType type, bool visited, Vec2i roomCoords)
     {
         case NORMAL_ROOM: return visited ? grayValueToColor(checkerboardColor * 0.15 + 0.75, 0.51) : grayValueToColor(checkerboardColor * 0.1 + 0.3, 0.51);
         case BOSS_ROOM: return visited ? grayValueToColor(checkerboardColor * 0.15 + 0.75, 0.51) : (Vec4d){0.5, 0.0, 0.0, 0.51};
-        case ITEM_ROOM: case SHOP_ROOM: return visited ? (Vec4d){0.5, 1.0, 0.0, 0.51} : (Vec4d){0.25, 0.5, 0.0, 0.51};
+        case ITEM_ROOM: return visited ? (Vec4d){0.5, 1.0, 0.0, 0.51} : (Vec4d){0.25, 0.5, 0.0, 0.51};
+        case SHOP_ROOM: return visited ? (Vec4d){0.5, 0.5, 1.0, 0.51} : (Vec4d){0.25, 0.25, 0.5, 0.51};
         case QUEST_ROOM: return visited ? (Vec4d){1.0, 1.0, 0.0, 0.51} : (Vec4d){0.5, 0.5, 0.0, 0.51};
         default:
         case NOT_ROOM: return (Vec4d){0, 0, 0, 0.51};
