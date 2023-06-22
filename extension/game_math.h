@@ -20,6 +20,11 @@ typedef struct Vec2d
     double x, y;
 } Vec2d;
 
+typedef struct Vec3f
+{
+    float x, y, z;
+} Vec3f;
+
 typedef struct Vec4d
 {
     double x, y, z, w;
@@ -44,6 +49,7 @@ double clamp(double a, double minVal, double maxVal);
 
 Mat3f Mat3f_construct(Vec2d translation, Vec2d scale);
 Mat3f Mat3f_multiply(Mat3f, Mat3f);
+Vec3f Mat3f_multiply_Vec3f(Mat3f, Vec3f);
 void Mat3f_print(Mat3f*);
 
 Vec2i Vec2i_normalize(Vec2i);

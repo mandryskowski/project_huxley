@@ -120,6 +120,7 @@ void gui_credits_window(GameState* gState, RenderState* rState)
     igText("Matthew Baugh (Project mentor)");
     igText("The main character's likeness is used with verbal permission of Konstantinos Gkoutzis.");
     igText("EVIL EMPIRE font: license: Creative Commons (by) Attribution, link: https://www.fontspace.com/evil-empire-font-f41587");
+    igText("8-bit sounds by LittleRobotSoundFactory https://freesound.org/people/LittleRobotSoundFactory/packs/16681/");
     //igPopFont();
 }
 
@@ -155,15 +156,13 @@ void gui_menu_window(GameState* gState, RenderState* rState)
 
 void gui_main_menu_update(GameState* gState, RenderState* rState)
 {
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
 
-    igSetWindowFontScale(0.5f);
     igSetNextWindowPos((ImVec2){0,0}, ImGuiCond_Always, (ImVec2){0,0});
     igSetNextWindowSize(igGetIO()->DisplaySize, ImGuiCond_Always);
-    igBegin("Main menu", NULL, ImGuiWindowFlags_NoTitleBar);
+    igBegin("Main menu", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
     igSetWindowFontScale(1.0f / 4.0f);
 
     switch (gState->guiState->menu)
@@ -174,7 +173,7 @@ void gui_main_menu_update(GameState* gState, RenderState* rState)
             gui_options_window(gState, rState);
             if (igButton("Save and exit", (ImVec2){0,0}))
             {
-                gState->guiState->menu =  GUI_MAIN_MENU;
+                gState->guiState->menu = GUI_MAIN_MENU;
             }
             break;
         }
@@ -183,7 +182,7 @@ void gui_main_menu_update(GameState* gState, RenderState* rState)
             gui_options_window(gState, rState);
             if (igButton("Save and exit", (ImVec2){0,0}))
             {
-                gState->guiState->menu =  GUI_MAIN_GAME;
+                gState->guiState->menu = GUI_MAIN_GAME;
             }
             break;
         }
@@ -218,7 +217,6 @@ void gui_main_menu_update(GameState* gState, RenderState* rState)
             break;
     }
    
-
     igEnd();
 }
 
@@ -226,11 +224,41 @@ void gui_ingame_menu_update(GameState* gState, RenderState* rState)
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
-    igNewFrame();
+    igNewFrame(); 
+}
 
+void gui_clamp_to_window(GameState* gState)
+{
+    ImVec2 windowSize, windowPos;
+    igGetWindowSize(&windowSize);
+    igGetWindowPos(&windowPos);
 
-    igBegin("In-game menu", NULL, 0);
-    igEnd();
+    windowPos = (ImVec2){max(0, windowPos.x), max(0, windowPos.y)};
+
+    if (windowPos.x + windowSize.x > igGetIO()->DisplaySize.x)
+    {
+        windowPos.x = igGetIO()->DisplaySize.x - windowSize.x;
+    }
+    if (windowPos.y + windowSize.y > igGetIO()->DisplaySize.y)
+    {
+        windowPos.y = igGetIO()->DisplaySize.y - windowSize.y;
+    }
+
+    igSetWindowPos_Vec2(windowPos, ImGuiCond_Always);
+}
+
+void gui_set_window_pos_to_entity(GameState* gState)
+{
+    Mat3f viewMat = getViewMatrix(gState, (Vec2d){0,0});
+    Vec2d isoPos = getIsoPos(gState->guiState->dialogue->creator->pos);
+    Vec3f finalPos = (Vec3f){isoPos.x, isoPos.y, 1.0};
+    finalPos = Mat3f_multiply_Vec3f(viewMat, finalPos);
+    finalPos.x = finalPos.x * 0.5 + 0.5;
+    finalPos.y = 1.0 - (finalPos.y * 0.5 + 0.5);
+
+    igSetWindowPos_Vec2((ImVec2){finalPos.x * igGetIO()->DisplaySize.x, finalPos.y * igGetIO()->DisplaySize.y}, ImGuiCond_Always);
+    
+    gui_clamp_to_window(gState);
 }
 
 void gui_update(GameState* gState, RenderState* rState)
@@ -243,25 +271,30 @@ void gui_update(GameState* gState, RenderState* rState)
     double minSize = min(igGetIO()->DisplaySize.x, igGetIO()->DisplaySize.y);
 
 
-    if (gState->player->entity->HP <= 0)
-    {
-        igBegin("ur dead loser", NULL, 0);
-        igEnd();
-    }
-
     //printf("%d\n", gState->player->canEnterDialogue);
     if(gState->player->canEnterDialogue)
     {
-        igSetNextWindowSize((ImVec2){0,0}, ImGuiCond_Always);
-        igBegin("Dialogue prompt", NULL, 0);
+        ImVec2 textSize;
+        igCalcTextSize(&textSize, gState->guiState->dialogue->title, NULL, false, 0.0);
+        igPushStyleVar_Vec2(ImGuiStyleVar_WindowMinSize, (ImVec2){textSize.x / 6 + igGetStyle()->FramePadding.x * 2, 0});
+
+        igBegin("Dialogue prompt", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+
         igSetWindowFontScale(1.0 / 6.0);
         igText("Press \"Q\" to interact...", NULL, 0);
-        igSetWindowSize_Vec2((ImVec2){0,0}, ImGuiCond_Always);
+        gui_set_window_pos_to_entity(gState);
+
         igEnd();
+
+        igPopStyleVar(1);
     }
     else if(gState->player->isInDialogue)
     {
-        igBegin(gState->guiState->dialogue->title, NULL, 0);
+        ImVec2 textSize;
+        igCalcTextSize(&textSize, gState->guiState->dialogue->title, NULL, false, 0.0);
+        igPushStyleVar_Vec2(ImGuiStyleVar_WindowMinSize, (ImVec2){textSize.x / 6 + igGetStyle()->FramePadding.x * 2, 0});
+        
+        igBegin(gState->guiState->dialogue->title, NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
         igSetWindowFontScale(1.0 / 6.0);
         igText(gState->guiState->dialogue->dialogueLines[gState->guiState->dialogue->dialogueIndex], NULL, 0);
         if(gState->guiState->dialogue->isSkippable)
@@ -280,17 +313,42 @@ void gui_update(GameState* gState, RenderState* rState)
                 igText("\nPress \"E\" to continue...", NULL, 0);
             }
         }
-
-        igSetWindowSize_Vec2((ImVec2){0,0}, ImGuiCond_Always);
-        
+        gui_set_window_pos_to_entity(gState);
         igEnd();
+        igPopStyleVar(1);
     }
 
     igPushStyleColor_Vec4(ImGuiCol_WindowBg, (ImVec4){0,0,0,0});
     igPushStyleColor_Vec4(ImGuiCol_Border, (ImVec4){0,0,0,0});
 
+    if (gState->player->entity->HP <= 0)
+    {
+
+        igBegin("death window", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        igSetWindowFontScale(1.0);
+        igTextColored((ImVec4){1.0, 0.0, 0.0, 0.8 * gState->player->fadeToBlack}, "YOU DIED");
+        igSetWindowSize_Vec2((ImVec2){0, 0}, ImGuiCond_Always);
+
+
+        ImVec2 textSize;
+        igCalcTextSize(&textSize, "YOU DIED", NULL, false, 0.0f);
+        igSetWindowFontScale(1.0 / 4.0);
+        if (gState->player->fadeToBlack == 1.0)
+        {
+            if (igButton("Return to main menu", (ImVec2){textSize.x,0}))
+            {
+                gState->guiState->menu = GUI_MAIN_MENU;
+            }
+        }
+
+        igSetWindowPos_Vec2((ImVec2){igGetIO()->DisplaySize.x / 2 - textSize.x / 2, igGetIO()->DisplaySize.y / 2 - textSize.y}, ImGuiCond_Always);
+
+        igEnd();
+    }
+
     // Items
-    if (gState->player->fadeToBlack != 1.0) {
+    if (gState->player->fadeToBlack != 1.0)
+    {
         igBegin("Items", NULL, (ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar));
         ImVec2 lol;
         igSetWindowSize_Vec2((ImVec2){0,0}, 0);
@@ -304,6 +362,12 @@ void gui_update(GameState* gState, RenderState* rState)
             
             igImage((void*)(intptr_t)gState->rState->uiItemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(id % 4) * 0.25 + 0.25, (id / 4) * 0.25 + 0.25}, (ImVec2){(double)(id % 4) * 0.25, (id / 4) * 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,1,0.5});
             igSameLine(0, minSize * 0.0125);
+        }
+
+        if (gState->player->active_item != NULL)
+        {
+            int id = gState->player->active_item->textureID;
+            igImage((void*)(intptr_t)gState->rState->uiItemAtlas, (ImVec2){minSize * 0.05, minSize * 0.05}, (ImVec2){(double)(id % 4) * 0.25 + 0.25, (id / 4) * 0.25 + 0.25}, (ImVec2){(double)(id % 4) * 0.25, (id / 4) * 0.25}, (ImVec4){1,1,1,0.5}, (ImVec4){1,1,0,0.5});
         }
         igEnd();
     }
@@ -336,87 +400,91 @@ id = 6;
     igPopStyleColor(2);
 
 
-    igSetCurrentFont(gState->guiState->defaultFont);
-    igBegin("Game debug", NULL, 0);
+    if (gState->guiState->showDebugInfo)
+    {
+        igSetCurrentFont(gState->guiState->defaultFont);
+        igBegin("Game debug", NULL, 0);
 
-    if (sliderDouble("1:1 Camera size", &gState->player->cameraSize.x, 1.0, 32.0))
-    {
-        gState->player->cameraSize.y = gState->player->cameraSize.x;
-    }
-    sliderDoubleN("Camera size", &gState->player->cameraSize, 2, 1.0, 32.0);
-    if (igButton("1:1 camera to room size", (ImVec2){0, 0}))
-    {
-        double size = (double)min(gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
-        gState->player->cameraSize = (Vec2d){size, size};
-    }
-    igSameLine(0, 16.0);
-    if (igButton("Stretch camera to room size", (ImVec2){0, 0}))
-    {
-        gState->player->cameraSize = Vec2i_to_Vec2d(gState->currentLevel->currentRoom->size);
-    }
-    // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
-
-    if (igButton("Kill all non-player entities", (ImVec2){0, 0}))
-    {
-        for (int i = 1; i < gState->currentLevel->currentRoom->entity_cnt; i++)
+        if (sliderDouble("1:1 Camera size", &gState->player->cameraSize.x, 1.0, 32.0))
         {
-            gState->currentLevel->currentRoom->entities[i]->HP = 0;
+            gState->player->cameraSize.y = gState->player->cameraSize.x;
         }
-    }
-
-    if (igTreeNode_Str("Entity tree"))
-    {
-        Entity** arr = gState->currentLevel->currentRoom->entities;
-        int i = 0;
-        while (*arr != NULL)
+        sliderDoubleN("Camera size", &gState->player->cameraSize, 2, 1.0, 32.0);
+        if (igButton("1:1 camera to room size", (ImVec2){0, 0}))
         {
-            // Use SetNextItemOpen() so set the default state of a node to be open. We could
-            // also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
-            if (i == 0)
-                igSetNextItemOpen(true, ImGuiCond_Once);
-                
-            if (igTreeNode_Ptr((void*)(intptr_t)i, "Entity %d", i))
+            double size = (double)min(gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
+            gState->player->cameraSize = (Vec2d){size, size};
+        }
+        igSameLine(0, 16.0);
+        if (igButton("Stretch camera to room size", (ImVec2){0, 0}))
+        {
+            gState->player->cameraSize = Vec2i_to_Vec2d(gState->currentLevel->currentRoom->size);
+        }
+        // IMGUI_DEMO_MARKER("Widgets/Trees/Basic trees");
+
+        if (igButton("Kill all non-player entities", (ImVec2){0, 0}))
+        {
+            for (int i = 1; i < gState->currentLevel->currentRoom->entity_cnt; i++)
             {
-                igText("Position %f %f", (*arr)->pos.x, (*arr)->pos.y);
-                igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
-                igText("Entity cnt: %d", gState->currentLevel->currentRoom->entity_cnt);
-                sliderDoubleN("Hitbox Left Bottom", &(*arr)->hitbox.bottomLeft, 2, -1.0f, 1.0f);
-                sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
-                sliderDoubleN("attack_Velocity", &(*arr)->attack_velocity, 2, 0.0, 5.0);
+                gState->currentLevel->currentRoom->entities[i]->HP = 0;
+            }
+        }
 
-                igSetNextItemOpen(true, ImGuiCond_Once);
-                if (igTreeNode_Str("Stats"))
+        if (igTreeNode_Str("Entity tree"))
+        {
+            Entity** arr = gState->currentLevel->currentRoom->entities;
+            int i = 0;
+            while (*arr != NULL)
+            {
+                // Use SetNextItemOpen() so set the default state of a node to be open. We could
+                // also use TreeNodeEx() with the ImGuiTreeNodeFlags_DefaultOpen flag to achieve the same thing!
+                if (i == 0)
+                    igSetNextItemOpen(true, ImGuiCond_Once);
+                    
+                if (igTreeNode_Ptr((void*)(intptr_t)i, "Entity %d", i))
                 {
-                    sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
-                    igCheckbox("Can fly?", &(*arr)->canFly);
-                    igSliderInt("HP", &(*arr)->HP, 0, (*arr)->maxHP, NULL, 0);
-                    igSliderInt("ATK", &(*arr)->ATK, 0, 100, NULL, 0);
-                    sliderDouble("ATK speed", &(*arr)->attack_SPD, 0, 100);
-                    igSliderInt("ATK cooldown", &(*arr)->attack_cooldown, 0, 100, NULL, 0);
-                    igSliderInt("Cooldown left", &(*arr)->cooldown_left, 0, 100, NULL, 0);
+                    igText("Position %f %f", (*arr)->pos.x, (*arr)->pos.y);
+                    igText("Velocity %f %f", (*arr)->velocity.x, (*arr)->velocity.y);
+                    igText("Entity cnt: %d", gState->currentLevel->currentRoom->entity_cnt);
+                    sliderDoubleN("Hitbox Left Bottom", &(*arr)->hitbox.bottomLeft, 2, -1.0f, 1.0f);
+                    sliderDoubleN("Hitbox Top Right", &(*arr)->hitbox.topRight, 2, -1.0f, 1.0f);
+                    sliderDoubleN("attack_Velocity", &(*arr)->attack_velocity, 2, 0.0, 5.0);
 
+                    igSetNextItemOpen(true, ImGuiCond_Once);
+                    if (igTreeNode_Str("Stats"))
+                    {
+                        sliderDouble("SPD", &(*arr)->SPD, 0.0, 100.0);
+                        igCheckbox("Can fly?", &(*arr)->canFly);
+                        igSliderInt("HP", &(*arr)->HP, 0, (*arr)->maxHP, NULL, 0);
+                        igSliderInt("ATK", &(*arr)->ATK, 0, 100, NULL, 0);
+                        sliderDouble("ATK speed", &(*arr)->attack_SPD, 0, 100);
+                        igSliderInt("ATK cooldown", &(*arr)->attack_cooldown, 0, 100, NULL, 0);
+                        igSliderInt("Cooldown left", &(*arr)->cooldown_left, 0, 100, NULL, 0);
+
+                        igTreePop();
+                    }
                     igTreePop();
                 }
-                igTreePop();
+                i++;
+                arr++;
             }
-            i++;
-            arr++;
+            igTreePop();
         }
-        igTreePop();
+
+        igSliderInt("Player coins", &gState->player->coins, 0, 100, NULL, 0);
+        igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);
+        igCheckbox("Isometric render", &rState->renderIsometric);
+        
+        igSliderInt2("Resolution", &rState->resolution, 1, 2048, NULL, 0);
+
+
+        sliderDouble("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f);
+        sliderDouble("Player movement swing", &gState->player->movement_swing, 0.0f, 1.0f);
+        igCheckbox("VSync?", &rState->VSync);
+        
+        igEnd();
+
+        igShowMetricsWindow(NULL);
+        igSetCurrentFont(gState->guiState->titleFont);
     }
-
-    igCheckbox("Hitbox Debug", &rState->bDebugHitboxes);
-    igCheckbox("Isometric render", &rState->renderIsometric);
-    
-    igSliderInt2("Resolution", &rState->resolution, 1, 2048, NULL, 0);
-
-
-    sliderDouble("Player Accel Constant", &gState->player->acceleration_const, 0.0f, 1.0f);
-    sliderDouble("Player movement swing", &gState->player->movement_swing, 0.0f, 1.0f);
-    igCheckbox("VSync?", &rState->VSync);
-    
-    igEnd();
-
-    igShowMetricsWindow(NULL);
-    igSetCurrentFont(gState->guiState->titleFont);
 }

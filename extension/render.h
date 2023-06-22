@@ -36,8 +36,11 @@ typedef struct RenderState
 RenderState RenderState_construct();
 
 void initRenderState(GameState*, RenderState*);
+
 void refreshRoom(GameState*, RenderState*, bool);
-Vec2d getIsoPos(Vec2d mapPos, Vec2i roomSize);
+Vec2d getIsoPos(Vec2d mapPos);
+Mat3f getViewMatrix(GameState* gState, Vec2d gridOffset);
+
 
 void render(GameState*, RenderState*);
 void renderIsometric(GameState*, RenderState*);
