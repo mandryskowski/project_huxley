@@ -104,8 +104,9 @@ uint getMonsterTextureID(MonsterType type)
     {
         case ZOMBIE:
         case SHOOTER:
+	    return 3;
         case BOMBER:
-            return 3;
+            return 12;
         case FLYING_SHOOTER:
             return 1;
 

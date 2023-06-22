@@ -236,7 +236,7 @@ Entity construct_mine(Entity *creator)
     return (Entity) {.ATK = 90, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .attack_SPD = 1, .attack_velocity = (Vec2d){1, 1},
             .HP = INT_MAX, .maxHP = INT_MAX, .death_func = mine_death,
-            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room, .cooldown_left = 300, .textureID = 5, .currentAnimation = NULL};
+            .pos = (Vec2d)creator->pos, .SPD = 0, .velocity = {0, 0}, .attack_func = mine_attack, .faction = creator->faction, .room = creator->room, .cooldown_left = 300, .textureID = 11, .currentAnimation = NULL};
 }
 
 void spawn_mine(Entity *attacker)
@@ -278,7 +278,7 @@ void construct_bomber(Entity *monster)
     *monster =  (Entity) {.ATK = 0, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.2, -0.2}, (Vec2d){0.2, 0.2}}, .attack_velocity = (Vec2d){1,1}, .attack_SPD = 1.0,
             .HP = 1, .maxHP = 1,
-            .SPD = 3, .velocity = (Vec2d){0, 0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0, .currentAnimation = NULL};
+            .SPD = 3, .velocity = (Vec2d){0, 0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0, .textureID=12, .currentAnimation = NULL};
 }
 
 void construct_zombie(Entity *monster)
