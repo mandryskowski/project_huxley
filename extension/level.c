@@ -116,139 +116,6 @@ void create_door(Room *room, int site)
     }
 }
 
-Level *construct_level(Player *player, int room_number)
-{
-    srand(time(NULL));
-
-    Level *level = calloc(sizeof(Level), 1);
-    int map_width = sqrt(room_number) + 2;
-
-    bool visited[map_width][map_width];
-    level->map = calloc(sizeof(Room **), map_width);
-    level->size = (Vec2i){map_width, map_width};
-
-    for (int i = 0; i < map_width; i++)
-    {
-        level->map[i] = calloc(sizeof(Room *), map_width);
-        for (int j = 0; j < map_width; j++)
-        {
-            visited[i][j] = false;
-        }
-    }
-
-    Vec2i dirs[4] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
-    Vec2i *to_add = calloc(sizeof(Vec2i), map_width * map_width);
-    Vec2i *to_add_cpy = to_add;
-    Vec2i *to_add_end = to_add + 1;
-    *to_add = (Vec2i){map_width / 2, map_width / 2};
-    visited[map_width / 2][map_width / 2] = true;
-
-    for (int i = 0; i < room_number; i++)
-    {
-        shuffle(to_add, to_add_end - to_add, sizeof(Vec2i));
-        if (i)
-        {
-            generate_room(NORMAL_ROOM);
-            level->map[to_add->x][to_add->y] = construct_room("predefinedRooms/new_room", NORMAL_ROOM);
-        }
-        for (int j = 0; j < 4; j++)
-        {
-            Vec2i new_coord = Vec2i_add(*to_add, dirs[j]);
-            if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width
-                || visited[new_coord.x][new_coord.y])
-            {
-                continue;
-            }
-            visited[new_coord.x][new_coord.y] = true;
-            *to_add_end++ = new_coord;
-        }
-
-        to_add++;
-    }
-
-    level->map[map_width / 2][map_width / 2] = construct_room("predefinedRooms/start_room", NORMAL_ROOM);
-    level->currentRoom = level->map[map_width / 2][map_width / 2];
-    level->prevRoomCoords = level->currRoomCoords = (Vec2i){map_width / 2, map_width / 2};
-    *level->currentRoom->entities = player->entity;
-    player->entity->room = level->currentRoom;
-    level->currentRoom->visited = true;
-    player->entity->pos = (Vec2d){2, 2};
-
-    bool boss_room = false;
-    bool item_room = false;
-    bool shop_room = false;
-    for (int i = 0; i < map_width; i++)
-    {
-        for (int j = 0; j < map_width; j++)
-        {
-            if (!level->map[i][j])
-            {
-                int neighbours = 0;
-                for (int k = 0; k < 4; k++) {
-                    Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);
-                    if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width ||
-                        !level->map[new_coord.x][new_coord.y])
-                    {
-                        continue;
-                    }
-                    neighbours++;
-                }
-                if (neighbours == 1)
-                {
-                    if (!boss_room)
-                    {
-                        boss_room = true;
-                        level->map[i][j] = construct_room("predefinedRooms/haskell_room", BOSS_ROOM);
-                    }
-                    else if (!item_room)
-                    {
-                        printf("item room\n");
-                        item_room = true;
-                        generate_room(ITEM_ROOM);
-                        level->map[i][j] = construct_room("predefinedRooms/new_room", ITEM_ROOM);
-                    }
-                    else if (!shop_room)
-                    {
-                        printf("shop room\n");
-                        shop_room = true;
-                        generate_room(SHOP_ROOM);
-                        level->map[i][j] = construct_room("predefinedRooms/new_room", SHOP_ROOM);
-                    }
-                }
-            }
-        }
-    }
-
-    for (int i = 0; i < map_width; i++)
-    {
-        for (int j = 0; j < map_width; j++)
-        {
-            if (level->map[i][j])
-            {
-                printf("%d %d room exists of type: %d\n", i, j);
-
-                for (int k = 0; k < 4; k++)
-                {
-                    Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);
-                    if (new_coord.x < 0 || new_coord.x == map_width || new_coord.y < 0 || new_coord.y == map_width ||
-                        !level->map[new_coord.x][new_coord.y])
-                    {
-                        continue;
-                    }
-                    printf("%d %d (%d, %d)\n", i, j, dirs[k].x, dirs[k].y);
-                    create_door(level->map[i][j], k);
-                }
-            }
-        }
-    }
-
-    free(to_add_cpy);
-
-    printf("\n");
-
-    return level;
-}
-
 void free_level(Level *level)
 {
     for (int width = 0; width < level->size.x; width++)
@@ -265,4 +132,148 @@ void free_level(Level *level)
 
     free(level->map);
     free(level);
+}
+
+static const Vec2i dirs[4] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+
+bool add_special_room(RoomType type, Level *level)
+{
+    Vec2i *room_coords = calloc(sizeof(Vec2i), level->size.x * level->size.y + 1);
+    int pos_cnt = 0;
+
+    for (int i = 0; i < level->size.x; i++)
+    {
+        for (int j = 0; j < level->size.y; j++)
+        {
+            if (!level->map[i][j])
+            {
+                int neighbours = 0;
+                for (int k = 0; k < 4; k++) {
+                    Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);
+                    if (new_coord.x < 0 || new_coord.x == level->size.x || new_coord.y < 0 || new_coord.y == level->size.y ||
+                        !level->map[new_coord.x][new_coord.y])
+                    {
+                        continue;
+                    }
+                    neighbours++;
+                }
+                if (neighbours == 1)
+                {
+                    room_coords[pos_cnt++] = (Vec2i){i, j};
+                }
+            }
+        }
+    }
+
+    if (!pos_cnt)
+    {
+        free(room_coords);
+        return false;
+    }
+
+    Vec2i coords_taken = room_coords[rand() % pos_cnt];
+
+    if (type != BOSS_ROOM)
+    {
+        generate_room(type);
+        level->map[coords_taken.x][coords_taken.y] = construct_room("predefinedRooms/new_room", type);
+    }
+    else
+    {
+        level->map[coords_taken.x][coords_taken.y] = construct_room("predefinedRooms/haskell_room", BOSS_ROOM);
+    }
+
+    free(room_coords);
+    return true;
+}
+
+Level *construct_level(Player *player, int room_number)
+{
+    srand(time(NULL));
+
+    while (true)
+    {
+        int map_width = sqrt(room_number) + 2;
+        Level *level = calloc(sizeof(Level), 1);
+        level->map = calloc(sizeof(Room **), map_width);
+        level->size = (Vec2i){map_width, map_width};
+
+        bool visited[level->size.x][level->size.y];
+        for (int i = 0; i < level->size.x; i++)
+        {
+            level->map[i] = calloc(sizeof(Room *), level->size.y);
+            for (int j = 0; j < level->size.y; j++)
+            {
+                visited[i][j] = false;
+            }
+        }
+
+        Vec2i *to_add = calloc(sizeof(Vec2i), level->size.x * level->size.y);
+        Vec2i *to_add_cpy = to_add;
+        Vec2i *to_add_end = to_add + 1;
+        *to_add = (Vec2i){level->size.x / 2, level->size.y / 2};
+        visited[level->size.x / 2][level->size.y / 2] = true;
+
+        for (int i = 0; i < room_number; i++)
+        {
+            shuffle(to_add, to_add_end - to_add, sizeof(Vec2i));
+            if (i)
+            {
+                generate_room(NORMAL_ROOM);
+                level->map[to_add->x][to_add->y] = construct_room("predefinedRooms/new_room", NORMAL_ROOM);
+            }
+            for (int j = 0; j < 4; j++)
+            {
+                Vec2i new_coord = Vec2i_add(*to_add, dirs[j]);
+                if (new_coord.x < 0 || new_coord.x == level->size.x || new_coord.y < 0 || new_coord.y == level->size.y
+                    || visited[new_coord.x][new_coord.y])
+                {
+                    continue;
+                }
+                visited[new_coord.x][new_coord.y] = true;
+                *to_add_end++ = new_coord;
+            }
+
+            to_add++;
+        }
+
+        free(to_add_cpy);
+
+        level->map[level->size.x / 2][level->size.y / 2] = construct_room("predefinedRooms/start_room", NORMAL_ROOM);
+        level->currentRoom = level->map[level->size.x / 2][level->size.y / 2];
+        level->prevRoom = level->currentRoom;
+        level->prevRoomCoords = level->currRoomCoords = (Vec2i){level->size.x / 2, level->size.y / 2};
+        *level->currentRoom->entities = player->entity;
+        player->entity->room = level->currentRoom;
+        level->currentRoom->visited = true;
+        player->entity->pos = (Vec2d){2, 2};
+
+        if (!add_special_room(ITEM_ROOM, level) || !add_special_room(SHOP_ROOM, level) || !add_special_room(BOSS_ROOM, level))
+        {
+            free_level(level);
+            continue;
+        }
+
+        for (int i = 0; i < level->size.x; i++)
+        {
+            for (int j = 0; j < level->size.y; j++)
+            {
+                if (level->map[i][j])
+                {
+                    for (int k = 0; k < 4; k++)
+                    {
+                        Vec2i new_coord = Vec2i_add((Vec2i){i, j}, dirs[k]);
+                        if (new_coord.x < 0 || new_coord.x == level->size.x || new_coord.y < 0 || new_coord.y == level->size.y ||
+                            !level->map[new_coord.x][new_coord.y])
+                        {
+                            continue;
+                        }
+                        create_door(level->map[i][j], k);
+                    }
+                }
+            }
+        }
+
+        return level;
+    }
 }

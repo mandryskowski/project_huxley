@@ -87,7 +87,6 @@ Animation* Animation_construct_haskell_jump_animation(Entity* ent)
     *((double*)anim->startVal) = ent->renderOffset.y = 1.0;
     *((double*)anim->endVal) = 0.0;
     anim->framesLeftUntilUpdate = anim->framesPerUpdate = 1;
-    printf("konstruckja\n");
 
     anim->curVal = &ent->renderOffset.y;
 
@@ -106,7 +105,6 @@ bool haskell_attack(Entity *haskell, Entity *victim, AttackType type)
                 haskell->currentAnimation = NULL;
                 srand(clock());
                 int p = rand() % 10;
-                printf("%d\n", p);
                 if (p < 2)
                 {
                     attack = circle_attack;
@@ -137,6 +135,7 @@ void haskell_death(Entity* attacker)
     // small amount of screen shake
     Player* playerData = ((Player*)attacker->room->entities[0]->specific_data);
     playerData->screenShakeFramesLeft = max(playerData->screenShakeFramesLeft, 75);
+    attacker->room->entities[attacker->room->entity_cnt++] = construct_monster(attacker->pos, PORTAL, attacker->room);
 }
 
 void construct_haskell(Entity *monster)

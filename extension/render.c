@@ -305,7 +305,7 @@ void passMeshToGPU(Mesh* mesh, void* data)
     glEnableVertexAttribArray(3);
 }
 
-void refreshRoom(GameState* gState, RenderState* rState)
+void refreshRoom(GameState* gState, RenderState* rState, bool disposeOfPrevious)
 {
     // Grid
     {
@@ -320,7 +320,10 @@ void refreshRoom(GameState* gState, RenderState* rState)
 
     //  ISO Grid
     {
-
+        if (disposeOfPrevious)
+        {
+            disposeOfMesh(&rState->isoMesh);
+        }
         if (rState->isoMesh2.vertexCount != 0)
         {
             disposeOfMesh(&rState->isoMesh2);
