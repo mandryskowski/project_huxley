@@ -191,12 +191,28 @@ bool shooter_attack(Entity *attacker, Entity *victim, AttackType type)
     }
 }
 
+void player_death(Entity* ent)
+{
+    playMusic(NO_SOUND, NO_SOUND);
+    playSound(SOUND_DEATH_PLAYER);
+}
+
+void monster_death_weak(Entity* ent)
+{
+    playSoundAtPos(SOUND_DEATH_WEAK, ent->pos);
+}
+
+void monster_death_heavy(Entity* ent)
+{
+    playSoundAtPos(SOUND_DEATH_HEAVY, ent->pos);
+}
+
 void mine_death(Entity *attacker)
 {
     Rectangle mine_hitbox = (Rectangle){{attacker->pos.x - 1, attacker->pos.y - 1}, {attacker->pos.x + 2, attacker->pos.y + 2}};
     for (Entity **entity = attacker->room->entities; *entity; entity++)
     {
-        if (isProjectile(*entity) || isPickable(*entity) || isMine(*entity) || isItem(*entity) || isNPC(*entity))
+        if (isProjectile(*entity) || isPickable(*entity) || isMine(*entity) || isItem(*entity) || isNPC(*entity) || isDead(*entity))
         {
             continue;
         }
@@ -286,7 +302,7 @@ void construct_flying_shooter(Entity *monster)
     *monster =  (Entity) {.ATK = 1, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
+            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL, .death_func = monster_death_heavy};
 }
 
 Dialogue* mysterious_character_Dialogue(void) {
@@ -344,7 +360,7 @@ Player *Entity_construct_player()
     *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
-            .attack_func = player_attack, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
+            .attack_func = player_attack, .death_func = player_death, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
 
     *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0,
                         .screenShakeFramesLeft = 0, .fadeToBlack = 0.0, .throws_mines = false, .prev_positions = createQueue(), .active_item = NULL, .items = items};
@@ -388,6 +404,11 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
     monster->textureID = getMonsterTextureID(type);
     monster->room = room;
 
+    if (monster->death_func == NULL)
+    {
+        monster->death_func = monster_death_weak;
+    }
+
     return monster;
 }
 
@@ -413,6 +434,7 @@ bool katsu_heal(Entity *katsu, Entity *player, AttackType type)
     {
         player->HP = min(player->maxHP, player->HP - katsu->ATK);
         killEntity(katsu);
+        playSound(SOUND_HEALTH);
         return true;
     }
     return false;
@@ -423,6 +445,7 @@ bool money_collect(Entity *coin, Entity *player, AttackType type)
     if (type == ATTACK_CONTACT)
     {
         ((Player *)player->specific_data)->coins++;
+        playSound(SOUND_COIN);
         killEntity(coin);
     }
     return true;
@@ -438,10 +461,10 @@ Entity *construct_katsu(Vec2d pos, Room *room)
 
 Entity *construct_coin(Vec2d pos, Room *room)
 {
-    Entity * katsu = calloc(1, sizeof(Entity));
-    *katsu = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .textureID = 0, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .textureID = 8,
+    Entity * coin = calloc(1, sizeof(Entity));
+    *coin = (Entity){.ATK = -10, .faction = ALLY, .attack_func = money_collect, .pos = pos, .HP = INT_MAX - 1, .maxHP = INT_MAX - 1, .textureID = 6,
     .hitbox = (Rectangle){(Vec2d){-0.1, -0.1}, (Vec2d){0.1, 0.1}}, .room = room};
-    return katsu;
+    return coin;
 }
 
 bool isKatsu(Entity *entity)

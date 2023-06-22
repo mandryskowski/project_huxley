@@ -111,13 +111,13 @@ const char fShaderSrc[] = "#version 400 core\n" \
                       "//outColor = vec4(texCoord, 0.0, 1.0);\n"\
                       "}";
 
-void getShadowInfo(Entity* ent, Vec2d* shadowCenterOffset, Vec2d* modelOffset, float* shadowSize)
+void getShadowInfo(Entity* ent, Vec2d* shadowCenterOffset, Vec2d* modelOffset, float* shadowSize, int entID)
 {
     *shadowCenterOffset = isItem(ent) ? (Vec2d){0.0, 0.5} : (Vec2d){0.0, -0.35};
     if (ent->canFly)
     {
         *shadowCenterOffset = (Vec2d){0.0, -0.35};
-        double oscillation = (sin(glfwGetTime() * 3.0) * 0.5 + 0.5);
+        double oscillation = (sin(glfwGetTime() * 3.0 + entID) * 0.5 + 0.5);
         *shadowSize =  oscillation * 8.0 + 8.0;
         modelOffset->y = (-oscillation * 0.1) * 0.9 + 0.1;
         return;
@@ -172,7 +172,7 @@ Mesh initGridMesh(GameState* gameState, Vertex* verts, uint width, uint height)
     return outMesh;
 }
 
-Vec2d getIsoPos(Vec2d mapPos, Vec2i roomSize)
+Vec2d getIsoPos(Vec2d mapPos)
 {
         float mulx = 0.390625 * 2, muly = 0.390625;
     //width = 2;
@@ -450,13 +450,19 @@ void renderMinimap(GameState* gState, RenderState* rState)
     glEnable(GL_DEPTH_TEST);
 }
 
+Mat3f getViewMatrix(GameState* gState, Vec2d gridOffset)
+{
+    RenderState* state = gState->rState;
+    Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * ((double)state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
+    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add(gridOffset, Vec2d_add(gState->player->entity->pos, Vec2d_scale(Vec2d_rotate((Vec2d){1,0}, rand() % 360),  pow((double)gState->player->screenShakeFramesLeft / 30.0, 3.0)))));
+
+    return Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * scaledSize.x,  -cameraCenterGrid.y* scaledSize.y}, scaledSize);
+}
+
 Mat3f renderIsoGrid(GameState* gState, RenderState* state, Mesh* gridMesh, Vec2d gridOffset, Vec2d fadeOffset)
 {
-    Vec2d scaledSize = (Vec2d){1.282 / ((gState->player->cameraSize.x)), 1.282 * ((double)state->resolution.x / (double)state->resolution.y) / ((gState->player->cameraSize.y))};
-    Vec2d cameraCenterGrid = getIsoPos(Vec2d_add(gridOffset, Vec2d_add(gState->player->entity->pos, Vec2d_scale(Vec2d_rotate((Vec2d){1,0}, rand() % 360),  pow((double)gState->player->screenShakeFramesLeft / 30.0, 3.0)))), gState->currentLevel->currentRoom->size);
 
-    Mat3f viewMat = Mat3f_construct( (Vec2d){ -cameraCenterGrid.x * scaledSize.x,  -cameraCenterGrid.y* scaledSize.y}, scaledSize);
-
+    Mat3f viewMat = getViewMatrix(gState, gridOffset);
     glUniformMatrix3fv(glGetUniformLocation(state->shader, "viewMat"), 1, GL_FALSE, viewMat.d);
     if (gridMesh == &state->isoMesh2)
         {
@@ -482,7 +488,7 @@ Mat3f renderIsoGrid(GameState* gState, RenderState* state, Mesh* gridMesh, Vec2d
 
 Vec2d getIsoOrGridPos(GameState* gState, RenderState* rState, Vec2d pos)
 {
-    return rState->renderIsometric ? getIsoPos(pos, (Vec2i){gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y}) : pos;
+    return rState->renderIsometric ? getIsoPos(pos) : pos;
 }
 
 void render(GameState* gState, RenderState* state)
@@ -557,7 +563,7 @@ void render(GameState* gState, RenderState* state)
         float shadowStrength = 0.5 * (entDead ? 1.0 - hitColouring : 1.0);
         Vec4d dmgColour = ((*ent)->HP > 0) ? ((Vec4d){1,0,0,1}) : ((Vec4d){0.3,0.3,0.3,1});
 
-        getShadowInfo(*ent, &shadowOffset, &modelOffset, &shadowSize);
+        getShadowInfo(*ent, &shadowOffset, &modelOffset, &shadowSize, ent - entities);
         modelOffset = Vec2d_add(modelOffset, (*ent)->renderOffset);
 
         Mat3f offsetViewMatCharacter = Mat3f_multiply(Mat3f_construct(modelOffset, (Vec2d){1.0, 1.0}), viewMatCharacter);

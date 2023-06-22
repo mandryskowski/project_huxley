@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "animation.h"
+#include "audio.h"
 
 int attack_cycle_left = 0;
 typedef void (*current_attack)(Entity *, Entity *);
@@ -137,6 +138,8 @@ void haskell_death(Entity* attacker)
     // small amount of screen shake
     Player* playerData = ((Player*)attacker->room->entities[0]->specific_data);
     playerData->screenShakeFramesLeft = max(playerData->screenShakeFramesLeft, 75);
+    playSound(SOUND_HASKELL_DIES);
+    playMusic(NO_SOUND, NO_SOUND);
 }
 
 void construct_haskell(Entity *monster)
