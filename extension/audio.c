@@ -20,6 +20,7 @@ char* getSoundPath(SoundType type)
         case SOUND_EXPLODE: return "sounds/boom.wav";
         case SOUND_COIN: return "sounds/coin.wav";
         case SOUND_HEALTH: return "sounds/health.wav";
+        case SOUND_DAMAGE_PLAYER: return "sounds/player_damage.wav";
         case SOUND_DEATH_PLAYER: return "sounds/player_death.wav";
         case SOUND_DEATH_WEAK: return "sounds/death_weak.wav";
         case SOUND_DEATH_HEAVY: return "sounds/death_heavy.wav";
