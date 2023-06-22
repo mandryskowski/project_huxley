@@ -73,9 +73,10 @@ bool haskell_jump_animation_update(Animation* anim)
     printf("yo %f %d\n", *(double*)anim->curVal, logic);
     if (logic)
         *((double*)anim->curVal) *= 0.5;
-    if (*(double*)anim->curVal <= pow (0.5, 20.0))
+    if (*(double*)anim->curVal <= pow (0.5, 20.0)) // jump every 20 frames
     {
         *(double*)anim->curVal = 0.0;
+        playSound(SOUND_DEATH_HEAVY);
     }
     return false;
 }
@@ -92,6 +93,8 @@ Animation* Animation_construct_haskell_jump_animation(Entity* ent)
     anim->curVal = &ent->renderOffset.y;
 
     anim->animFunc = haskell_jump_animation_update;
+
+    playSound(SOUND_DEATH_HEAVY);
 
     return anim;
 }
