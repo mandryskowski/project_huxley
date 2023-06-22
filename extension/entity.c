@@ -277,18 +277,18 @@ bool player_attack(Entity *player, Entity *monster, AttackType type)
 
 void construct_bomber(Entity *monster)
 {
-    *monster =  (Entity) {.ATK = 0, .canFly = false,
+    *monster =  (Entity) {.ATK = 0, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.2, -0.2}, (Vec2d){0.2, 0.2}}, .attack_velocity = (Vec2d){1,1}, .attack_SPD = 1.0,
-            .HP = 1, .maxHP = 1,
-            .SPD = 3, .velocity = (Vec2d){0, 0}, .attack_func = bomber_attack, .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0, .textureID=12, .currentAnimation = NULL};
+            .HP = 10, .maxHP = 1,
+            .SPD = 4.5, .velocity = (Vec2d){0, 0}, .attack_func = bomber_attack,  .faction = ENEMY, .attack_cooldown = 60, .cooldown_left = 0, .textureID=12, .currentAnimation = NULL};
 }
 
 void construct_zombie(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 3, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
-            .HP = 100, .maxHP = 100,
-            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0, .currentAnimation = NULL};
+            .HP = 40, .maxHP = 100,
+            .SPD = 4, .velocity = (Vec2d){0.0, 0.0}, .attack_func = zombie_attack, .faction = ENEMY, .attack_cooldown = 120, .cooldown_left = 0, .currentAnimation = NULL};
 }
 
 void construct_shooter(Entity *monster)
@@ -296,15 +296,15 @@ void construct_shooter(Entity *monster)
     *monster =  (Entity) {.ATK = 1, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}, .currentAnimation = NULL};
+            .SPD = 4, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}, .currentAnimation = NULL};
 }
 
 void construct_flying_shooter(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 1, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
-            .HP = 60, .maxHP = 60,
-            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL, .death_func = monster_death_heavy};
+            .HP = 80, .maxHP = 60,
+            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 15, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL, .death_func = monster_death_heavy};
 }
 
 Dialogue* mysterious_character_Dialogue(void) {
@@ -385,10 +385,10 @@ Player *Entity_construct_player()
     Entity *entity = calloc(sizeof(Entity), 1);
     Item **items = calloc(sizeof(Item *), 20);
 
-    *entity = (Entity) {.ATK = 100, .canFly = false, .projectileStats = (ProjectileStats){0, 1},
+    *entity = (Entity) {.ATK = 20, .canFly = false, .projectileStats = (ProjectileStats){0, 0},
             .hitbox = (Rectangle){(Vec2d){-0.25, -0.25}, (Vec2d){0.25, 0.25}},
             .HP = 100, .maxHP = 100, .SPD = 5, .velocity = (Vec2d){0.0, 0.0}, .attack_modifier = 0,
-            .attack_func = player_attack, .death_func = player_death, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 5, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
+            .attack_func = player_attack, .death_func = player_death, .faction = ALLY, .attack_SPD = 5, .attack_cooldown = 30, .currentAnimation = NULL, .textureID = 2, .specific_data = player };
 
     *player = (Player) {.entity = entity, .movement_swing = 0.3, .acceleration_const = 0.8, .cameraSize = (Vec2d){8, 8}, .isInDialogue=false, .lastSkip = 0.0,
                         .screenShakeFramesLeft = 0, .fadeToBlack = 0.0, .throws_mines = false, .prev_positions = createQueue(), .active_item = NULL, .items = items};

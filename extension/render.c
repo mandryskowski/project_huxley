@@ -317,7 +317,7 @@ void refreshRoom(GameState* gState, RenderState* rState, bool disposeOfPrevious)
         rState->legacyGridMesh = initGridMesh(gState, gridVerts, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
         passMeshToGPU(&rState->legacyGridMesh, gridVerts);
     }
-    
+
     //  ISO Grid
     {
         if (disposeOfPrevious)
@@ -328,7 +328,6 @@ void refreshRoom(GameState* gState, RenderState* rState, bool disposeOfPrevious)
         {
             disposeOfMesh(&rState->isoMesh2);
         }
-
         rState->isoMesh2 = rState->isoMesh;
         
         Vertex gridVerts[gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6 * 2];
@@ -422,7 +421,7 @@ bool roomVisited(Room* room)
 void renderMinimap(GameState* gState, RenderState* rState)
 {
     glDisable(GL_DEPTH_TEST);
-    Vec2i mapSize = (Vec2i){4,4};
+    Vec2i mapSize = gState->currentLevel->size;
     Vec2d quadSize = (Vec2d){1.0 / mapSize.x, 1.0 / mapSize.y};
     Mat3f miniMapMat = Mat3f_construct((Vec2d){-0.75, 0.75}, (Vec2d){0.25, 0.25});
     Mat3f viewMat = Mat3f_construct( (Vec2d){ -1.0 + quadSize.x , -1.0 + quadSize.y}, quadSize);
