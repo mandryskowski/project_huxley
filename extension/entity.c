@@ -374,7 +374,7 @@ void construct_portal(Entity* monster)
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 100, .maxHP = 60, .specific_data = npc,
             .SPD = 0, .velocity = (Vec2d){0.0, 0.0}, .attack_func = npc_action, .faction = ALLY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
-    Animation_construct_mysterious(monster);
+    Animation_construct_portal(monster);
 }
 
 Player *Entity_construct_player()

@@ -116,6 +116,8 @@ uint getMonsterTextureID(MonsterType type)
             return 4;
         case MINI_LAMBDA:
             return 9;
+	    case PORTAL:
+	        return 14;
         case NOT_MONSTER:
         default:
             return 0;

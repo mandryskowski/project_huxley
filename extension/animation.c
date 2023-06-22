@@ -63,6 +63,14 @@ bool mysterious_animation(Animation* anim)
     return false;
 }
 
+bool portal_animation(Animation* anim)
+{
+   int* val = (int*)anim->curVal;
+    if (animLogicInt(anim))
+        (*val) += 1;
+    return false;
+}
+
 Animation* Animation_construct_mysterious(Entity* entity)
 {
     Animation* anim = Animation_construct();
@@ -74,7 +82,23 @@ Animation* Animation_construct_mysterious(Entity* entity)
     anim->startVal = startVal;
     anim->endVal = endVal; 
     anim->animFunc = mysterious_animation;
+    entity->currentAnimation = anim;
+    return anim;
+}
 
+Animation* Animation_construct_portal(Entity* entity)
+{
+    Animation* anim = Animation_construct();
+    int *startVal = malloc(sizeof(int)), *endVal = malloc(sizeof(int));
+    *startVal = 14;
+    *endVal = 22;
+    anim->curVal = &entity->textureID;
+    *(int*)anim->curVal = *startVal;
+    anim->startVal = startVal;
+    anim->endVal = endVal; 
+    anim->animFunc = portal_animation;
+    anim->framesPerUpdate=5;
+    entity->currentAnimation = anim;
     return anim;
 }
 
