@@ -1,5 +1,7 @@
 #include "item.h"
 #include "entity.h"
+#include "state.h"
+#include "level.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -53,6 +55,35 @@ void bomb_trail(Player *player)
     player->throws_mines = true;
 }
 
+void pickup_item(GameState *state)
+{
+    if (((Item *)state->guiState->dialogue->creator->specific_data)->cost <= state->player->coins)
+    {
+        state->player->coins -= ((Item *)state->guiState->dialogue->creator->specific_data)->cost;
+        Item *item = cpy_item(state->guiState->dialogue->creator->specific_data);
+        if (item->item_passive){
+            state->player->items[state->player->items_cnt++] = item;
+            item->item_passive(state->player);
+        }
+        if (item->item_active){
+            state->player->active_item = item;
+        }
+
+        for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
+        {
+            if (isItem(*entity))
+            {
+                killEntity(*entity);
+            }
+        }
+        playSound(SOUND_COIN);
+    }
+    else
+    {
+        playSound(SOUND_ERROR);
+    }
+}
+
 Dialogue *construct_description(char *title, char *description)
 {
     Dialogue *dialogue = calloc(1, sizeof(Dialogue));
@@ -64,6 +95,9 @@ Dialogue *construct_description(char *title, char *description)
     *dialogue->dialogueLines = calloc(1, strlen(description) + 30);
     strcpy(*dialogue->dialogueLines, description);
     dialogue->dialogueSize = 1;
+    dialogue->skip_line = calloc(1, sizeof("\nPress \"E\" to pickup an item") + 1);
+    strcpy(dialogue->skip_line, "\nPress \"E\" to pickup an item");
+    dialogue->action = pickup_item;
     return dialogue;
 }
 

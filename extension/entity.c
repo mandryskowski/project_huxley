@@ -10,6 +10,8 @@
 #include "audio.h"
 #include "item.h"
 #include "queue.h"
+#include "state.h"
+#include "level.h"
 
 bool isNotAMonster(Entity *entity)
 {
@@ -211,7 +213,7 @@ void monster_death_heavy(Entity* ent)
 
 void mine_death(Entity *attacker)
 {
-    Rectangle mine_hitbox = (Rectangle){{attacker->pos.x - 1, attacker->pos.y - 1}, {attacker->pos.x + 2, attacker->pos.y + 2}};
+    Rectangle mine_hitbox = (Rectangle){{attacker->pos.x - 1.5, attacker->pos.y - 1.5}, {attacker->pos.x + 1.5, attacker->pos.y + 1.5}};
     for (Entity **entity = attacker->room->entities; *entity; entity++)
     {
         if (isProjectile(*entity) || isPickable(*entity) || isMine(*entity) || isItem(*entity) || isNPC(*entity) || isDead(*entity))
@@ -296,15 +298,15 @@ void construct_shooter(Entity *monster)
     *monster =  (Entity) {.ATK = 1, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
             .HP = 60, .maxHP = 60,
-            .SPD = 4, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 10, .attack_velocity = {0, 0}, .currentAnimation = NULL};
+            .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 30, .attack_SPD = 6, .attack_velocity = {0, 0}, .currentAnimation = NULL};
 }
 
 void construct_flying_shooter(Entity *monster)
 {
     *monster =  (Entity) {.ATK = 1, .canFly = true,
             .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
-            .HP = 80, .maxHP = 60,
-            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 15, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL, .death_func = monster_death_heavy};
+            .HP = 60, .maxHP = 60,
+            .SPD = 3, .velocity = (Vec2d){0.0, 0.0}, .attack_func = shooter_attack, .faction = ENEMY, .attack_cooldown = 10, .attack_SPD = 8, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL, .death_func = monster_death_heavy};
 }
 
 Dialogue* mysterious_character_Dialogue(void) {
@@ -322,10 +324,34 @@ Dialogue* mysterious_character_Dialogue(void) {
     d->dialogueLines[2] = calloc(1, sizeof("Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.") + 1);
     strcpy(d->dialogueLines[2], "Sigh... Not even the all-powerful monads could resist this carefully planned-out attack.");
     d->isSkippable = false;
+    d->skip_line = calloc(1, sizeof("\nPress \"E\" to continue...") + 1);
+    strcpy(d->skip_line, "\nPress \"E\" to continue...");
     return d;
 }
 
-Dialogue* shopkeeper_dialogue(void) {
+void reroll_items(GameState *state)
+{
+    const int reroll_cost = 2;
+    if (state->player->coins >= reroll_cost)
+    {
+        state->player->coins -= reroll_cost;
+        for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
+        {
+            if (isItem(*entity))
+            {
+                killEntity(*entity);
+            }
+        }
+        add_items_to_shop(state->currentLevel->currentRoom);
+        playSound(SOUND_COIN);
+    }
+    else
+    {
+        playSound(SOUND_ERROR);
+    }
+}
+
+Dialogue* shopkeeper_dialogue() {
     Dialogue *d = calloc(1, sizeof(Dialogue));
     d->title = calloc(1, 20);
     strcpy(d->title, "Mysterious figure");
@@ -338,6 +364,9 @@ Dialogue* shopkeeper_dialogue(void) {
     d->dialogueLines[1] = calloc(1, sizeof("And fear not, for in this desolate wasteland, a glimmer of hope remains.\n Should you find yourself unsatisfied with the treasures before you,\n I offer you a chance to reshape destiny itself. For a price, I can unleash the wheel of fate,\n allowing you to reroll the threads of possibility and uncover new paths.\n But be warned, such power comes with a cost,\n and the consequences of your choices may echo through the remnants of this shattered realm."));
     strcpy(d->dialogueLines[1], "And fear not, for in this desolate wasteland, a glimmer of hope remains.\n Should you find yourself unsatisfied with the treasures before you,\n I offer you a chance to reshape destiny itself. For a price, I can unleash the wheel of fate,\n allowing you to reroll the threads of possibility and uncover new paths.\n But be warned, such power comes with a cost,\n and the consequences of your choices may echo through the remnants of this shattered realm.");
     d->isSkippable = false;
+    d->skip_line = calloc(1, sizeof("\nPress \"E\" to reroll items...(otherwise press space)") + 1);
+    strcpy(d->skip_line, "\nPress \"E\" to reroll items...(otherwise press space)");
+    d->action = reroll_items;
     return d;
 }
 
@@ -353,6 +382,14 @@ void construct_mysterious_character(Entity* monster)
     Animation_construct_mysterious(monster);
 }
 
+void tp_to_next_level(GameState *state)
+{
+    free_level(state->currentLevel);
+    state->currentLevel = construct_level(state->player, 9);
+    state->renderNewRoom = true;
+}
+
+
 Dialogue* portal_dialogue(void) {
     Dialogue *d = calloc(1, sizeof(Dialogue));
     d->title = calloc(1, 20);
@@ -364,6 +401,9 @@ Dialogue* portal_dialogue(void) {
     d->dialogueLines[0] = calloc(1, sizeof("Step beyond this threshold and into a realm reborn. A world ravaged, yet brimming with hidden potential. \nEmbrace the portal's embrace, for it holds the key to uncharted horizons and a path of transformation.\n Through it, the first-year principal shall transcend,\n molding the future amidst the echoes of a post-apocalyptic dawn.") + 1);
     strcpy(d->dialogueLines[0], "Step beyond this threshold and into a realm reborn. A world ravaged, yet brimming with hidden potential. \nEmbrace the portal's embrace, for it holds the key to uncharted horizons and a path of transformation.\n Through it, the first-year principal shall transcend,\n molding the future amidst the echoes of a post-apocalyptic dawn.");
     d->isSkippable = false;
+    d->skip_line = calloc(1, sizeof("\nPress \"E\" to enter the portal") + 1);
+    strcpy(d->skip_line, "\nPress \"E\" to enter the portal");
+    d->action = tp_to_next_level;
     return d;
 }
 
@@ -506,6 +546,7 @@ bool isKatsu(Entity *entity)
 void free_dialogue(Dialogue *dialogue)
 {
     free(dialogue->title);
+    free(dialogue->skip_line);
     for (int i = 0; i < dialogue->dialogueSize; i++)
     {
         free(dialogue->dialogueLines[i]);

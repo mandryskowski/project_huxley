@@ -142,3 +142,15 @@ void free_room(Room *room)
     free(room->entities);
     free(room);
 }
+
+void frozen(Player *player)
+{
+    player->acceleration_const = 0.95;
+    player->acceleration_const_change = 2;
+}
+
+void on_fire(Player *player)
+{
+    player->entity->dot = 5;
+    player->entity->dot = 241;
+}

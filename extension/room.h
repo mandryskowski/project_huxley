@@ -26,10 +26,19 @@ typedef enum RoomType
     NORMAL_ROOM, BOSS_ROOM, SHOP_ROOM, QUEST_ROOM, ITEM_ROOM, NOT_ROOM
 } RoomType;
 
+typedef void (*effect)(Player *);
+
+typedef struct TileEffect
+{
+    effect eff;
+    int duration;
+} TileEffect;
+
 typedef struct Tile
 {
     TileType type;
     int textureID;
+    TileEffect tile_effect;
 } Tile;
 
 typedef struct Room
@@ -47,4 +56,7 @@ void add_items_to_shop(Room *room);
 Room *construct_room(char *filename, RoomType type);
 bool isClear(Room *room);
 void free_room(Room *room);
+
+void frozen(Player *player);
+void on_fire(Player *player);
 #endif // ROOM_H
