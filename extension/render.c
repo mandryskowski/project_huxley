@@ -317,7 +317,7 @@ void refreshRoom(GameState* gState, RenderState* rState, bool disposeOfPrevious)
         rState->legacyGridMesh = initGridMesh(gState, gridVerts, gState->currentLevel->currentRoom->size.x, gState->currentLevel->currentRoom->size.y);
         passMeshToGPU(&rState->legacyGridMesh, gridVerts);
     }
-
+    
     //  ISO Grid
     {
         if (disposeOfPrevious)
@@ -328,6 +328,7 @@ void refreshRoom(GameState* gState, RenderState* rState, bool disposeOfPrevious)
         {
             disposeOfMesh(&rState->isoMesh2);
         }
+
         rState->isoMesh2 = rState->isoMesh;
         
         Vertex gridVerts[gState->currentLevel->currentRoom->size.x * gState->currentLevel->currentRoom->size.y * 6 * 2];

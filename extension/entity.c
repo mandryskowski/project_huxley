@@ -68,6 +68,8 @@ void take_dmg(Entity *entity, int dmg)
 {
     if (!(*entity->room->entities == entity) || !entity->hit_animation)
     {
+        if (*entity->room->entities == entity)
+            playSound(SOUND_DAMAGE_PLAYER);
         entity->HP -= dmg;
         if (!isProjectile(entity))
         {
