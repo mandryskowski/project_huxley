@@ -203,7 +203,7 @@ void handleEvents(GameState* state)
     {
         updateDialogue(state);
         return;
-    }
+    }    
 
     updateVelocity(state, GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_A, state->player->entity->SPD,
                    &state->player->entity->velocity, state->player->acceleration_const);
@@ -285,9 +285,7 @@ static int frame_cnt = 0;
 void updateLogic(GameState* state, double dt)
 {
     frame_cnt++;
-    state->renderNewRoom = false;
     Entity** arr = state->currentLevel->currentRoom->entities;
-
 
     if (frame_cnt % 5 == 0 && !isClear(state->currentLevel->currentRoom))
     {
@@ -329,9 +327,15 @@ void updateLogic(GameState* state, double dt)
     move(state, arr, dt);
     update_cooldowns(state);
     erase_dead(state->currentLevel->currentRoom);
+
     if (state->renderNewRoom)
     {
-        jump_to_next_room(state);
+        if (state->jumpToNextRoom)
+            jump_to_next_room(state);
+
+        refreshRoom(state, state->rState, !state->jumpToNextRoom);
+        state->renderNewRoom = false;
+        state->jumpToNextRoom = false;
     }
 }
 
@@ -465,11 +469,6 @@ void gameLoop(GameState* gState)
             updateLogic(gState, timestep);
             updateAnimations(gState, gState->currentLevel->currentRoom->entities, gState->currentLevel->currentRoom->entity_cnt);
             setListenerPos(gState->player->entity->pos);
-            if (gState->renderNewRoom)
-            {
-                refreshRoom(gState, gState->rState, gState->currentLevel->currentRoom == gState->currentLevel->prevRoom);
-                //printf("xdd\n");
-            }
 
             timeAccumulator -= timestep;
         }
