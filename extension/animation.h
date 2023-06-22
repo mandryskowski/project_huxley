@@ -26,6 +26,6 @@ bool animLogicDouble(Animation* anim);
 void free_animation(Animation* anim);
 
 Animation* Animation_construct_mysterious(Entity* entity);
-
+Animation* Animation_construct_portal(Entity* entity);
 
 #endif //ANIMATION_H

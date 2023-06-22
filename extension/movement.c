@@ -277,6 +277,7 @@ void move(GameState* state, Entity** entity, double dt)
     if (isOutOfBounds(Vec2d_to_Vec2i(state->player->entity->pos), state->currentLevel->currentRoom))
     {
         state->renderNewRoom = true;
+        state->jumpToNextRoom = true;
         clearQueue(state->player->prev_positions);
     }
 }

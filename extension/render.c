@@ -21,7 +21,7 @@ RenderState RenderState_construct()
 {
     return (RenderState){.bDebugHitboxes = false, .VSync = false, .renderIsometric = true,
                          .characterAtlas = loadAtlas("character.png", 1, 1), .legacyGridMesh = Mesh_construct(), .isoMesh = Mesh_construct(), .isoMesh2 = Mesh_construct(), .quadMesh = Mesh_construct(), .shader = 0, .tileAtlas = loadAtlas("textures.png", 1, 4),
-                         .isoTileAtlas = loadAtlas("isoatlas.png", 4, 4), .isoCharacterAtlas = loadAtlas("isocharacter.png", 2, 6), .uiItemAtlas = loadTexture("isoItems.png"), .isoItemAtlas = loadAtlas("isoItems.png", 4, 4),
+                         .isoTileAtlas = loadAtlas("isoatlas.png", 4, 4), .isoCharacterAtlas = loadAtlas("isocharacter.png", 2, 12), .uiItemAtlas = loadTexture("isoItems.png"), .isoItemAtlas = loadAtlas("isoItems.png", 4, 4),
                          .resolution = (Vec2i){2048, 2048}, .backgroundColor = (Vec4d){0.2, 0.2, 0.2, 1.0}};
 }
 
@@ -421,7 +421,7 @@ bool roomVisited(Room* room)
 void renderMinimap(GameState* gState, RenderState* rState)
 {
     glDisable(GL_DEPTH_TEST);
-    Vec2i mapSize = (Vec2i){4,4};
+    Vec2i mapSize = gState->currentLevel->size;
     Vec2d quadSize = (Vec2d){1.0 / mapSize.x, 1.0 / mapSize.y};
     Mat3f miniMapMat = Mat3f_construct((Vec2d){-0.75, 0.75}, (Vec2d){0.25, 0.25});
     Mat3f viewMat = Mat3f_construct( (Vec2d){ -1.0 + quadSize.x , -1.0 + quadSize.y}, quadSize);

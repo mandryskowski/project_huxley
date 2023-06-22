@@ -44,7 +44,6 @@ void put_monsters(MonsterType** monsters, Room* room, Mode mode)
             double threshold = ((double) mode) * 50;
 
             monsters[i][j] = NOT_MONSTER;
-            //printf("%f\n", prob);
 
             if (prob < 250 + threshold)
             {
