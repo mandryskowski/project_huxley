@@ -41,6 +41,20 @@ Mat3f Mat3f_multiply(Mat3f lhs, Mat3f rhs)
     return out;
 }
 
+Vec3f Mat3f_multiply_Vec3f(Mat3f lhs, Vec3f rhs)
+{
+    Vec3f out = (Vec3f){0.0f, 0.0f, 0.0f};
+    float vals[3] = {rhs.x, rhs.y, rhs.z};
+    for (int j = 0; j < 3; j++)
+    {
+        out.x += lhs.d[j][0] * vals[j];
+        out.y += lhs.d[j][1] * vals[j];
+        out.z += lhs.d[j][2] * vals[j];
+    }
+
+    return out;
+}
+
 void Mat3f_print(Mat3f* mat)
 {
     printf("Mat3 print\n");

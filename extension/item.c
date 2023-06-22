@@ -109,7 +109,7 @@ Item construct_speedy_gonzales()
 
 Item construct_jetpack()
 {
-    return (Item){.type = JETPACK, .textureID = 9, .dialogue = construct_description("Jetpack", "Rule the skies"), .item_passive = flight};
+    return (Item){.type = JETPACK, .textureID = 5, .dialogue = construct_description("Jetpack", "Rule the skies"), .item_passive = flight};
 }
 
 Item construct_stopwatch()

@@ -87,6 +87,23 @@ void jump_to_next_room(GameState *state)
             (*entity)->cooldown_left = 180;
         }
     }
+
+    if (state->currentLevel->currentRoom->type == BOSS_ROOM && !isClear(state->currentLevel->currentRoom))
+    {
+        playSound(SOUND_HASKELL_APPEARS);
+    }
+    if (state->currentLevel->currentRoom->type == SHOP_ROOM)
+    {
+        playMusic(MUSIC_SHOP, MUSIC_SHOP_LAST);
+    }
+    else if (state->currentLevel->currentRoom->type == BOSS_ROOM && !isClear(state->currentLevel->currentRoom))
+    {
+        playMusic(MUSIC_BOSS, MUSIC_BOSS_LAST);
+    }
+    else
+    {
+        playMusic(NO_SOUND, NO_SOUND);
+    }
 }
 
 //Vec2i dirs[4] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}}; 9 10

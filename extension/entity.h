@@ -4,6 +4,7 @@
 #include "game_math.h"
 #include "room.h"
 #include "queue.h"
+#include "audio.h"
 #include <stdbool.h>
 
 typedef struct Item Item;

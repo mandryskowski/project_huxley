@@ -31,6 +31,11 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         GameState* state = glfwGetWindowUserPointer(window);
         state->guiState->menu = (state->guiState->menu == GUI_GAME) ? GUI_MAIN_GAME : GUI_GAME;
     }
+    if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_RELEASE)
+    {
+        GameState* state = glfwGetWindowUserPointer(window);
+        state->guiState->showDebugInfo = !state->guiState->showDebugInfo;
+    }
 }
 
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -77,6 +82,7 @@ void updateDialogue(GameState* state)
         if (glfwGetKey(state->window, GLFW_KEY_SPACE))
         {  
             state->player->isInDialogue = false;
+            playSound(SOUND_UI_POP);
         }
 
         else if(state->player->lastSkip + state->guiState->dialogue->skipCooldown < glfwGetTime())
@@ -87,6 +93,7 @@ void updateDialogue(GameState* state)
             {
                 state->guiState->dialogue->isSkippable = false;
                 state->guiState->dialogue->dialogueIndex++;
+                playSound(SOUND_UI_POP);
 
                 if(state->guiState->dialogue->dialogueIndex == state->guiState->dialogue->dialogueSize)
                 {
@@ -111,11 +118,11 @@ void updateDialogue(GameState* state)
                                     killEntity(*entity);
                                 }
                             }
-                            //TODO:: buy audio
+                            playSound(SOUND_COIN);
                         }
                         else
                         {
-                            //TODO:: fail to buy audio
+                            playSound(SOUND_ERROR);
                         }
                     }
                     else if (state->currentLevel->currentRoom->type == SHOP_ROOM)
@@ -132,11 +139,11 @@ void updateDialogue(GameState* state)
                                 }
                             }
                             add_items_to_shop(state->currentLevel->currentRoom);
-                            //TODO:: reroll audio
+                            playSound(SOUND_COIN);
                         }
                         else
                         {
-                            //TODO:: fail to reroll audio
+                            playSound(SOUND_ERROR);
                         }
                     }
 
@@ -168,6 +175,7 @@ void updateDialogueState(GameState* state)
             state->guiState->dialogue->dialogueIndex = 0;
             state->player->lastSkip = glfwGetTime();
             state->player->canEnterDialogue = false;
+            playSound(SOUND_UI_POP);
         }
     }
 
@@ -220,32 +228,42 @@ void erase_dead(Room *room)
     Entity **to_add= calloc(room->entity_cnt * 2, sizeof(Entity*));
     int to_add_cnt = 0;
 
+    if (isDead(room->entities[0]) && room->entities[0]->death_func)
+    {
+        room->entities[0]->death_func(room->entities[0]);
+        room->entities[0]->death_func = NULL;
+    }
+
     for (int i = 1; i < room->entity_cnt; i++)
     {
         Entity **entity = room->entities + i;
-        if (*entity && isDead(*entity) && !(*entity)->hit_animation)
+        if (*entity && isDead(*entity))
         {
-            if ((*entity)->death_func)
+            if ((*entity)->death_func != NULL)
             {
                 (*entity)->death_func(*entity);
+                (*entity)->death_func = NULL;
             }
-            if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity) && !isItem(*entity))
+            if (!(*entity)->hit_animation)
             {
-                if (rand() % 5 == 0)
+                if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity) && !isItem(*entity))
                 {
-                to_add[to_add_cnt++] = construct_katsu((*entity)->pos, room);
+                    if (rand() % 1 == 0)
+                    {
+                        to_add[to_add_cnt++] = construct_katsu((*entity)->pos, room);
+                    }
+                    if (rand() % 1 == 0)
+                    {
+                        to_add[to_add_cnt++] = construct_coin((*entity)->pos, room);
+                    }
                 }
-                if (rand() % 7 == 0)
-                {
-                    to_add[to_add_cnt++] = construct_coin((*entity)->pos, room);
-                }
+
+                free_entity(*entity);
+
+                *entity = NULL;
+                swap(entity, (room->entities + room->entity_cnt - 1));
+                room->entity_cnt--;
             }
-
-            free_entity(*entity);
-
-            *entity = NULL;
-            swap(entity, (room->entities + room->entity_cnt - 1));
-            room->entity_cnt--;
         }
     }
 
@@ -345,6 +363,7 @@ void initGame(GameState* gState)
 
     gState->guiState = calloc(1, sizeof(GUIState));
     gState->guiState->menu = GUI_MAIN_MENU;
+    gState->guiState->showDebugInfo = true;
 
     glfwMakeContextCurrent(gState->window);
 
@@ -374,6 +393,7 @@ void renderGame(GameState* gState, RenderState* rState)
 
 void menuLoop(GameState* gState)
 {
+    playMusic(MUSIC_MENU, MUSIC_MENU_LAST);
     while (gState->guiState->menu != GUI_GAME)
     {
         glfwPollEvents();
@@ -391,6 +411,7 @@ void menuLoop(GameState* gState)
         glfwSwapBuffers(gState->window);
     }
 
+    playMusic(NO_SOUND, NO_SOUND);
     gameLoop(gState);
 }
 void gameLoop(GameState* gState)
