@@ -139,6 +139,12 @@ void updateDialogue(GameState* state)
                             //TODO:: fail to reroll audio
                         }
                     }
+                    else if (state->currentLevel->currentRoom->type == BOSS_ROOM)
+                    {
+                        free_level(state->currentLevel);
+                        state->currentLevel = construct_level(state->player, 9);
+                        state->renderNewRoom = true;
+                    }
 
                     state->player->isInDialogue = false;
                     return;
@@ -440,7 +446,7 @@ void gameLoop(GameState* gState)
             setListenerPos(gState->player->entity->pos);
             if (gState->renderNewRoom)
             {
-                refreshRoom(gState, gState->rState);
+                refreshRoom(gState, gState->rState, gState->currentLevel->currentRoom == gState->currentLevel->prevRoom);
                 //printf("xdd\n");
             }
 

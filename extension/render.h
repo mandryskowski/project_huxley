@@ -36,7 +36,7 @@ typedef struct RenderState
 RenderState RenderState_construct();
 
 void initRenderState(GameState*, RenderState*);
-void refreshRoom(GameState*, RenderState*);
+void refreshRoom(GameState*, RenderState*, bool);
 Vec2d getIsoPos(Vec2d mapPos, Vec2i roomSize);
 
 void render(GameState*, RenderState*);

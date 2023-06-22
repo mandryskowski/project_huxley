@@ -335,6 +335,32 @@ void construct_mysterious_character(Entity* monster)
     Animation_construct_mysterious(monster);
 }
 
+Dialogue* portal_dialogue(void) {
+    Dialogue *d = calloc(1, sizeof(Dialogue));
+    d->title = calloc(1, 20);
+    strcpy(d->title, "Mysterious portal");
+    d->dialogueSize = 1;
+    d->skipCooldown = 0.2;
+    d->dialogueIndex = 0;
+    d->dialogueLines = calloc(d->dialogueSize, sizeof(char*));
+    d->dialogueLines[0] = calloc(1, sizeof("Step beyond this threshold and into a realm reborn. A world ravaged, yet brimming with hidden potential. \nEmbrace the portal's embrace, for it holds the key to uncharted horizons and a path of transformation.\n Through it, the first-year principal shall transcend,\n molding the future amidst the echoes of a post-apocalyptic dawn.") + 1);
+    strcpy(d->dialogueLines[0], "Step beyond this threshold and into a realm reborn. A world ravaged, yet brimming with hidden potential. \nEmbrace the portal's embrace, for it holds the key to uncharted horizons and a path of transformation.\n Through it, the first-year principal shall transcend,\n molding the future amidst the echoes of a post-apocalyptic dawn.");
+    d->isSkippable = false;
+    return d;
+}
+
+void construct_portal(Entity* monster)
+{
+    Npc *npc = calloc(1, sizeof(Npc));
+    npc->dialogue = portal_dialogue();
+    npc->dialogue->creator = monster;
+    *monster =  (Entity) {.ATK = 0, .canFly = true,
+            .hitbox = (Rectangle){(Vec2d){-0.4, -0.4}, (Vec2d){0.4, 0.4}},
+            .HP = 100, .maxHP = 60, .specific_data = npc,
+            .SPD = 0, .velocity = (Vec2d){0.0, 0.0}, .attack_func = npc_action, .faction = ALLY, .attack_cooldown = 10, .attack_SPD = 6, .attack_velocity = {0, 0}, .textureID = 1, .currentAnimation = NULL};
+    Animation_construct_mysterious(monster);
+}
+
 Player *Entity_construct_player()
 {
     Player *player = calloc(sizeof(Player), 1);
@@ -375,6 +401,9 @@ Entity *construct_monster(Vec2d pos, MonsterType type, Room *room)
             break;
         case MYSTERIOUS_CHARACTER:
             construct_mysterious_character(monster);
+            break;
+        case PORTAL:
+            construct_portal(monster);
             break;
         case HASKELL:
             construct_haskell(monster);
