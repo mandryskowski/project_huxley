@@ -44,7 +44,7 @@ typedef struct GameState
     Level* currentLevel;
     Player* player;
     GUIState* guiState;
-    bool renderNewRoom;
+    bool renderNewRoom, jumpToNextRoom;
     RenderState* rState;
     AudioState* aState;
 } GameState;
