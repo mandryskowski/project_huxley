@@ -149,7 +149,17 @@ Vec2d* path(Vec2d start, Entity** entities, GameState* gState) {
         Vec2i tile = Vec2d_to_Vec2i(entityPos->pos);
         Vec2d tileCenter = Vec2d_add(Vec2i_to_Vec2d(tile), (Vec2d){0.5, 0.5});
 
-        entityPos->attack_velocity = Vec2d_scale(Vec2d_normalize((Vec2d){start.x + 0.5 - entityPos->pos.x, start.y + 0.5 - entityPos->pos.y}), entityPos->attack_SPD);
+        Vec2d player_pred  = gState->player->entity->pos;
+        double dist_to_player;
+        double travel_time;
+        for (int i = 0; i < 5; i++)
+        {
+            dist_to_player = Vec2d_metric_distance(player_pred, entityPos->pos);
+            travel_time = (dist_to_player) / entityPos->attack_SPD;
+            player_pred = Vec2d_add(gState->player->entity->pos, Vec2d_scale(gState->player->entity->velocity, travel_time));
+        }
+        player_pred = Vec2d_add(player_pred, (Vec2d){-(double)(rand() % 2) / 10, -(double)(rand() % 2) / 10});
+        entityPos->attack_velocity = Vec2d_scale(Vec2d_normalize((Vec2d){player_pred.x - entityPos->pos.x, player_pred.y - entityPos->pos.y}), entityPos->attack_SPD);
 
         double maxNext = D_INF;
         Vec2i nextPos = tile;

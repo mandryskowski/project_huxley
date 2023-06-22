@@ -196,3 +196,9 @@ Vec4f Vec4d_to_Vec4f(Vec4d vec)
 {
     return (Vec4f){(float)vec.x, (float)vec.y, (float)vec.z, (float)vec.w };
 }
+
+Vec2d Vec_2d_bound(Vec2d vec, Vec2i bound)
+{
+    vec = (Vec2d){max(bound.x - 2, vec.x), max(bound.y - 2, vec.y)};
+    return (Vec2d){min(2, vec.x), min(2, vec.y)};
+}

@@ -97,62 +97,8 @@ void updateDialogue(GameState* state)
 
                 if(state->guiState->dialogue->dialogueIndex == state->guiState->dialogue->dialogueSize)
                 {
-                    if (isItem(state->guiState->dialogue->creator))
-                    {
-                        if (((Item *)state->guiState->dialogue->creator->specific_data)->cost <= state->player->coins)
-                        {
-                            state->player->coins -= ((Item *)state->guiState->dialogue->creator->specific_data)->cost;
-                            Item *item = cpy_item(state->guiState->dialogue->creator->specific_data);
-                            if (item->item_passive){
-                                state->player->items[state->player->items_cnt++] = item;
-                                item->item_passive(state->player);
-                            }
-                            if (item->item_active){
-                                state->player->active_item = item;
-                            }
-
-                            for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
-                            {
-                                if (isItem(*entity))
-                                {
-                                    killEntity(*entity);
-                                }
-                            }
-                            playSound(SOUND_COIN);
-                        }
-                        else
-                        {
-                            playSound(SOUND_ERROR);
-                        }
-                    }
-                    else if (state->currentLevel->currentRoom->type == SHOP_ROOM)
-                    {
-                        const int reroll_cost = 2;
-                        if (state->player->coins >= reroll_cost)
-                        {
-                            state->player->coins -= reroll_cost;
-                            for (Entity **entity = state->currentLevel->currentRoom->entities; *entity; entity++)
-                            {
-                                if (isItem(*entity))
-                                {
-                                    killEntity(*entity);
-                                }
-                            }
-                            add_items_to_shop(state->currentLevel->currentRoom);
-                            playSound(SOUND_COIN);
-                        }
-                        else
-                        {
-                            playSound(SOUND_ERROR);
-                        }
-                    }
-                    else if (state->currentLevel->currentRoom->type == BOSS_ROOM)
-                    {
-                        free_level(state->currentLevel);
-                        state->currentLevel = construct_level(state->player, 9);
-                        state->renderNewRoom = true;
-                    }
-
+                    if (state->guiState->dialogue->action)
+                        state->guiState->dialogue->action(state);
                     state->player->isInDialogue = false;
                     return;
                 }
@@ -224,9 +170,19 @@ void update_cooldowns(GameState* state)
     {
         (*entity)->cooldown_left = max((*entity)->cooldown_left - 1, 0);
         (*entity)->hit_animation = max((*entity)->hit_animation - 1, 0);
+        (*entity)->dot_duration = max(state->player->acceleration_const_change - 1, 0);
+        if ((*entity)->dot_duration % 60 == 1)
+        {
+            take_dmg((*entity), (*entity)->dot);
+        }
     }
     if (state->player->active_item)
         state->player->active_item->cooldown_left = max(state->player->active_item->cooldown_left - 1, 0);
+    state->player->acceleration_const_change = max(state->player->acceleration_const_change - 1, 0);
+    if (!state->player->acceleration_const_change)
+    {
+        state->player->acceleration_const = 0.8;
+    }
 }
 
 void erase_dead(Room *room)
@@ -254,11 +210,11 @@ void erase_dead(Room *room)
             {
                 if (!isProjectile(*entity) && !isMine(*entity) && !isPickable(*entity) && !isItem(*entity))
                 {
-                    if (rand() % 1 == 0)
+                    if (rand() % 5 == 0)
                     {
                         to_add[to_add_cnt++] = construct_katsu((*entity)->pos, room);
                     }
-                    if (rand() % 1 == 0)
+                    if (rand() % 7 == 0)
                     {
                         to_add[to_add_cnt++] = construct_coin((*entity)->pos, room);
                     }

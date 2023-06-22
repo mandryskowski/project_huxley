@@ -41,7 +41,7 @@ void circle_attack(Entity *haskell, Entity *victim)
         haskell->cooldown_left= 60;
         return;
     }
-    int num_of_projectiles = 100;
+    int num_of_projectiles = 50;
     for (int i = 0; i < num_of_projectiles; i++)
     {
         haskell->attack_velocity = Vec2d_rotate(haskell->attack_velocity, 360.0 / num_of_projectiles);
@@ -149,5 +149,5 @@ void construct_haskell(Entity *monster)
     *monster = (Entity) {.ATK = 10, .canFly = false,
             .hitbox = (Rectangle){(Vec2d){-1, -1}, (Vec2d){1, 1}},
             .HP = 300, .maxHP = 300, .SPD = 2, .velocity = (Vec2d){0.0, 0.0}, .projectileStats = (ProjectileStats){0, 0},
-            .attack_func = haskell_attack, .death_func = haskell_death, .faction = ENEMY, .attack_SPD = 6, .attack_cooldown = 20, .currentAnimation = NULL};
+            .attack_func = haskell_attack, .death_func = haskell_death, .faction = ENEMY, .attack_SPD = 4, .attack_cooldown = 20, .currentAnimation = NULL};
 }

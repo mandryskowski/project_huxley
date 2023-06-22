@@ -49,6 +49,7 @@ typedef struct Entity
     int HP, maxHP, attack_cooldown, cooldown_left;
     int ATK, attack_modifier;
     int hit_animation;
+    int dot, dot_duration;
     double SPD, attack_SPD;
 
     ProjectileStats projectileStats;
@@ -66,14 +67,19 @@ typedef struct Entity
     void* specific_data; // points to a Player object for player, a Boss object for a boss etc. Allows to retrieve extra fields in functions that accept Entity*.
 } Entity;
 
+typedef void (*dialogueAction)(GameState *);
+
 typedef struct Dialogue
 {
     char* title;
     char** dialogueLines;
+    char *skip_line;
     int dialogueSize;
     int dialogueIndex;
     double skipCooldown;
     bool isSkippable;
+
+    dialogueAction action;
 
     Entity *creator;
 } Dialogue;
@@ -87,6 +93,7 @@ typedef struct Player
 {
     Entity *entity;
     double acceleration_const; // between 0 and 1.
+    int acceleration_const_change;
     double movement_swing; // between 0 and 1.
     Vec2d cameraSize; // number of tiles visible on the x and y isometric diagonal centred around the player.
 
@@ -143,5 +150,6 @@ void free_dialogue(Dialogue *dialogue);
 
 void free_player(Player *player);
 void free_entity(Entity *entity);
+void take_dmg(Entity *entity, int dmg);
 
 #endif // ENTITY_H
