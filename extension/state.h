@@ -32,6 +32,8 @@ typedef struct GUIState
     GUIMenu menu;
     ImFont* titleFont;
     ImFont* defaultFont;
+
+    bool showDebugInfo;
 } GUIState;
 
 typedef struct GameState
@@ -46,5 +48,6 @@ typedef struct GameState
     RenderState* rState;
     AudioState* aState;
 } GameState;
+
 
 #endif // STATE_H
