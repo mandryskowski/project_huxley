@@ -37,9 +37,8 @@
 
 \begin{document}
 \maketitle
-
 \section{Assembler}
-Similarly to the emulator, the assembler was structured in four general parts: the overarching \textbf{assembler}, the \textbf{controller}, the \textbf{instruction types}, and the \textbf{utility} files. The chosen label handling method is the \textit{Two-pass} algorithm, generating the symbol table in the first pass and then replacing them with memory addresses in the second.\par
+Similarly to the emulator, the assembler was structured in four general parts: the overarching \textbf{assembler}, the \textbf{controller}, the \textbf{instruction types}, and the \textbf{utility} files. The chosen label handling method is the \textit{Two-pass} algorithm, generating the symbol table in the first pass, and then replacing them with memory addresses in the second.\par
 The program was organized such that, upon running the executable, the following steps would be run:
 \begin{enumerate}
     \item The input file is split into lines, with empty lines and comments (lines beginning with the '\#' character) being ignored, while the labels are replaced with immediate values generated in the aforementioned label processing auxiliary function.
@@ -47,14 +46,14 @@ The program was organized such that, upon running the executable, the following 
     \item The controller replaces the aliases (if they exist) with their expanded version, gets the instruction type (DPI, SDT, Branch, Special), and calls the corresponding function from the \textbf{/instruction} directory.
     \item The 32-bit instruction mask is then passed back to the main assembler function, which stores it in the given output file.
 \end{enumerate}
-All throughout this project, we kept memory allocation to a minimum, in order to have easy debugging in the off-chance of a memory leak arising, as well as tried to minimize the amount of content inside each function and add comments, so that the code is readable.
+In order to have easy debugging in the off-chance of a memory leak, we kept the memory allocation to a minimum throughout this project. Furthermore, we tried to minimize the amount of content and add comments, so that the code is readable.
 
 \section{Extension - "The DOC Archives: \textit{Konstantinos' Destiny}"}
 
 \subsection{Introduction}
-Having a lot of time remaining after implementing the first two parts of the project, we decided to do a more challenging extension: a game. We wanted something we would enjoy doing and would also leverage the team's previous expertise: rendering, game physics, and algorithms. We also wished to make something appealing to first-year Computing students, integrating all sorts of references, whilst having a practical use: gamifying studying for exams.
+Given the time remaining after implementing the first two parts of the project, we decided on developing a more challenging extension: a game. We wanted something enjoyable which would also leverage the team's previous expertise: rendering, game physics, and algorithms. We also wished to make something appealing to first-year Computing students, integrating all sorts of references, whilst having a practical use: gamifying studying for exams.
 \subsection{Game description}
-We settled on a rogue-like dungeon crawler, having Konstantinos, the first-year principal teaching fellow, as the playable main character. He moves through multiple rooms (resembling the Huxley building labs), facing all sorts of technological threats and answering different questions in order to gain power-ups (the difficulty exponentially increasing if he chooses not to answer these questions), until facing the final boss, a personification of Haskell corrupted by ChatGPT.
+We settled on a rogue-like dungeon crawler, having Konstantinos, the first-year principal teaching fellow, as the playable main character. He moves through multiple rooms (resembling the Huxley building labs), facing all sorts of technological threats and answering different questions in order to gain power-ups, until facing the final boss, a personification of Haskell corrupted by ChatGPT. Moreover, due to the educational aspect of this game, the difficulty exponentially increases if he chooses not to answer the questions encountered, which would incentivize the player not to skip them.
 
 \begin{figure}[H]
 \includegraphics[scale=0.2]{images/gamePreview.png}
@@ -66,9 +65,9 @@ We settled on a rogue-like dungeon crawler, having Konstantinos, the first-year 
 \subsection{Game implementation}
 
 \subsubsection{Rendering}
-As the time budget for the game was just under two weeks, the scope of the game had to be limited in all areas, including rendering and art. To simplify rendering and room generation the in-game rooms are rendered as 2D grids of textured quads. It was essential to set up at least a basic tile renderer quickly so that the rest of the group could debug their features and receive visual feedback. \par
+Given the narrow time frame, the scope of the game had to be limited in all areas, including rendering and art. To simplify rendering and room generation the in-game rooms are rendered as 2D grids of textured quads. It was essential to set up at least a basic tile renderer quickly so that the rest of the group could debug their features and receive visual feedback. \par
 The renderer pre-generates a 2D grid of quads corresponding to each tile in the room with already pre-set texture IDs and sends it to the GPU. \par
-Once we got it working we quickly realized that the same idea can be applied to set up an isometric renderer. This was a major stepping stone in our game's development and it made the game look more polished at a low cost. We found plenty of public-domain isometric assets which was also a plus. \par
+Once we got it working we quickly realized that the same idea can be applied to set up an isometric renderer. This was a major stepping stone in the development of the game, which made it look more polished at a low cost. We found plenty of public-domain isometric assets which was also a plus. \par
 To save time, we use one shader with multiple material types. We used the \textbf{depth buffer}, normally found in 3D rendering so that we can give an illusion of depth with 2D assets. Each tile is given a depth based on its x and y position so that entities can be obstructed by walls and vice versa.
 
 
@@ -97,7 +96,7 @@ To save time, we use one shader with multiple material types. We used the \textb
 \end{figure}
 
 \subsubsection{Room generation}
-The parameters defining a room are \textbf{type} and \textbf{gamemode}(difficulty). Based on its type, a room can be randomly generated (using a set of predefined structures that are arbitrarily resized and placed) or preset (e.g. Boss, Item, Shop, etc.). The preset rooms were inspired by the game we used as a reference (Fig. 2). The doors are added last after the map structure is generated.\par
+The parameters defining a room are \textbf{type} and \textbf{gamemode}(difficulty). Based on its type, a room can be randomly generated (using a set of predefined structures that are arbitrarily resized and placed) or preset (e.g. Boss, Item, Shop, etc.). The preset rooms were inspired by the game we used as a reference (Fig. 3). The doors are added last after the map structure is generated.\par
 When it comes to spawning monsters, the difficulty determines their type and amount. Using a two-pass algorithm we calculate a spawn chance grid in terms of their positioning (in relation to the entry points of the room) and then place them throughout the map, with a higher chance of them spawning closer to the center of the room.
 \begin{figure}[H]
 \centering
@@ -118,9 +117,9 @@ When it comes to spawning monsters, the difficulty determines their type and amo
 \end{figure}
 
 \subsubsection{Items + Special rooms}
-In order for there to be a natural progression, the player had to obtain power-ups. Thus, items were introduced to the game, which either increased the players' base attributes or gave him special abilities (bouncing projectiles, bomb trail, turning back time). For balance, we decided to make these items obtainable only in special rooms: \textbf{The Shop} and \textbf{The Treasury}. The treasury contains a free randomized item that the player can choose to collect, while the shop provides the player with the chance to spend the coins collected throughout the run, giving him 3 different options, as well as the opportunity to refresh the item pool, all with a certain cost.
+In order for there to be a natural progression, the player had to obtain power-ups. Thus, items were introduced to the game, which either increased the players' base attributes or gave them special abilities (bouncing projectiles, bomb trail, turning back time). For balance, we decided to make these items obtainable only in special rooms: \textbf{The Shop} and \textbf{The Treasury}. The treasury contains a free randomized item that the player can choose to collect, while the shop provides the player with the chance to spend the coins collected throughout the run, giving him 3 different options, as well as the opportunity to refresh the item pool, all with a certain cost.
 \subsubsection{Entities}
-Due to the lack of \textbf{OOP} features in C, we had to improvise when implementing the entities,
+Due to the lack of \textbf{Object-Oriented Programming} (OOP) features in C, we had to improvise when implementing the entities,
 leveraging function pointers for their actions, as well as trying to generalize everything inherited by the entity. The player is a structure that has \textit{unique fields} (such as movement swing, coin count, item lists), but which also contains an \textit{Entity} field, in order to make the movement much easier to implement. Overall, some shortcuts were taken in order to make the project in the short time frame available, making the code a bit messy, but it completes every task required.
 \subsubsection{Pathfinding}
 Initially, for the sake of testing, the pathfinding was implemented as a \textbf{Breadth-First Search} starting from the player through the whole map, every other entity trying to follow the player by choosing the neighboring tile closest to the player. This proved to work, but bugs regarding neighboring entities trying to go to each other's tiles, causing a deadlock, or trying to go to the same tile and colliding with the environment. Later on, we decided to add a few changes which would make the algorithm more efficient. We decreased the \textit{"likeability"} of the tiles which contained entities, as well as the tile to which the entities wanted to go to in the next frame. Then, we changed the BFS to \textbf{Dijkstra's Algorithm}, to view diagonal movement differently. Furthermore, a few edge cases were added following the implementation of multiple entity types (flying entities, random movement entities, projectiles) in order to ensure that the movement seemed natural.
@@ -133,15 +132,15 @@ Two of our group members worked on MacOS and the other two used Windows 10/11 wi
 \subsection{Testing}
 The testing was mainly done in two phases: individual testing of the feature implemented (when possible), and testing its integration into the main game.\par
 The former was done by manually writing tests with preset values and verifying that the program would behave as expected, while the latter consisted of getting the game state into a given position, either through normal gameplay or the debug window. \par
-The debug window (Fig. 2) was a feature added at the beginning of the implementation in order to manipulate different parameters in the game, such as the player stats, position, entity tracking, hitbox collision, and many other useful features, which made the second testing phase much easier.
+The debug window (Fig. 4) was a feature added at the beginning of the implementation in order to manipulate different parameters in the game, such as the player stats, position, entity tracking, hitbox collision, and many other useful features, which made the second testing phase much easier. 
 \begin{figure}[H]
 \includegraphics[scale=0.3]{images/debugwindow.png}
 \centering
-\caption{\textit{An instance of the debug window.}}
+\caption{\textit{An instance of the debug window(character statistics showing)}}
 \end{figure}
 By implementing the testing as a two-step process, any feature added to the main pipeline is going to be tested both as a stand-alone piece of code, but also as part of an overarching program. By thoroughly checking most of the scenarios which can appear during gameplay, we know that the project version in the main extension branch is working, thus optimizing any future testing.
 \subsection{Third-party code}
-Although we wanted to get straight into coding, there was one huge challenge we were yet to face: \textit{C is not a very friendly language for game development} (due to the lack of OOP features). We decided on using necessary libraries such as \href{https://www.opengl.org}{\textbf{OpenGL}} for rendering, a C wrapper for the C++ library \href{https://www.dearimgui.com}{\textbf{Dear ImGui}}  (CImGui), \href{https://www.openal.org}{\textbf{OpenAL}} for the audio, and \href{https://www.glfw.org}{\textbf{GLFW}} for system input and window handling.
+Although we wanted to get straight into coding, there was one huge challenge we were yet to face: \textbf{C would not be a programmer's first choice for game development}, due to the lack of OOP features. We decided on using necessary libraries such as \href{https://www.opengl.org}{\textbf{OpenGL}} for rendering, a C wrapper for the C++ library \href{https://www.dearimgui.com}{\textbf{Dear ImGui}}  (CImGui), \href{https://www.openal.org}{\textbf{OpenAL}} for the audio, and \href{https://www.glfw.org}{\textbf{GLFW}} for system input and window handling.
 
 \section{Group reflection}
 \subsection{Communication and task distribution}
