@@ -33,7 +33,7 @@ uint getTileTextureID(TileType type)
         case TILE_WALL: return 15 - 1;
         case TILE_BARRIER: return 15;
         case TILE_HOLE: return 15 - 7;
-        case TILE_DOOR: return getTileTextureID(TILE_FLOOR);
+        case TILE_DOOR: return 12;
         default: return 0;
     }
 }
