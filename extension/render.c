@@ -45,6 +45,7 @@ bool isTileTypeOnFloor(TileType type)
         case TILE_BARRIER:
         case TILE_HOLE:
         case TILE_WALL:
+        case TILE_DOOR:
             return true;
         default:
             return false;
@@ -259,7 +260,7 @@ Mesh initIsoMesh(GameState* gameState, Vertex* verts, uint width, uint height)
                 verts = initIsoMeshHelperQuad(x, y, &outMesh, verts, offsets, quadPos, 6, type);
             }
 
-            
+            if (type != TILE_DOOR)
             verts = initIsoMeshHelperQuad(x, y, &outMesh, verts, offsets, quadPos, texID, type);
            // printf("vert (%d %d) %f %f \n", x, y,quadPos.x, quadPos.y);
         }
