@@ -41,17 +41,18 @@ int tile_type_to_textureID(TileType tileType, RoomType roomType, int x, int y, R
             return 12;
         case TILE_BARRIER:
             return roomType == ITEM_ROOM || roomType == SHOP_ROOM ? 11 : 15;
-        case TILE_DOOR:
-        {
-            int non_zero = x && x != room->size.x - 1 ? x - room->size.x / 2 : y - room->size.y / 2;
-            return non_zero ? 9 : 10;
-        }
+//        case TILE_DOOR:
+//        {
+//            return 12;
+//            int non_zero = x && x != room->size.x - 1 ? x - room->size.x / 2 : y - room->size.y / 2;
+//            return non_zero ? 9 : 10;
+//        }
         case TILE_HOLE:
             return 8;
         case TILE_WALL:
             return 13;
         default:
-            return 0;
+            return 12;
     }
 }
 
