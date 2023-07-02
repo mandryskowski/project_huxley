@@ -5,6 +5,7 @@
 #include "level.h"
 #include "util.h"
 #include "entity.h"
+#include "pathfind.h"
 #include "predefinedRooms/room_generator.h"
 
 #include <stdio.h>
@@ -14,7 +15,7 @@
 
 void jump_to_next_room(GameState *state)
 {
-    printf("roomChange!\n");
+    //printf("roomChange!\n");
     Vec2i direction = {0, 0};
     Vec2d playerPos = state->player->entity->pos;
     if (playerPos.x < 1)
@@ -81,6 +82,7 @@ void jump_to_next_room(GameState *state)
             state->player->entity->pos.x += x_diff;
         }
 
+        recompute_jps_data(newRoom);
         push(state->player->prev_positions, state->player->entity->pos);
         for (Entity **entity = newRoom->entities + 1; *entity; entity++)
         {
@@ -115,7 +117,7 @@ void create_door(Room *room, int site)
             room->tiles[0][room->size.y / 2] = (Tile){TILE_DOOR, 10};
             break;
         case 1:
-            printf("%d %d xd\n", room->size.x, room->size.y);
+            //printf("%d %d xd\n", room->size.x, room->size.y);
             room->tiles[room->size.x / 2 - 1][0] = (Tile){TILE_DOOR, 10};
             room->tiles[room->size.x / 2][0] = (Tile){TILE_DOOR, 9};
             break;

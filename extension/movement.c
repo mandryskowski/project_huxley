@@ -193,6 +193,7 @@ double moveUnitlPossible(Entity **entity, Entity **currEntityPtr, double dt, Rec
 
 void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, GameState *state, Entity *currEntity)
 {
+    Room *room = state->currentLevel->currentRoom;
     for (int i = cBounds.x; i <= cBounds.y; i++)
     {
         Vec2i tile = isX ? (Vec2i){valBound, i} : (Vec2i){i, valBound};
@@ -202,19 +203,19 @@ void add_wall(Vec2i cBounds, int valBound, bool isX, Rectangle **obstaclesEnd, G
             continue;
         }
 
-        if (getTile(tile, state) == TILE_DOOR && currEntity == state->player->entity && is_clear)
+        if (getTile(tile, room) == TILE_DOOR && currEntity == state->player->entity && is_clear)
         {
             //printf("xdd\n");
             continue;
         }
         if (isProjectile(currEntity))
         {
-            if (getTile(tile, state) != TILE_FLOOR && getTile(tile, state) != TILE_HOLE)
+            if (getTile(tile, room) != TILE_FLOOR && getTile(tile, room) != TILE_HOLE)
             {
                 *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
             }
         }
-        else if ((!currEntity->canFly || getTile(tile, state) == TILE_WALL || getTile(tile, state) == TILE_DOOR) && getTile(tile, state) != TILE_FLOOR)
+        else if ((!currEntity->canFly || getTile(tile, room) == TILE_WALL || getTile(tile, room) == TILE_DOOR) && getTile(tile, room) != TILE_FLOOR)
         {
             *(*obstaclesEnd)++ = (Rectangle){{tile.x, tile.y}, {tile.x + 1, tile.y + 1}};
         }
@@ -267,6 +268,10 @@ void move(GameState* state, Entity** entity, double dt)
             }
         }
         free(obstacles);
+//        if (getTile(Vec2d_to_Vec2i((*currEntity)->pos), state->currentLevel->currentRoom) != TILE_FLOOR)
+//        {
+//            exit(0);
+//        }
         if (currEntity!= entity && isOutOfBounds(Vec2d_to_Vec2i((*currEntity)->pos), state->currentLevel->currentRoom))
         {
             killEntity(*currEntity);

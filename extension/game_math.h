@@ -53,11 +53,14 @@ Vec3f Mat3f_multiply_Vec3f(Mat3f, Vec3f);
 void Mat3f_print(Mat3f*);
 
 Vec2i Vec2i_normalize(Vec2i);
+Vec2i Vec2i_sub(Vec2i lhs, Vec2i rhs);
 Vec2i Vec2i_add(Vec2i, Vec2i);
 Vec2i Vec2i_scale(Vec2i, float scalar);
+Vec2i Vec2i_normalize(Vec2i);
 bool Vec2i_equals(Vec2i, Vec2i);
 
 bool Vec2d_zero(Vec2d);
+Vec2d Vec2d_sub(Vec2d lhs, Vec2d rhs);
 Vec2d Vec2d_rotate(Vec2d, double);
 Vec2d Vec2d_normalize(Vec2d);
 Vec2d Vec2d_add(Vec2d, Vec2d);

@@ -15,7 +15,7 @@ void patternBuilder(Room *room, Pattern pattern, Vec2i topLeft, Vec2i bottomRigh
 
     if (pattern > 1)
     {
-        printf("%d pattern\n", pattern);
+        //printf("%d pattern\n", pattern);
         presetStructures(room, pattern - 1, topLeft, bottomRight, type, 90 * rand());
     }
 

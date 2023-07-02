@@ -15,7 +15,7 @@
 
 bool isNotAMonster(Entity *entity)
 {
-    return isProjectile(entity) || isMine(entity) || isPickable(entity);
+    return isProjectile(entity) || isMine(entity) || isPickable(entity) || isNPC(entity) || isItem(entity);
 }
 
 bool isPlayer(Entity *entity)

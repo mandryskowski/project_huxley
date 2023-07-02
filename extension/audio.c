@@ -189,11 +189,11 @@ uint loadWavSound(char* path, uint buffer, bool music)
 
     size_t s = BLOCK_SIZE;
 
-    printf("File %s \n", path);
+    //printf("File %s \n", path);
     
     while (s == BLOCK_SIZE)
     {
-        printf("Sound Block!\n");
+        //printf("Sound Block!\n");
         s = tinywav_read_f(&tw, samplePtrs, BLOCK_SIZE);
         
         if (!music && s == BLOCK_SIZE)

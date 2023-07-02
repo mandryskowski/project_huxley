@@ -51,7 +51,7 @@ typedef struct Room
     bool visited;
 } Room;
 
-TileType getTile(Vec2i vec, GameState *state);
+TileType getTile(Vec2i vec, Room *room);
 void add_items_to_shop(Room *room);
 Room *construct_room(char *filename, RoomType type);
 bool isClear(Room *room);

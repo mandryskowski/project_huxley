@@ -7,9 +7,9 @@
 #include "level.h"
 #include "item.h"
 
-TileType getTile(Vec2i vec, GameState *state)
+TileType getTile(Vec2i vec, Room *room)
 {
-    return state->currentLevel->currentRoom->tiles[vec.x][vec.y].type;
+    return room->tiles[vec.x][vec.y].type;
 }
 
 void add_items_to_shop(Room *room)

@@ -245,19 +245,7 @@ void updateLogic(GameState* state, double dt)
 
     if (frame_cnt % 5 == 0 && !isClear(state->currentLevel->currentRoom))
     {
-        int index = 0;
-        Vec2d* velocities = path((**arr).pos, arr + 1, state);
-        for(Entity** other = arr+1; *other != NULL; other++)
-        {
-            if (isProjectile(*other))
-            {
-                index++;
-                continue;
-            }
-
-            (*other)->velocity = *(velocities+index);
-            index++;
-        }
+        path((**arr).pos, arr + 1, state);
     }
 
     if (state->player->entity->cooldown_left == 0 && !Vec2d_zero(state->player->entity->attack_velocity))
@@ -339,6 +327,7 @@ void initGame(GameState* gState)
         exit(-1);
     }
 
+    init_pathfind();
     gui_init(gState);
 
     gState->rState = malloc(sizeof(RenderState));
@@ -404,6 +393,7 @@ void gameLoop(GameState* gState)
     gState->guiState->dialogue = NULL;
 
     initRenderState(gState, gState->rState);
+    recompute_jps_data(gState->currentLevel->currentRoom);
 
     for (Entity **entity = gState->currentLevel->currentRoom->entities + 1; *entity; entity++)
     {

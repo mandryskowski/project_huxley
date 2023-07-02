@@ -73,6 +73,21 @@ void Mat3f_print(Mat3f* mat)
 //    return Vec2i_scale(vec, sqrt(vec.x * vec.x + vec.y * vec.y));
 //}
 
+Vec2i Vec2i_sub(Vec2i lhs, Vec2i rhs)
+{
+    return (Vec2i){lhs.x - rhs.x, lhs.y - rhs.y};
+}
+
+Vec2i Vec2i_normalize(Vec2i vec)
+{
+    return (Vec2i){vec.x > 0 ? 1 : vec.x < 0 ? -1 : 0, vec.y > 0 ? 1 : vec.y < 0 ? -1 : 0};
+}
+
+Vec2d Vec2d_sub(Vec2d lhs, Vec2d rhs)
+{
+    return (Vec2d){lhs.x - rhs.x, lhs.y - rhs.y};
+}
+
 Vec2i Vec2i_add(Vec2i lhs, Vec2i rhs)
 {
     return (Vec2i){lhs.x + rhs.x, lhs.y + rhs.y};
@@ -121,7 +136,7 @@ Vec2d Vec2d_scale(Vec2d vec, double scalar)
 
 void Vec2d_print(Vec2d vec)
 {
-    printf("(%f, %f)", vec.x, vec.y);
+    //printf("(%f, %f)", vec.x, vec.y);
 }
 
 Rectangle rectangle_Vec2d(Rectangle rect, Vec2d vec)

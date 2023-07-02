@@ -25,7 +25,7 @@ bool animLogicInt(Animation* anim)
     int* start = (int*)anim->startVal;
     int* end = (int*)anim->endVal;
 
-    printf("val %f %f %f \n", *val, *start, *end);
+    //printf("val %f %f %f \n", *val, *start, *end);
 
     if (abs(*val - *end) < EPSILON)
     {
@@ -46,7 +46,7 @@ bool animLogicDouble(Animation* anim)
     double* start = (double*)anim->startVal;
     double* end = (double*)anim->endVal;
 
-    printf("val %f %f %f %f \n", *val, *start, *end, abs(*val - *end));
+    //printf("val %f %f %f %f \n", *val, *start, *end, abs(*val - *end));
 
     if (fabs((*val) - (*end)) < EPSILON)
     {

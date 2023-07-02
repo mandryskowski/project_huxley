@@ -13,7 +13,7 @@ uint loadTexture(char* filename)
 
     if (data == NULL)
     {
-        printf("Could not load texture %s\n", filename);
+        //printf("Could not load texture %s\n", filename);
         return 0;
     }
 
@@ -65,7 +65,7 @@ uint loadAtlas(char* filename, int width, int height)
 
     if (data == NULL)
     {
-        printf("Could not load atlas texture %s\n", filename);
+        //printf("Could not load atlas texture %s\n", filename);
         return 0;
     }
 

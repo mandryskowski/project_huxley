@@ -5,6 +5,8 @@
 #include "entity.h"
 #include "state.h"
 
-Vec2d* path(Vec2d playerPosition, Entity** entities, GameState* gState);
+void init_pathfind();
+void recompute_jps_data(Room *room);
+void path(Vec2d playerPosition, Entity** entities, GameState* gState);
 
 #endif //PATHFIND_H
