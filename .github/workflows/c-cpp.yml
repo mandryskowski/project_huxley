@@ -29,16 +29,9 @@ jobs:
       working-directory: ./src
       run: make game
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-arm64
     steps:
     - uses: actions/checkout@v3
-    - name: Build wheels
-      uses: pypa/cibuildwheel@v2.13.1
-      env:
-        CIBW_ARCHS_MACOS: arm64
     - name: Make
       working-directory: ./src
       run: make game
-    - uses: actions/upload-artifact@v3
-      with:
-        path: ./wheelhouse/*.whl
