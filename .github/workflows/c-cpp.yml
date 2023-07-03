@@ -16,7 +16,7 @@ jobs:
     - name: config1
       run: sudo apt update
     - name: config2
-      run: sudo apt install libglx-dev
+      run: sudo apt install libgl-dev
     - name: make
       working-directory: ./src
       run: make game
