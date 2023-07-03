@@ -2,27 +2,8 @@
 
 #ignore temp files
 *~
-
-#ignore pdf files (just keep source files)
-*.pdf
-
-#ignore junk files from latex output
-*.out
-*.log
-*.aux
-*.dvi
-*.ps
-
 #ignore junk files from compiling C code
 *.o
-emulate
-assemble
-
-#ignore junk files from compiling Haskell code
-*.hi
-
-#ignore junk files from compiling Java code
-*.class
 
 #ignore other junk files
 *.backup
@@ -33,7 +14,5 @@ assemble
 *.nav
 *.toc
 
-.vscode/tasks.json
-src/a.exe
-
-extension/imgui.ini
+.vscode
+src/imgui.ini
