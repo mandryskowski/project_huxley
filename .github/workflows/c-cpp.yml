@@ -8,29 +8,37 @@ on:
 
 jobs:
   build-ubuntu:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: config1
-      run: sudo apt update
-    - name: config2
-      run: sudo apt install libgl-dev
-    - name: Make ubuntu
+    - name: config
+      run: |
+        sudo apt update
+        sudo apt install libgl-dev
+    - name: make
       working-directory: ./src
       run: make game
       
-  build-windows-macos:
-    # Thank you riQQ for this method. https://stackoverflow.com/questions/59295795/run-github-action-on-multiple-environments
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: windows-latest
   
-    strategy:
-            matrix:
-                os: [windows-latest, macos-latest]
-    
     steps:
     - uses: actions/checkout@v3
-    - name: Make ${{ matrix.os }}
+    - name: make
       working-directory: ./src
       run: make game
+  build-macos:
+    runs-on: macos11
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v2.13.1
+      env:
+        CIBW_ARCHS_MACOS: arm64
+    - name: Make
+      working-directory: ./src
+      run: make game
+    - uses: actions/upload-artifact@v3
+      with:
+        path: ./wheelhouse/*.whl
